@@ -107,6 +107,10 @@ export interface Room {
   preset: Preset;
   phase: RoomPhase;
   hostId: string;
+  hostRevision?: number;
+  resetReason?: "rematch" | "abort";
+  // A private receipt allows the former host to retry a completed transfer.
+  lastHostTransfer?: { fromId: string; toId: string; round: number; hostRevision: number };
   players: Player[];
   createdAt: number;
   expiresAt: number;
@@ -127,6 +131,8 @@ export interface RoomView {
   preset: Preset;
   phase: RoomPhase;
   hostId: string;
+  hostRevision: number;
+  resetReason: "rematch" | "abort" | null;
   version: number;
   players: { id: string; name: string; seat: number; ready: boolean; confirmed: boolean }[];
   meId: string | null;
@@ -252,6 +258,8 @@ export function roomView(room: Room, key: string, version: number): RoomView {
     preset: room.preset,
     phase: room.phase,
     hostId: room.hostId,
+    hostRevision: room.hostRevision ?? 0,
+    resetReason: room.resetReason ?? null,
     version,
     players: room.players.map(({ id, name, seat, ready, confirmed }) => ({
       id, name, seat, ready, confirmed,
@@ -499,6 +507,22 @@ function requireCurrentRound(room: Room, input: Record<string, unknown>): void {
   }
 }
 
+function resetGame(room: Room, reason: "rematch" | "abort"): void {
+  const round = room.round ?? 1;
+  if (round === Number.MAX_SAFE_INTEGER) throw new GameError("请重新建立房间。 ");
+  room.round = round + 1;
+  room.phase = "lobby";
+  room.resetReason = reason;
+  delete room.game;
+  delete room.firstLeader;
+  delete room.lastHostTransfer;
+  for (const player of room.players) {
+    delete player.role;
+    player.ready = false;
+    player.confirmed = false;
+  }
+}
+
 function rematch(room: Room, me: Player, input: Record<string, unknown>): void {
   if (room.hostId !== me.id) throw new GameError("只有房主可以开始下一局。", 403);
   const requestedRound = requireRound(input.round);
@@ -510,20 +534,87 @@ function rematch(room: Room, me: Player, input: Record<string, unknown>): void {
     throw new GameError("房间已进入新的对局，请刷新后重试。 ");
   }
   if (room.phase !== "finished") throw new GameError("请在本局结束后再开始下一局。 ");
-  if (round === Number.MAX_SAFE_INTEGER) throw new GameError("请重新建立房间。 ");
-  room.round = round + 1;
-  room.phase = "lobby";
-  delete room.game;
-  delete room.firstLeader;
-  for (const player of room.players) {
-    delete player.role;
-    player.ready = false;
-    player.confirmed = false;
+  resetGame(room, "rematch");
+}
+
+function requireHostRevision(value: unknown): number {
+  if (typeof value !== "number" || !Number.isSafeInteger(value) || value < 0) {
+    throw new GameError("房主权限版本无效，请刷新后重试。", 400);
   }
+  return value;
+}
+
+function nextHostRevision(room: Room): number {
+  const revision = room.hostRevision ?? 0;
+  if (revision === Number.MAX_SAFE_INTEGER) throw new GameError("请重新建立房间。 ");
+  return revision + 1;
+}
+
+function requireTargetPlayerId(value: unknown): string {
+  if (typeof value !== "string" || !value || value.length > 64) {
+    throw new GameError("请选择有效的玩家。", 400);
+  }
+  return value;
+}
+
+function manageRoom(room: Room, me: Player, action: string, input: Record<string, unknown>): void {
+  const round = room.round ?? 1;
+  const hostRevision = room.hostRevision ?? 0;
+  if (room.hostId !== me.id) {
+    const receipt = room.lastHostTransfer;
+    // The previous host has already lost authority. Only the exact most recent
+    // successful transfer may be retried, without restoring any permissions.
+    if (action === "transfer-host" && room.phase !== "closed" && receipt &&
+        receipt.fromId === me.id && receipt.toId === room.hostId &&
+        receipt.toId === input.targetPlayerId && receipt.round === round &&
+        input.round === round && receipt.hostRevision === input.hostRevision &&
+        hostRevision === receipt.hostRevision + 1) return;
+    throw new GameError("只有当前房主可以管理房间。", 403);
+  }
+  const requestedRound = requireRound(input.round);
+  const requestedRevision = requireHostRevision(input.hostRevision);
+  if (requestedRevision !== hostRevision) {
+    throw new GameError("房主权限已发生变化，请刷新后重试。 ");
+  }
+  // Retrying a completed abort must never erase the next game's progress.
+  if (action === "abort" && round > 1 && requestedRound === round - 1) return;
+  if (requestedRound !== round) {
+    throw new GameError("房间已进入新的对局，请刷新后重试。 ");
+  }
+  if (action === "abort") {
+    if (!["identity", "ready", "team", "vote", "quest", "assassination"].includes(room.phase)) {
+      throw new GameError("只有进行中的对局可以作废；本局结束后请使用再来一局。 ");
+    }
+    resetGame(room, "abort");
+    return;
+  }
+  if (action === "kick" && room.phase !== "lobby") {
+    throw new GameError("只能在等待入座时移除玩家。 ");
+  }
+  if (room.phase === "closed") throw new GameError("房间已关闭。", 410);
+  const targetId = requireTargetPlayerId(input.targetPlayerId);
+  if (targetId === me.id) throw new GameError("请选择其他玩家。", 400);
+  const target = room.players.find(player => player.id === targetId);
+  if (action === "kick") {
+    // IDs survive seat changes but are replaced on rejoining, so retrying a kick
+    // cannot remove a new occupant who took the same seat.
+    if (target) room.players = room.players.filter(player => player.id !== targetId);
+    return;
+  }
+  if (!target) throw new GameError("这位玩家已离开房间，请刷新后重试。 ");
+  const revision = nextHostRevision(room);
+  room.lastHostTransfer = { fromId: me.id, toId: targetId, round, hostRevision };
+  room.hostId = targetId;
+  room.hostRevision = revision;
 }
 
 export function mutateRoom(room: Room, key: string, action: string, input: Record<string, unknown>): void {
   const me = room.players.find(player => player.key === key);
+  if (["kick", "transfer-host", "abort"].includes(action)) {
+    if (!me) throw new GameError("请先加入房间。", 403);
+    manageRoom(room, me, action, input);
+    return;
+  }
   if (action === "rematch") {
     if (!me) throw new GameError("请先加入房间。", 403);
     rematch(room, me, input);
@@ -578,13 +669,17 @@ export function mutateRoom(room: Room, key: string, action: string, input: Recor
     return;
   }
   if (action === "leave") {
-    room.players = room.players.filter(player => player.id !== me.id);
+    const remainingPlayers = room.players.filter(player => player.id !== me.id);
+    if (room.hostId === me.id && remainingPlayers.length) {
+      const revision = nextHostRevision(room);
+      room.hostId = [...remainingPlayers].sort((a, b) => a.seat - b.seat)[0].id;
+      room.hostRevision = revision;
+      delete room.lastHostTransfer;
+    }
+    room.players = remainingPlayers;
     if (!room.players.length) {
       room.phase = "closed";
       return;
-    }
-    if (room.hostId === me.id) {
-      room.hostId = [...room.players].sort((a, b) => a.seat - b.seat)[0].id;
     }
     return;
   }

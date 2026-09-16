@@ -31,7 +31,7 @@ export async function createRoom(key:string,input:Record<string,unknown>){
   if(count&&count.n>=8)throw new GameError("今天建立的房间有点多，请先使用已有房间。",429);
   for(let i=0;i<8;i++){
     const code=String(100000+randomInt(900000)),id=crypto.randomUUID();
-    const room:Room={code,round:1,capacity,preset,phase:"lobby",hostId:id,players:[{id,key,name,seat:1,ready:false,confirmed:false}],createdAt:Date.now(),expiresAt:Date.now()+86400000,requestId};
+    const room:Room={code,round:1,capacity,preset,phase:"lobby",hostId:id,hostRevision:0,players:[{id,key,name,seat:1,ready:false,confirmed:false}],createdAt:Date.now(),expiresAt:Date.now()+86400000,requestId};
     const result=await db().prepare("INSERT OR IGNORE INTO rooms (code,state,version,expires_at,owner_key,request_id) VALUES (?,?,1,?,?,?)").bind(code,JSON.stringify(room),room.expiresAt,key,requestId).run();
     if(result.meta.changes===1)return roomView(room,key,1);
     const duplicate=await db().prepare("SELECT state,version,expires_at FROM rooms WHERE request_id=?").bind(requestId).first<Row>();

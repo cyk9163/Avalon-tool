@@ -1,6 +1,6 @@
 {
   "name": "avalon-roundtable",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": true,
   "engines": {
     "node": ">=22.13.0"
@@ -15,7 +15,7 @@
     "db:migrate:local": "node scripts/wrangler.mjs d1 migrations apply DB --local --persist-to .wrangler/state --config wrangler.jsonc",
     "db:migrate:remote": "node scripts/wrangler.mjs d1 migrations apply DB --remote --config wrangler.jsonc",
     "deploy": "node scripts/deploy.mjs",
-    "test": "node --experimental-transform-types --test --test-isolation=none tests/game.test.mjs tests/stage2.test.mjs tests/stage3.test.mjs tests/pwa.test.mjs",
+    "test": "node --experimental-transform-types --test --test-isolation=none tests/game.test.mjs tests/stage2.test.mjs tests/stage3.test.mjs tests/pwa.test.mjs tests/management.test.mjs",
     "test:integration": "node tests/integration.mjs",
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",

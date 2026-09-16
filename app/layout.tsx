@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import "./game.css";
 import "./pwa.css";
+import "./management.css";
 
 export const metadata: Metadata = {
   title: "圆桌 · 阿瓦隆助手",

@@ -89,7 +89,7 @@ test("A rematch preserves the room and roster but removes every old identity, ba
     code: room.code, capacity: room.capacity, preset: room.preset, hostId: room.hostId,
     createdAt: room.createdAt, expiresAt: room.expiresAt, requestId: room.requestId,
     players: room.players.map(({id, key, name, seat}) => ({id, key, name, seat, ready: false, confirmed: false})),
-    phase: "lobby", round: 2,
+    phase: "lobby", round: 2, resetReason: "rematch",
   };
   act(room, 1, "rematch");
   assert.deepEqual(room, expected);

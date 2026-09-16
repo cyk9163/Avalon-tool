@@ -9,6 +9,7 @@ import { AlertDialog, AlertDialogContent, AlertDialogTitle, AlertDialogDescripti
 import { ROLES, PRESETS, rolePool, EVIL_COUNTS, type Preset, type RoomView } from "@/lib/game";
 import { GamePanel } from "@/components/game-panel";
 import { InstallApp } from "@/components/install-app";
+import { RoomManagement } from "@/components/room-management";
 
 type Mode="create"|"join";
 let sessionBootstrap:Promise<unknown>|null=null;
@@ -40,12 +41,16 @@ function Table({count,room,onSeat,disabled}:{count:number;room?:RoomView|null;on
 export default function Home(){
   const [mode,setMode]=useState<Mode>("create"),[name,setName]=useState(""),[capacity,setCapacity]=useState(7),[preset,setPreset]=useState<Preset>("classic"),[code,setCode]=useState("");
   const [room,setRoom]=useState<RoomView|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState(""),[sessionReady,setSessionReady]=useState(false),[connected,setConnected]=useState(true);
+  const [membershipNotice,setMembershipNotice]=useState("");
   const [share,setShare]=useState(false),[qr,setQr]=useState(""),[copied,setCopied]=useState(false),[reveal,setReveal]=useState(false),[seen,setSeen]=useState(false),[confirmStart,setConfirmStart]=useState(false),[confirmLeave,setConfirmLeave]=useState(false),[help,setHelp]=useState(false);
   const currentCode=useRef(""),createId=useRef(""),latest=useRef<RoomView|null>(null),busyRef=useRef(false);
   const accept=useCallback((data:RoomView)=>{
     if(data.code!==currentCode.current)return;
     if(latest.current?.code===data.code&&latest.current.version>data.version)return;
     if(latest.current?.round!==data.round){setReveal(false);setSeen(false);setConfirmStart(false);setConfirmLeave(false);setError("");}
+    if(latest.current?.hostId!==data.hostId||latest.current?.meId!==data.meId){setConfirmStart(false);setConfirmLeave(false);}
+    if(latest.current?.meId&&!data.meId){setReveal(false);setSeen(false);setMembershipNotice("房主已将你移出房间，原座位已释放。需要继续参与时，可以重新选择空座位加入。");}
+    if(data.meId)setMembershipNotice("");
     latest.current=data;setRoom(data);setConnected(navigator.onLine!==false);
   },[]);
   const load=useCallback(async(target:string)=>{const data=await request(`/api/room?code=${encodeURIComponent(target)}`);accept(data);return data as RoomView;},[accept]);
@@ -87,26 +92,26 @@ export default function Home(){
     if(navigator.onLine===false){setConnected(false);setError("网络已断开。联网后请重新提交，操作不会在后台自动发送。");return null;}
     if(busyRef.current)return null;busyRef.current=true;setBusy(true);setError("");
     try{
-      const data=await request("/api/room",{action,code:currentCode.current,round:room?.round,...extra}) as RoomView;
+      const data=await request("/api/room",{action,code:currentCode.current,round:room?.round,hostRevision:room?.hostRevision,...extra}) as RoomView;
       if(action==="create"){currentCode.current=data.code;latest.current=null;createId.current="";}
       if(action==="leave"){
-        currentCode.current="";latest.current=null;setRoom(null);setCode("");setReveal(false);history.replaceState(null,"","/");try{localStorage.removeItem("avalon:last-room");}catch{};return data;
+        currentCode.current="";latest.current=null;setRoom(null);setCode("");setReveal(false);setMembershipNotice("");history.replaceState(null,"","/");try{localStorage.removeItem("avalon:last-room");}catch{};return data;
       }
       accept(data);
       if(data.meId){history.replaceState(null,"",`/?room=${data.code}`);try{localStorage.setItem("avalon:last-room",data.code);localStorage.setItem("avalon:nickname",String(extra.name||name));}catch{}}
       return data;
     }catch(e){
-      if((e as {status?:number}).status===409&&currentCode.current)await load(currentCode.current).catch(()=>setConnected(false));
+      if([403,409].includes((e as {status?:number}).status??0)&&currentCode.current)await load(currentCode.current).catch(()=>setConnected(false));
       setError((e as Error).name==="TimeoutError"?"连接超时，请重试。已完成的操作不会重复执行。":(e as Error).message);return null;
     }
     finally{busyRef.current=false;setBusy(false);}
-  },[accept,name,room?.round,load]);
+  },[accept,name,room?.round,room?.hostRevision,load]);
   const lookup=async()=>{
     if(!/^\d{6}$/.test(code)){setError("请输入 6 位房间码。");return;}
-    setBusy(true);setError("");currentCode.current=code;latest.current=null;
+    setBusy(true);setError("");setMembershipNotice("");currentCode.current=code;latest.current=null;
     try{await load(code);history.replaceState(null,"",`/?room=${code}`);}catch(e){setError((e as Error).message);}finally{setBusy(false);}
   };
-  const back=()=>{currentCode.current="";latest.current=null;setRoom(null);setError("");setReveal(false);history.replaceState(null,"","/");try{localStorage.removeItem("avalon:last-room");}catch{}};
+  const back=()=>{currentCode.current="";latest.current=null;setRoom(null);setError("");setReveal(false);setMembershipNotice("");history.replaceState(null,"","/");try{localStorage.removeItem("avalon:last-room");}catch{}};
   const create=async()=>{createId.current ||= crypto.randomUUID();await act("create",{name,capacity,preset,requestId:createId.current});};
   const me=room?.players.find(p=>p.id===room.meId),isHost=!!me&&room?.hostId===me.id;
   const allReady=!!room&&room.players.length===room.capacity&&room.players.every(p=>p.ready);
@@ -128,6 +133,9 @@ export default function Home(){
       <TabsContent value="join"><form className="form-stack" onSubmit={e=>{e.preventDefault();void lookup();}}><label className="field">房间码<input className="code-input" inputMode="numeric" autoComplete="off" pattern="[0-9]{6}" required placeholder="输入 6 位房间码" maxLength={6} value={code} onChange={e=>setCode(e.target.value.replace(/\D/g,""))}/></label><button className="primary-button" disabled={busy||!sessionReady}>{busy?"正在寻找…":"找到圆桌"}<ArrowRight size={19}/></button><p className="form-note">也可以直接扫描房主的二维码</p></form></TabsContent></Tabs></section><section className="table-panel"><div className="table-caption"><span>今晚的圆桌</span><span><Users size={15}/>{capacity} 人局</span></div><Table count={capacity}/><div className="alignment-line"><span>{capacity-EVIL_COUNTS[capacity]} 位好人</span><span>{EVIL_COUNTS[capacity]} 位坏人</span></div><RoleChips count={capacity} preset={preset}/><div className="table-notes"><div><span>01</span><p>扫码入座</p></div><div><span>02</span><p>私密看身份</p></div><div><span>03</span><p>投票与任务</p></div></div><p className="privacy-note"><Shield size={15}/>你的身份，只向你揭晓</p></section></div>:
     <section className="room-page"><div className="room-heading"><div><span className="eyebrow">{room.phase==="lobby"?"TAKE YOUR SEAT":room.game?"THE ROUND TABLE":"YOUR SECRET"}</span><h1>{room.phase==="lobby"?"围坐，等待朋友。":room.phase==="ready"?"身份就绪，开始推理。":room.phase==="finished"?"故事落幕，复盘这一局。":room.game?"每一票，都留下线索。":"请查看你的身份。"}</h1><p className="room-meta">房间 <strong>{room.code}</strong><span>·</span>{room.capacity} 人 · {PRESETS[room.preset].name}<span>·</span>第 {room.round} 局</p></div><button className="secondary-button" onClick={()=>setShare(true)}><QrCode size={18}/>邀请朋友</button></div>
       {!connected&&<div className="connection-banner" role="status"><RefreshCw size={16}/>连接暂时中断，正在重连。座位和身份会保留。<button onClick={()=>void load(room.code).catch(()=>setConnected(false))}>立即重试</button></div>}
+      {membershipNotice&&<p className="membership-notice" role="status">{membershipNotice}</p>}
+      {room.phase==="lobby"&&room.resetReason==="abort"&&<p className="membership-notice" role="status">上一局已由房主作废，身份和记录已清除。玩家与座位已保留，请重新准备；需要补位时可由房主移除离场玩家。</p>}
+      <RoomManagement key={`${room.code}:${room.round}:${room.meId}:${room.hostId}:${room.hostRevision}`} room={room} busy={busy} connected={connected} error={error} act={act}/>
       <GamePanel key={`${room.round}:${room.game?.turnId??"pregame"}`} room={room} busy={busy} connected={connected} error={error} act={act} onNewGame={back}/><details className={`room-details ${room.game?"in-game":""}`} open={!room.game}><summary>{me?"我的身份与圆桌座位":"圆桌座位与角色配置"}<span>点击展开</span></summary><div className="room-layout"><section className="table-panel room-table"><div className="table-caption"><span>{room.phase==="lobby"?"按实际座位入座":"座位已锁定"}</span><span>{room.phase==="lobby"?`${room.players.filter(p=>p.ready).length} 人已准备`:`${confirmedCount} / ${room.capacity} 人已确认`}</span></div><Table count={room.capacity} room={room} disabled={busy||!sessionReady||!connected||room.phase!=="lobby"} onSeat={seat=>{if(me)void act("seat",{seat});else if(!name.trim())setError("先填写昵称，再选择一个空位。");else void act("join",{seat,name});}}/><p className="table-hint">{room.phase==="lobby"?me?"点击空座位可以换座，换座后需要重新准备。":"填好昵称后，点击一个空座位加入。":room.game?"对局中座位保持不变，队长按座位顺序轮换。":"所有人的身份确认完毕后，由房主开始对局。"}</p><div className="member-list">{room.players.map(p=><div key={p.id}><span className="member-seat">{p.seat}</span><span className="member-name">{p.name}{p.id===room.meId&&<small>我</small>}{p.id===room.hostId&&<Crown size={14} aria-label="房主"/>}</span><span className={`member-status ${(room.phase==="lobby"?p.ready:p.confirmed)?"done":""}`}>{room.phase==="lobby"?(p.ready?"已准备":"未准备"):(p.confirmed?"已确认":"待确认")}</span></div>)}</div></section>
       <aside className="room-side">
         {!me?<section className="action-card"><span className="eyebrow">JOIN THE TABLE</span><h2>给自己留个座位</h2>{room.phase==="lobby"?<><label className="field">你的昵称<input maxLength={12} autoComplete="nickname" placeholder="大家怎么称呼你" value={name} onChange={e=>setName(e.target.value)}/></label><p className="muted-copy">在圆桌上选一个空位，就能加入朋友的房间。</p></>:<p className="muted-copy">本局已经发身份，无法中途加入。原玩家请使用入座时的浏览器返回。</p>}<button className="text-button" onClick={back}><ArrowLeft size={16}/>返回首页</button></section>:
@@ -138,8 +146,8 @@ export default function Home(){
     </section>}
     <footer className="page-footer"><span>把秘密留在手机，把推理留在圆桌。</span><span>房间保留 24 小时 · 5–10 人</span></footer>
     <Dialog open={share} onOpenChange={setShare}><DialogContent className="share-dialog"><DialogTitle>邀请朋友入座</DialogTitle><DialogDescription>用手机相机扫码，或输入下方房间码。</DialogDescription>{qr?<img className="qr-image" src={qr} alt="加入本房间的二维码" width={240} height={240}/>:<div className="qr-loading">正在生成二维码…</div>}<div className="share-code">{room?.code}</div><button className="primary-button" onClick={async()=>{try{await navigator.clipboard.writeText(`${location.origin}/?room=${room?.code}`);setCopied(true);setTimeout(()=>setCopied(false),2000);}catch{setError("无法复制，请直接分享房间码。");}}}>{copied?<Check size={17}/>:<Copy size={17}/ >}{copied?"已复制邀请链接":"复制邀请链接"}</button><p className="action-note">每位玩家使用自己的手机与浏览器。</p></DialogContent></Dialog>
-    <AlertDialog open={confirmStart} onOpenChange={setConfirmStart}><AlertDialogContent><AlertDialogTitle>向全员发身份？</AlertDialogTitle><AlertDialogDescription>发身份后，本局的座位与角色配置会锁定。请确认所有人都已坐在对应位置。</AlertDialogDescription><AlertDialogFooter><AlertDialogCancel>再检查一下</AlertDialogCancel><AlertDialogAction disabled={busy||!connected||!allReady||room?.phase!=="lobby"} onClick={()=>void act("start")}>确认发身份</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
+    <AlertDialog open={confirmStart} onOpenChange={setConfirmStart}><AlertDialogContent><AlertDialogTitle>向全员发身份？</AlertDialogTitle><AlertDialogDescription>发身份后，本局的座位与角色配置会锁定。请确认所有人都已坐在对应位置。</AlertDialogDescription><AlertDialogFooter><AlertDialogCancel>再检查一下</AlertDialogCancel><AlertDialogAction disabled={busy||!connected||!allReady||!isHost||room?.phase!=="lobby"} onClick={()=>void act("start")}>确认发身份</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
     <AlertDialog open={confirmLeave} onOpenChange={setConfirmLeave}><AlertDialogContent><AlertDialogTitle>离开这个房间？</AlertDialogTitle><AlertDialogDescription>你的座位会空出来。若你是房主，管理权会交给下一位玩家。</AlertDialogDescription><AlertDialogFooter><AlertDialogCancel>继续等朋友</AlertDialogCancel><AlertDialogAction disabled={busy||!connected||room?.phase!=="lobby"} onClick={()=>void act("leave")}>离开房间</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
-    <Dialog open={help} onOpenChange={setHelp}><DialogContent><DialogTitle>一起围坐，秘密入局</DialogTitle><DialogDescription>每人用一部联网手机，无需注册账号。</DialogDescription><ol className="help-list"><li>房主选择人数和角色配置，建立房间。</li><li>朋友扫码或输入房间码，填写昵称，按实际位置选择座位。</li><li>全员准备后，房主发身份。按住查看你的身份和线索，松开即隐藏。</li><li>全员确认后，由房主开始对局。队长选队，全员赞成或反对，收齐后统一揭晓。</li><li>选中的队员秘密提交任务票，只公布失败总数。三次成功后进入刺杀；三次失败或连续五次否决，则邪恶获胜。对局记录可以随时展开查看。</li><li>结束后，房主可以点击「同房再来一局」，保留大家的座位。确认重开会清除本局身份与记录，所有人重新准备。</li></ol><p className="muted-copy">刷新或锁屏不会改变身份。请使用原来的浏览器返回；清除本站 Cookie 或换浏览器后，无法仅凭昵称找回身份。房间在创建 24 小时后过期。</p></DialogContent></Dialog>
+    <Dialog open={help} onOpenChange={setHelp}><DialogContent><DialogTitle>一起围坐，秘密入局</DialogTitle><DialogDescription>每人用一部联网手机，无需注册账号。</DialogDescription><ol className="help-list"><li>房主选择人数和角色配置，建立房间。</li><li>朋友扫码或输入房间码，填写昵称，按实际位置选择座位。</li><li>全员准备后，房主发身份。按住查看你的身份和线索，松开即隐藏。</li><li>全员确认后，由房主开始对局。队长选队，全员赞成或反对，收齐后统一揭晓。</li><li>选中的队员秘密提交任务票，只公布失败总数。三次成功后进入刺杀；三次失败或连续五次否决，则邪恶获胜。对局记录可以随时展开查看。</li><li>结束后，房主可以点击「同房再来一局」，保留大家的座位。确认重开会清除本局身份与记录，所有人重新准备。</li><li>房主可在「房间管理」中转交房主，发身份前还能移除玩家。中途无法继续时可作废本局、回到准备大厅，再调整座位与人员。</li></ol><p className="muted-copy">刷新或锁屏不会改变身份。请使用原来的浏览器返回；清除本站 Cookie 或换浏览器后，无法仅凭昵称找回身份。房间在创建 24 小时后过期。</p></DialogContent></Dialog>
   </main>;
 }
