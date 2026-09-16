@@ -101,6 +101,8 @@ export interface GameView {
 }
 export interface Room {
   code: string;
+  // Older stored rooms omit this field and belong to their first game.
+  round?: number;
   capacity: number;
   preset: Preset;
   phase: RoomPhase;
@@ -120,6 +122,7 @@ export interface Identity {
 }
 export interface RoomView {
   code: string;
+  round: number;
   capacity: number;
   preset: Preset;
   phase: RoomPhase;
@@ -244,6 +247,7 @@ export function roomView(room: Room, key: string, version: number): RoomView {
   const me = room.players.find(player => player.key === key);
   return {
     code: room.code,
+    round: room.round ?? 1,
     capacity: room.capacity,
     preset: room.preset,
     phase: room.phase,
@@ -477,8 +481,55 @@ function gameAction(room: Room, me: Player, action: string, input: Record<string
   else if (action === "quest") submitQuest(room, game, me, input);
   else if (action === "assassinate") assassinate(room, game, me, input);
 }
+
+function requireRound(value: unknown): number {
+  if (typeof value !== "number" || !Number.isSafeInteger(value) || value < 1) {
+    throw new GameError("对局编号无效，请刷新后重试。", 400);
+  }
+  return value;
+}
+
+function requireCurrentRound(room: Room, input: Record<string, unknown>): void {
+  const round = room.round ?? 1;
+  // Keep clients of existing first-game rooms working, but an old request must
+  // never prepare, leave, confirm an identity, or start a subsequent game.
+  if (input.round === undefined && round === 1) return;
+  if (input.round === undefined || requireRound(input.round) !== round) {
+    throw new GameError("房间已进入新的对局，请刷新后重试。 ");
+  }
+}
+
+function rematch(room: Room, me: Player, input: Record<string, unknown>): void {
+  if (room.hostId !== me.id) throw new GameError("只有房主可以开始下一局。", 403);
+  const requestedRound = requireRound(input.round);
+  const round = room.round ?? 1;
+  // Concurrent or delayed retries from the immediately preceding game must
+  // return the latest state without clearing the new game's progress.
+  if (round > 1 && requestedRound === round - 1) return;
+  if (requestedRound !== round) {
+    throw new GameError("房间已进入新的对局，请刷新后重试。 ");
+  }
+  if (room.phase !== "finished") throw new GameError("请在本局结束后再开始下一局。 ");
+  if (round === Number.MAX_SAFE_INTEGER) throw new GameError("请重新建立房间。 ");
+  room.round = round + 1;
+  room.phase = "lobby";
+  delete room.game;
+  delete room.firstLeader;
+  for (const player of room.players) {
+    delete player.role;
+    player.ready = false;
+    player.confirmed = false;
+  }
+}
+
 export function mutateRoom(room: Room, key: string, action: string, input: Record<string, unknown>): void {
   const me = room.players.find(player => player.key === key);
+  if (action === "rematch") {
+    if (!me) throw new GameError("请先加入房间。", 403);
+    rematch(room, me, input);
+    return;
+  }
+  requireCurrentRound(room, input);
   if (action === "join") {
     if (me) return;
     if (room.phase !== "lobby") throw new GameError("房间已发身份，不能中途加入。", 403);

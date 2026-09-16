@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ArrowRight, Check, Crown, Flag, History, LockKeyhole, Shield, Swords, ThumbsDown, ThumbsUp, Trophy } from "lucide-react";
+import { ArrowRight, Check, Crown, Flag, History, LockKeyhole, RotateCcw, Shield, Swords, ThumbsDown, ThumbsUp, Trophy } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { ROLES, type RoomView } from "@/lib/game";
@@ -39,9 +39,13 @@ export function GamePanel({ room, busy, connected, error, act, onNewGame }: Prop
     const hide = () => { setBallotOpen(false); setCard(null); };
     const visibility = () => { if (document.hidden) hide(); };
     window.addEventListener("blur", hide);
+    window.addEventListener("pagehide", hide);
+    window.addEventListener("offline", hide);
     document.addEventListener("visibilitychange", visibility);
     return () => {
       window.removeEventListener("blur", hide);
+      window.removeEventListener("pagehide", hide);
+      window.removeEventListener("offline", hide);
       document.removeEventListener("visibilitychange", visibility);
     };
   }, []);
@@ -137,8 +141,9 @@ export function GamePanel({ room, busy, connected, error, act, onNewGame }: Prop
       {game.result.targetSeat != null && <p className="assassination-result">刺杀目标：{game.result.targetSeat} 号 · {playerName(game.result.targetSeat)}</p>}
       {game.revealedRoles && <div className="revealed-roles">{game.revealedRoles.map(player => <div key={player.seat}><span className="member-seat">{player.seat}</span><span>{playerName(player.seat)}</span><strong className={ROLES[player.role].side}>{ROLES[player.role].name}</strong></div>)}</div>}
       {!me && <p className="action-note">完整身份仅向本局成员揭晓。</p>}
-      <button className="secondary-button" onClick={onNewGame}>返回首页，建立新一局<ArrowRight size={16} /></button>
-      <p className="action-note">本局记录保留到房间过期，仍可通过原房间码查看。</p>
+      <div className="rematch-actions">{me?.id === room.hostId ? <button className="primary-button" disabled={blocked} onClick={() => setPending({ action: "rematch", input: { round: room.round }, title: "同房再来一局？", description: "保留房间码、玩家和座位，清除本局身份与全部投票记录。请先完成复盘；重开后所有人重新准备、重新发身份。房间仍在创建 24 小时后过期。", label: "确认重开" })}><RotateCcw size={17} />同房再来一局</button> : me && <p className="waiting-note" role="status">复盘完成后，可以请房主开启同房新一局。</p>}
+      <button className="secondary-button" onClick={onNewGame}>返回首页<ArrowRight size={16} /></button></div>
+      <p className="action-note">本局记录保留到同房重开或房间过期。重开前，请先完成复盘。</p>
     </div>}
 
     {lastProposal && !lastProposal.approved && room.phase === "team" && <div className="last-proposal"><Flag size={17} /><span>上一支队伍未通过：{lastProposal.votes.filter(vote => vote.approve).length} 赞成 / {lastProposal.votes.filter(vote => !vote.approve).length} 反对。已轮到下一位队长。</span></div>}

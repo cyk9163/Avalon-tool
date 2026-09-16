@@ -34,4 +34,5 @@ for(const capacity of [5,7,10]){
  console.log(`PASS ${capacity} players: concurrent seating/readiness/deal, private projections, auth, refresh, confirmation, CSRF`);
 }
 await import("./stage2-integration.mjs");
+await import("./stage3-integration.mjs");
 console.log("All integration checks passed (test rooms expire automatically).");

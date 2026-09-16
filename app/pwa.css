@@ -1,0 +1,15 @@
+.install-app-button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:40px;padding:8px 11px;border:1px solid #41565a;border-radius:8px;background:#172930;color:#d3ddd8;font-size:12px;white-space:nowrap}
+.install-app-button:hover{background:#253d43}.install-app-button svg{flex-shrink:0}
+.install-app-dialog{max-height:calc(100dvh - 40px);overflow-y:auto;gap:17px}
+.install-app-dialog [data-slot=dialog-title]{font-size:22px;line-height:1.4}
+.install-app-dialog [data-slot=dialog-description]{font-size:14px;line-height:1.8;color:#a5b6bb}
+.install-app-symbol{display:grid;place-items:center;width:52px;height:52px;border:1px solid #6f765d;border-radius:13px;color:var(--primary);background:#263a39}
+.install-session-note{margin:0;border:1px solid #5e624b;border-radius:9px;padding:13px 14px;background:#423e2b55;color:#d0c5a6;font-size:13px;line-height:1.8}
+.install-session-note strong{color:#e0c68c;font-weight:500}
+.install-app-steps{list-style:decimal;padding-left:22px;margin:0;color:#cbd8d3;font-size:14px;line-height:1.8}
+.install-app-steps li+li{margin-top:9px}
+.install-online-note,.install-app-message{margin:0;color:#a5b6bb;font-size:12px;line-height:1.8}
+.install-app-message{color:#dfc995}
+@media(max-width:720px){.header-right .edition{display:none}.install-app-button{padding:8px;font-size:11px;gap:5px}}
+@media(max-width:360px){.install-app-button{min-width:38px}.install-app-button span{display:none}}
+@media(display-mode:standalone){.install-app-button{display:none}}

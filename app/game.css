@@ -33,3 +33,5 @@
   .room-details.in-game{padding:0 12px}.room-details.in-game>summary{font-size:12px;min-height:54px}.room-details.in-game .room-layout{gap:13px}.room-details.in-game .action-card{padding:17px}.room-details.in-game .room-table{padding:18px 10px}.room-details.in-game .config-card{padding:17px}
   .game-result h2{font-size:24px;letter-spacing:1px}.game-result>p{font-size:12px}.revealed-roles{grid-template-columns:1fr;margin:20px 0}.revealed-roles>div{font-size:12px}.game-result>.secondary-button{font-size:12px}
 }
+.rematch-actions{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:12px;margin-top:24px}.rematch-actions .primary-button{width:auto}.rematch-actions .waiting-note{width:100%;margin:0}.rematch-actions .secondary-button{margin:0}
+@media(max-width:600px){.rematch-actions{flex-direction:column}.rematch-actions .primary-button,.rematch-actions .secondary-button{width:100%}}
