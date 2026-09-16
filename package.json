@@ -1,5 +1,5 @@
 {
-  "name": "site-creator-vinext-starter",
+  "name": "avalon-roundtable",
   "version": "0.1.0",
   "private": true,
   "engines": {
@@ -9,7 +9,15 @@
     "install:ci": "node scripts/install-ci.mjs",
     "dev": "node scripts/run-framework.mjs dev",
     "build": "node scripts/run-framework.mjs build",
-    "start": "node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js dev --config dist/server/wrangler.json --local --persist-to .wrangler/state --ip 127.0.0.1 --inspector-port 0",
+    "start": "node scripts/wrangler.mjs dev --config dist/server/wrangler.json --local --persist-to .wrangler/state --ip 127.0.0.1 --inspector-port 0",
+    "cf:login": "node scripts/wrangler.mjs login --scopes account:read user:read workers:write workers_scripts:write d1:write",
+    "cf:whoami": "node scripts/wrangler.mjs whoami",
+    "db:migrate:local": "node scripts/wrangler.mjs d1 migrations apply DB --local --persist-to .wrangler/state --config wrangler.jsonc",
+    "db:migrate:remote": "node scripts/wrangler.mjs d1 migrations apply DB --remote --config wrangler.jsonc",
+    "deploy": "node scripts/deploy.mjs",
+    "test": "node --experimental-transform-types --test --test-isolation=none tests/game.test.mjs",
+    "test:integration": "node tests/integration.mjs",
+    "typecheck": "tsc --noEmit",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "db:generate": "drizzle-kit generate"
   },

@@ -1,0 +1,19 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "avalon-roundtable",
+  "account_id": "cb9ca21c5a9391eeb983369d4cd70db7",
+  "main": "vinext/server/fetch-handler",
+  "compatibility_date": "2026-05-15",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "preview_urls": false,
+  "observability": { "enabled": true },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "avalon-roundtable-db",
+      "database_id": "ceb97089-4be2-4e52-aeaf-767d5555df59",
+      "migrations_dir": "drizzle"
+    }
+  ]
+}
