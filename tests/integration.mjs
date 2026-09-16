@@ -1,0 +1,35 @@
+import assert from "node:assert/strict";
+const base=process.env.AVALON_TEST_URL||"http://localhost:5173";
+class Client{
+ cookie="";
+ async init(){const r=await fetch(`${base}/api/room?session=1`);assert.equal(r.status,200);this.cookie=r.headers.getSetCookie()[0].split(";")[0];assert.ok(r.headers.getSetCookie()[0].includes("HttpOnly"));return this;}
+ async call(body){const r=await fetch(`${base}/api/room`,{method:"POST",headers:{"Content-Type":"application/json",Origin:base,Cookie:this.cookie},body:JSON.stringify(body)});return {status:r.status,data:await r.json()};}
+ async get(code){const r=await fetch(`${base}/api/room?code=${code}`,{headers:{Cookie:this.cookie}});assert.equal(r.headers.get("cache-control"),"no-store, private");return {status:r.status,data:await r.json()};}
+}
+for(const capacity of [5,7,10]){
+ const clients=await Promise.all(Array.from({length:capacity+2},()=>new Client().init()));
+ const host=clients[0],requestId=crypto.randomUUID();
+ const created=await host.call({action:"create",name:"集成测试房主",capacity,preset:capacity===10?"full":"classic",requestId});assert.equal(created.status,200,JSON.stringify(created));const code=created.data.code;
+ const again=await host.call({action:"create",name:"集成测试房主",capacity,preset:capacity===10?"full":"classic",requestId});assert.equal(again.data.code,code);
+ const race=await Promise.all([clients[1].call({action:"join",code,name:"抢座甲",seat:2}),clients[capacity].call({action:"join",code,name:"抢座乙",seat:2})]);assert.equal(race.filter(r=>r.status===200).length,1);assert.equal(race.filter(r=>r.status===409).length,1);
+ if(race[1].status===200)[clients[1],clients[capacity]]=[clients[capacity],clients[1]];
+ const joins=await Promise.all(clients.slice(2,capacity).map((c,i)=>c.call({action:"join",code,name:`玩家${i+3}`,seat:i+3})));assert.ok(joins.every(r=>r.status===200),JSON.stringify(joins));
+ assert.equal((await clients[capacity].call({action:"join",code,name:"旁观者",seat:1})).status,409);
+ assert.equal((await clients[1].call({action:"start",code})).status,403);
+ assert.equal((await host.call({action:"start",code})).status,409);
+ const ready=await Promise.all(clients.slice(0,capacity).map(c=>c.call({action:"ready",code,ready:true})));assert.ok(ready.every(r=>r.status===200),JSON.stringify(ready));
+ const starts=await Promise.all([host.call({action:"start",code}),host.call({action:"start",code})]);assert.ok(starts.every(r=>r.status===200));assert.deepEqual(starts[0].data.identity,starts[1].data.identity);
+ const views=await Promise.all(clients.slice(0,capacity).map(c=>c.get(code)));assert.ok(views.every(r=>r.status===200&&r.data.identity));
+ assert.equal(views.filter(r=>r.data.identity.role==="merlin").length,1);assert.equal(views.filter(r=>r.data.identity.role==="assassin").length,1);
+ for(const view of views){assert.ok(view.data.players.every(p=>!Object.hasOwn(p,"role")&&!Object.hasOwn(p,"key")));for(const known of view.data.identity.known)assert.deepEqual(Object.keys(known).sort(),["label","name","seat"]);}
+ const outsider=await clients[capacity+1].get(code);assert.equal(outsider.data.identity,null);assert.equal(outsider.data.meId,null);
+ assert.equal((await clients[capacity+1].call({action:"confirm",code,playerId:created.data.meId})).status,403);
+ assert.equal((await clients[1].call({action:"seat",code,seat:1})).status,409);
+ assert.equal((await clients[capacity+1].call({action:"join",code,seat:1,name:"新玩家"})).status,403);
+ const restored=await host.get(code);assert.deepEqual(restored.data.identity,starts[0].data.identity);assert.equal(restored.data.meId,created.data.meId);
+ const confirms=await Promise.all(clients.slice(0,capacity).map(c=>c.call({action:"confirm",code})));assert.ok(confirms.every(r=>r.status===200));
+ const done=await host.get(code);assert.equal(done.data.phase,"ready");assert.equal(done.data.players.filter(p=>p.confirmed).length,capacity);assert.ok(done.data.firstLeader>=1&&done.data.firstLeader<=capacity);
+ const csrf=await fetch(`${base}/api/room`,{method:"POST",headers:{"Content-Type":"application/json",Origin:"https://not-this-site.example",Cookie:host.cookie},body:JSON.stringify({action:"confirm",code})});assert.equal(csrf.status,403);
+ console.log(`PASS ${capacity} players: concurrent seating/readiness/deal, private projections, auth, refresh, confirmation, CSRF`);
+}
+console.log("All integration checks passed (test rooms expire automatically).");
