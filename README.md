@@ -1,6 +1,6 @@
 # 圆桌 · 阿瓦隆助手
 
-面对面玩阿瓦隆的手机网页工具：5–10 人建房、扫码入座、准备、私密查看身份、全员确认。当前为第一阶段；组队投票、任务票、刺杀和复盘尚未实现。
+面对面玩阿瓦隆的手机网页工具。当前为第二阶段：5–10 人建房、扫码入座、私密身份、队长选人、全员组队表决、匿名任务票、胜负判定、刺杀与本局投票记录。
 
 本项目包含完整前后端源码、数据库结构、迁移、测试和部署配置。独立部署到 Cloudflare Workers + D1，不依赖 ChatGPT、Codex 或 Sites 账号；使用时不调用 AI API。
 
@@ -30,7 +30,7 @@ npm run typecheck
 npm run build
 ```
 
-启动本地开发服务器后，另一个终端执行 `npm run test:integration`，覆盖 5/7/10 人并发入房、准备、发牌、身份权限、确认和会话恢复。集成测试会创建房间，请仅对测试环境运行。可用环境变量 `AVALON_TEST_URL` 指定测试地址，默认 http://localhost:5173 。
+启动本地开发服务器后，另一个终端执行 `npm run test:integration`，覆盖 5/7/10 人并发入房、身份权限、会话恢复、完整五人对局、刺杀命中/失手、连续五次否决、重复末票与任务票隐私。集成测试会创建房间，仅允许本地地址；可用环境变量 `AVALON_TEST_URL` 指定地址，默认 http://localhost:5173 。
 
 `npm start` 在本地预览构建产物；它使用与开发服务器相同的本地数据库。
 
@@ -88,6 +88,7 @@ git push -u origin main
 ## 源码导航
 
 - `app/page.tsx`、`app/globals.css`：手机界面与样式。
+- `components/game-panel.tsx`、`app/game.css`：选队、表决、私密任务牌、结局与对局记录。
 - `app/api/room/route.ts`：房间接口、Cookie 会话、输入校验及访问限制。
 - `lib/game.ts`：角色配置、发牌、线索投影、游戏操作。
 - `lib/room-store.ts`：D1 存储和并发更新。

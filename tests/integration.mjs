@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 const base=process.env.AVALON_TEST_URL||"http://localhost:5173";
+assert.ok(["localhost","127.0.0.1","[::1]"].includes(new URL(base).hostname),"Integration checks only run against a local server.");
 class Client{
  cookie="";
  async init(){const r=await fetch(`${base}/api/room?session=1`);assert.equal(r.status,200);this.cookie=r.headers.getSetCookie()[0].split(";")[0];assert.ok(r.headers.getSetCookie()[0].includes("HttpOnly"));return this;}
@@ -32,4 +33,5 @@ for(const capacity of [5,7,10]){
  const csrf=await fetch(`${base}/api/room`,{method:"POST",headers:{"Content-Type":"application/json",Origin:"https://not-this-site.example",Cookie:host.cookie},body:JSON.stringify({action:"confirm",code})});assert.equal(csrf.status,403);
  console.log(`PASS ${capacity} players: concurrent seating/readiness/deal, private projections, auth, refresh, confirmation, CSRF`);
 }
+await import("./stage2-integration.mjs");
 console.log("All integration checks passed (test rooms expire automatically).");
