@@ -87,7 +87,7 @@ export function RoomManagement({ room, busy, connected, error, act }: Props) {
 
   return <>
     <details className="room-management">
-      <summary><Settings2 size={16} aria-hidden="true" /><span>房间管理</span><small>房主专用</small><ChevronDown className="management-chevron" size={16} aria-hidden="true" /></summary>
+      <summary><span className="management-summary-icon"><Settings2 size={17} aria-hidden="true" /></span><span>房间管理</span><small>仅房主可操作</small><ChevronDown className="management-chevron" size={16} aria-hidden="true" /></summary>
       <div className="management-content">
         <p className="management-intro">{room.phase === "lobby" ? "准备开局前，可移交房主或调整入座玩家。" : "可以把房主交给另一位朋友，当前对局进度会保留。"}</p>
         {candidates.length ? <>
@@ -116,15 +116,16 @@ export function RoomManagement({ room, busy, connected, error, act }: Props) {
       </div>
     </details>
     <AlertDialog open={pendingIsCurrent} onOpenChange={open => { if (!open && !busy) setPending(null); }}>
-      <AlertDialogContent className="management-dialog" onCloseAutoFocus={event => {
+      <AlertDialogContent className={`management-dialog ${pending?.action === "kick" || pending?.action === "abort" ? "management-dialog-destructive" : ""}`} onCloseAutoFocus={event => {
         if (opener.current?.isConnected) { event.preventDefault(); opener.current.focus(); }
       }}>
+        <div className="management-dialog-symbol" aria-hidden="true">{pending?.action === "abort" ? <Square size={23} /> : pending?.action === "kick" ? <UserMinus size={25} /> : <Crown size={25} />}</div>
         <AlertDialogTitle>{pending?.title}</AlertDialogTitle>
         <AlertDialogDescription>{pending?.description}</AlertDialogDescription>
         {feedback && <p className="management-error" role="alert">{feedback}</p>}
         <AlertDialogFooter>
           <AlertDialogCancel disabled={busy}>取消</AlertDialogCancel>
-          <AlertDialogAction disabled={blocked || !pendingIsCurrent} onClick={event => { event.preventDefault(); void confirm(); }}>{busy ? "正在提交…" : pending?.label}</AlertDialogAction>
+          <AlertDialogAction variant={pending?.action === "kick" || pending?.action === "abort" ? "destructive" : "default"} disabled={blocked || !pendingIsCurrent} onClick={event => { event.preventDefault(); void confirm(); }}>{busy ? "正在提交…" : pending?.label}</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

@@ -69,23 +69,23 @@ export function InstallApp() {
 
   return <Dialog open={open} onOpenChange={setOpen}>
     <DialogTrigger asChild>
-      <button className="install-app-button" type="button" aria-label="添加圆桌阿瓦隆到主屏幕">
-        <Smartphone size={16} aria-hidden="true" /><span>添加到主屏幕</span>
+      <button className="install-app-button" type="button" aria-label="添加圆桌阿瓦隆到主屏幕" title="添加到主屏幕">
+        <Smartphone size={18} aria-hidden="true" /><span>添加到主屏幕</span>
       </button>
     </DialogTrigger>
     <DialogContent className="install-app-dialog" showCloseButton={false}>
-      <div className="install-app-symbol"><Smartphone size={26} aria-hidden="true" /></div>
+      <div className="install-app-symbol"><Smartphone size={27} strokeWidth={1.6} aria-hidden="true" /></div>
       <DialogTitle>把圆桌放到主屏幕</DialogTitle>
       <DialogDescription>下次聚会，直接点图标进入。无需应用商店，也不需要订阅。</DialogDescription>
       <p className="install-session-note"><strong>建议入房前添加。</strong>主屏幕应用和浏览器可能使用不同的玩家身份；已经入房时，请继续从原来的入口玩完本局。</p>
       {prompt && <button className="primary-button" type="button" disabled={busy} onClick={() => void install()}>
         <Download size={18} aria-hidden="true" />{busy ? "等待浏览器确认…" : "添加到主屏幕"}
       </button>}
-      {ios ? <ol className="install-app-steps">
+      {ios ? <ol className="install-app-steps" aria-label="iPhone 和 iPad 添加步骤">
         <li>在 Safari 中打开圆桌网站。</li>
         <li>点浏览器的「分享」，选择「添加到主屏幕」。若没有看到，向下滚动或编辑操作。</li>
         <li>若显示「作为网页 App 打开」，保持开启，再点「添加」。</li>
-      </ol> : <ol className="install-app-steps">
+      </ol> : <ol className="install-app-steps" aria-label="浏览器添加步骤">
         <li>打开浏览器菜单，选择「安装应用」或「添加到主屏幕」。</li>
         <li>按提示确认，再从主屏幕图标进入圆桌。</li>
         <li>如果没有此选项，可尝试 Chrome、Edge，或在 iPhone 的 Safari 中使用「分享 → 添加到主屏幕」。</li>

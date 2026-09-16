@@ -1,24 +1,31 @@
 # 圆桌 · 阿瓦隆助手
 
-面对面玩阿瓦隆的手机网页工具。当前为 v0.4：5–10 人建房、扫码入座、私密身份、完整投票与任务、刺杀、复盘、同房再开、房主移交、移出玩家、中途作废，以及添加到手机主屏幕。
+面对面玩阿瓦隆的手机网页工具。当前为 v0.5：房主 Key 验证、5–10 人建房、扫码入座、私密身份、完整投票与任务、刺杀、复盘、同房再开、房主移交、移出玩家、中途作废，以及添加到手机主屏幕。
 
 本项目包含完整前后端源码、数据库结构、迁移、测试和部署配置。独立部署到 Cloudflare Workers + D1，不依赖 ChatGPT、Codex 或 Sites 账号；使用时不调用 AI API。
 
 线上地址：[圆桌 · 阿瓦隆助手](https://avalon-roundtable.yunkangchen2017.workers.dev)。
+
+## 界面与操作
+
+深墨绿、暖金与浅色建房卡片组成统一视觉。手机优先显示当前操作；房间进度、比分、选队与表决状态分层呈现，身份与房间管理按需展开。支持 360px 窄屏、长昵称、键盘焦点和减少动画设置；刷新恢复时显示连接状态，进入房间自动回到顶部。
+
+项目背景、架构与交接步骤见 [HANDOFF.md](HANDOFF.md)。聊天链接用于补充背景，不能替代克隆源码或服务账号授权。
 
 ## 换机继续开发
 
 安装 Git 和 Node.js 24，然后：
 
 ```sh
-git clone <你的 GitHub 仓库地址>
-cd <仓库目录>
+git clone https://github.com/cyk9163/Avalon-tool.git
+cd Avalon-tool
 npm ci
+node -e "require('fs').copyFileSync('.dev.vars.example','.dev.vars',require('fs').constants.COPYFILE_EXCL)"
 npm run db:migrate:local
 npm run dev
 ```
 
-打开 http://localhost:5173 。本地数据库为空，使用页面创建测试房间即可。本地开发无需 Cloudflare 登录，也不会修改线上数据。Windows、macOS、Linux 使用相同命令。
+打开 http://localhost:5173 。本地数据库为空，使用页面创建测试房间即可。本地开发无需 Cloudflare 登录，也不会修改线上数据。本地建房使用公开测试 Key `AVL-TEST-KEYS-2345-6789`；这是本地测试值，不能在正式站点使用。Windows、macOS、Linux 使用相同命令。
 
 `package-lock.json` 固定依赖版本，请提交到 GitHub。`node_modules`、构建产物、本地房间数据库和登录凭据不提交；安装依赖后会自动生成所需文件。Windows 本机若 npm 命令本身有路径问题，可直接运行 `node scripts/run-framework.mjs dev` 或 `node scripts/wrangler.mjs ...`。
 
@@ -30,11 +37,24 @@ npm run typecheck
 npm run build
 ```
 
-启动本地开发服务器后，另一个终端执行 `npm run test:integration`，覆盖 5/7/10 人并发入房、身份权限、会话恢复、完整五人对局、刺杀命中/失手、连续五次否决、重复末票、任务票隐私、并发重开、同房第二局、房主移交、中途作废和移出／发牌冲突。集成测试会创建房间，仅允许本地地址；可用环境变量 `AVALON_TEST_URL` 指定地址，默认 http://localhost:5173 。
+启动本地开发服务器后，另一个终端执行 `npm run test:integration`，覆盖 5/7/10 人并发入房、身份权限、会话恢复、缺失与错误 Key 拦截、完整五人对局、刺杀命中/失手、连续五次否决、重复末票、任务票隐私、并发重开、同房第二局、房主移交、中途作废和移出／发牌冲突。集成测试会创建房间，仅允许本地地址；可用环境变量 `AVALON_TEST_URL` 指定地址，默认 http://localhost:5173 。
 
 `npm start` 在本地预览构建产物；它使用与开发服务器相同的本地数据库。
 
 GitHub Actions 已包含单元测试、类型检查和构建，未配置自动上线。
+
+## 房主 Key
+
+仅创建新房间需要 Key。服务器检查 Key 摘要，未配置时拒绝建房；不能仅靠绕过前端获得建房权限。朋友扫码加入、查看自己的身份、投票、移交房主和同房重开仍依赖原房间权限，无需输入 Key。Key 可重复使用；不会写入房间状态、日志或浏览器本地存储。
+
+为你自己的部署生成 10 个高强度随机 Key 并发布摘要：
+
+```sh
+node scripts/host-keys.mjs generate work/my-host-keys.txt
+node scripts/host-keys.mjs publish work/my-host-keys.txt
+```
+
+第一条只写入本地忽略目录，已存在的文件不会覆盖；第二条需要 Cloudflare 登录，并替换 `HOST_KEY_HASHES` Secret 的允许列表。未包含在新列表中的旧 Key 无法再建新房，已建立的房间仍可正常使用。明文 Key 请私下保存和分享；不要上传 GitHub。换机部署不需要复制正式 Key，Cloudflare 会保留已有 Secret。新账号首次部署还需发布自己的 Key 摘要；不要将 `.dev.vars.example` 的测试摘要发布到正式环境。
 
 ## 同房再开与手机入口
 
@@ -88,16 +108,17 @@ node scripts/wrangler.mjs d1 export DB --remote --config wrangler.jsonc --output
 
 ## 放到 GitHub
 
-在 GitHub 创建一个空仓库，建议先用 Private，再在本目录执行：
+现有 GitHub 仓库为 `https://github.com/cyk9163/Avalon-tool.git`。通过上述 `git clone` 命令取得的副本已配置 `origin`；完成更改并检查后推送：
 
 ```sh
-git remote add origin <你的 GitHub 仓库地址>
-git push -u origin main
+git add <本次修改的文件>
+git commit -m "Describe the change"
+git push origin main
 ```
 
-不要勾选自动创建 README，避免与现有本地历史冲突。GitHub 登录通过 Git Credential Manager、GitHub CLI 或 SSH 完成；不要把令牌放进远程地址或源文件。
+推送前先读取远端最新状态并保留他人的修改；不要强制推送。GitHub 登录通过 Git Credential Manager、GitHub CLI 或 SSH 完成；不要把令牌放进远程地址或源文件。
 
-`.gitignore` 已排除 `.env*`、`.dev.vars*`、`.wrangler/`、依赖、备份和构建输出。当前应用无需环境密钥。未来新增密钥时使用 Cloudflare Secrets，换机需重新配置或取得对应访问权限。
+`.gitignore` 已排除 `.env*`、`.dev.vars*`、`.wrangler/`、依赖、备份和构建输出。房主 Key 使用 Cloudflare Secret `HOST_KEY_HASHES`，现有站点的 Secret 会在换机部署时保留。正式 Key 明文需要另外私密保管；不能从摘要还原。
 
 ## 源码导航
 
@@ -106,6 +127,8 @@ git push -u origin main
 - `components/room-management.tsx`、`app/management.css`：房主移交、移出玩家及中途作废。
 - `components/install-app.tsx`、`app/pwa.css`、`public/manifest.webmanifest`、`public/sw.js`：主屏幕安装与断网提示。
 - `app/api/room/route.ts`：房间接口、Cookie 会话、输入校验及访问限制。
+- `lib/host-key.ts`、`scripts/host-keys.mjs`：房主 Key 验证、生成与发布。
+- `HANDOFF.md`：架构、部署凭据边界与新会话交接。
 - `lib/game.ts`：角色配置、发牌、线索投影、游戏操作。
 - `lib/room-store.ts`：D1 存储和并发更新。
 - `db/`、`drizzle/`：数据库结构与迁移。

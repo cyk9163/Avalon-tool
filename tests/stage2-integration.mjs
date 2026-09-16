@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 
 const base = new URL(process.env.AVALON_TEST_URL || "http://localhost:5173").origin;
+const hostKey = process.env.AVALON_TEST_HOST_KEY || "AVL-TEST-KEYS-2345-6789";
 assert.ok(["localhost", "127.0.0.1", "[::1]"].includes(new URL(base).hostname), "Stage-two integration checks only run against a local server.");
 
 class Client {
@@ -29,7 +30,7 @@ function ok(response) { assert.equal(response.status, 200, JSON.stringify(respon
 function rejected(response) { assert.ok(response.status >= 400 && response.status < 500, JSON.stringify(response)); }
 async function setup() {
   const clients = await Promise.all(Array.from({length: 6}, () => new Client().init()));
-  const created = ok(await clients[0].call({action: "create", name: "完整对局房主", capacity: 5, preset: "classic", requestId: crypto.randomUUID()}));
+  const created = ok(await clients[0].call({action: "create", name: "完整对局房主", capacity: 5, preset: "classic", requestId: crypto.randomUUID(), hostKey}));
   const code = created.code;
   const calls = await Promise.all(clients.slice(1, 5).map((client, i) => client.call({action: "join", code, name: `流程玩家${i + 2}`, seat: i + 2})));
   calls.forEach(ok);

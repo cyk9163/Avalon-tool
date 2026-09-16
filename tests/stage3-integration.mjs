@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 
 const base = new URL(process.env.AVALON_TEST_URL || "http://localhost:5173").origin;
+const hostKey = process.env.AVALON_TEST_HOST_KEY || "AVL-TEST-KEYS-2345-6789";
 assert.ok(["localhost", "127.0.0.1", "[::1]"].includes(new URL(base).hostname), "Rematch integration checks only run against a local server.");
 
 class Client {
@@ -32,7 +33,7 @@ function rejected(response, status = 409) { assert.equal(response.status, status
 const clients = await Promise.all(Array.from({length: 6}, () => new Client().init()));
 const members = clients.slice(0, 5), host = clients[0], outsider = clients[5];
 const created = ok(await host.call({
-  action: "create", name: "同房再局房主", capacity: 5, preset: "classic", requestId: crypto.randomUUID(),
+  action: "create", name: "同房再局房主", capacity: 5, preset: "classic", requestId: crypto.randomUUID(), hostKey,
 }));
 const code = created.code;
 assert.equal(created.round, 1);

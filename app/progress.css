@@ -1,0 +1,235 @@
+.room-progress {
+  --progress-card: #132327;
+  --progress-raised: #192e31;
+  --progress-border: #2a4144;
+  --progress-text: #f4f0e6;
+  --progress-muted: #a4b5b2;
+  --progress-gold: #dbc18a;
+  --progress-success: #9bcab7;
+  --progress-danger: #e9a59c;
+  min-width: 0;
+  margin: 0 0 24px;
+  padding: 18px 22px 20px;
+  border: 1px solid var(--progress-border);
+  border-radius: 16px;
+  background: var(--progress-card);
+  color: var(--progress-text);
+}
+
+.room-progress-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid var(--progress-border);
+}
+
+.room-progress-steps {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.room-progress-steps li {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 7px;
+  color: var(--progress-muted);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.room-progress-steps li + li::before {
+  width: clamp(12px, 2.5vw, 32px);
+  height: 1px;
+  margin: 0 10px 0 3px;
+  background: var(--progress-border);
+  content: "";
+}
+
+.room-progress-step-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 23px;
+  width: 23px;
+  height: 23px;
+  border: 1px solid var(--progress-border);
+  border-radius: 50%;
+  color: var(--progress-muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.room-progress-steps .is-current {
+  color: var(--progress-gold);
+}
+
+.room-progress-steps .is-current .room-progress-step-number {
+  border-color: var(--progress-gold);
+  background: var(--progress-gold);
+  color: #132327;
+  font-weight: 700;
+}
+
+.room-progress-steps .is-complete .room-progress-step-number {
+  border-color: #3c5852;
+  background: var(--progress-raised);
+  color: var(--progress-success);
+}
+
+.room-progress-connection {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 6px;
+  color: var(--progress-muted);
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.room-progress-connection > span {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--progress-success);
+}
+
+.room-progress-connection.is-reconnecting {
+  color: var(--progress-gold);
+}
+
+.room-progress-connection.is-reconnecting > span {
+  background: var(--progress-gold);
+}
+
+.room-progress-summary {
+  min-width: 0;
+  padding-top: 15px;
+}
+
+.room-progress-summary h2 {
+  margin: 0;
+  color: var(--progress-text);
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.room-progress-summary p {
+  margin: 5px 0 0;
+  color: var(--progress-muted);
+  font-size: 13px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.room-progress--good .room-progress-summary h2 {
+  color: var(--progress-success);
+}
+
+.room-progress--evil .room-progress-summary h2 {
+  color: var(--progress-danger);
+}
+
+.room-progress-meter {
+  margin-top: 14px;
+}
+
+.room-progress-meter-caption {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin-bottom: 8px;
+  color: var(--progress-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.room-progress-meter-caption > span:last-child {
+  color: var(--progress-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.room-progress-meter-track {
+  height: 4px;
+  overflow: hidden;
+  border-radius: 10px;
+  background: var(--progress-border);
+}
+
+.room-progress-meter-track > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--progress-gold);
+  transition: width 180ms ease-out;
+}
+
+@media (max-width: 620px) {
+  .room-progress {
+    margin-bottom: 18px;
+    padding: 16px;
+    border-radius: 14px;
+  }
+
+  .room-progress-topline {
+    gap: 10px;
+    padding-bottom: 13px;
+  }
+
+  .room-progress-steps {
+    flex: 1;
+    justify-content: space-between;
+    gap: 6px;
+  }
+
+  .room-progress-steps li {
+    gap: 4px;
+  }
+
+  .room-progress-step-number {
+    flex-basis: 20px;
+    width: 20px;
+    height: 20px;
+  }
+
+  .room-progress-steps li + li::before {
+    display: none;
+  }
+
+  .room-progress-connection {
+    gap: 5px;
+  }
+
+  .room-progress-summary {
+    padding-top: 13px;
+  }
+
+  .room-progress-summary h2 {
+    font-size: 17px;
+  }
+}
+
+.room-progress--playing { padding-top: 15px; padding-bottom: 15px; }
+.room-progress--playing .room-progress-topline { padding-bottom: 0; border-bottom: 0; }
+.room-progress--playing .room-progress-summary { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .room-progress-meter-track > span {
+    transition: none;
+  }
+}

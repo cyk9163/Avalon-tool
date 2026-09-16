@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 
 const base = new URL(process.env.AVALON_TEST_URL || "http://localhost:5173").origin;
+const hostKey = process.env.AVALON_TEST_HOST_KEY || "AVL-TEST-KEYS-2345-6789";
 assert.ok(["localhost", "127.0.0.1", "[::1]"].includes(new URL(base).hostname), "Room-management integration checks only run against a local server.");
 
 class Client {
@@ -37,7 +38,7 @@ function body(room, action, fields = {}) {
 async function setup() {
   const clients = await Promise.all(Array.from({length: 7}, () => new Client().init()));
   const created = ok(await clients[0].call({
-    action: "create", name: "管理功能测试房主", capacity: 5, preset: "classic", requestId: crypto.randomUUID(),
+    action: "create", name: "管理功能测试房主", capacity: 5, preset: "classic", requestId: crypto.randomUUID(), hostKey,
   }));
   assert.equal(created.hostRevision, 0);
   const code = created.code;

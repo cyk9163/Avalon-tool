@@ -3,6 +3,7 @@ import "./globals.css";
 import "./game.css";
 import "./pwa.css";
 import "./management.css";
+import "./progress.css";
 
 export const metadata: Metadata = {
   title: "圆桌 · 阿瓦隆助手",
@@ -24,7 +25,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#101c22",
+  themeColor: "#0c171a",
 };
 
 export default function RootLayout({

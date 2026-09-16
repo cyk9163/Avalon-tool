@@ -1,37 +1,215 @@
-.game-panel{margin:0 0 24px;padding:28px;border:1px solid #455653;border-radius:17px;background:linear-gradient(145deg,#1b3034,#112129 75%);min-width:0}
-.game-topline{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:22px}
-.game-score{display:flex;gap:21px;font-size:12px;color:#aac2bb}.game-score>span:last-child{color:#d6a6a2}.game-score b{font-size:22px;margin-left:5px;font-weight:500}
-.quest-track{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));list-style:none;gap:10px;padding:0;margin:0 0 22px}
-.quest-track li{border:1px solid #344a4d;border-radius:10px;background:#112127;padding:15px 12px;text-align:center;display:grid;gap:6px;color:#81989c;min-width:0}
-.quest-track li>span{font-size:11px;letter-spacing:1px}.quest-track strong{font-size:17px;font-weight:500}.quest-track small{font-size:10px;color:#91a6a8;white-space:nowrap}
-.quest-track .current{border-color:#c1a471;box-shadow:inset 0 0 0 1px #c1a471;background:#353c32;color:#e9cf98}.quest-track .success{background:#274a43;border-color:#557f6e;color:#c3e2c7}.quest-track .failure{background:#493036;border-color:#8e5a59;color:#ecc2b6}
-.quest-context{display:flex;flex-wrap:wrap;gap:13px 22px;font-size:12px;padding:0 0 22px;color:#a5bbbc;border-bottom:1px solid #ffffff13}.quest-context>span{display:inline-flex;gap:7px;align-items:center}.quest-context b{color:#dfd9c8;font-weight:500}.quest-context .danger-copy,.quest-context .danger-copy b{color:#f0aca0}
-.game-action{padding:25px 0 5px}.game-action-heading{display:flex;align-items:flex-start;gap:15px;margin-bottom:22px}.step-icon{display:grid;place-items:center;flex-shrink:0;height:47px;width:47px;border-radius:13px;border:1px solid #6d715c;color:#dbbd82;background:#d8bd8210}
-.game-action-heading h2{font-size:23px;font-weight:500;margin:0 0 8px;line-height:1.5;letter-spacing:.5px}.game-action-heading p{font-size:13px;color:#afc0bf;line-height:1.85;margin:0}
-.team-selector{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.player-option{border:1px solid #496063;border-radius:9px;padding:12px;display:flex;align-items:center;gap:11px;background:#182c34;color:#c6d3cf;text-align:left;min-width:0;min-height:61px}.player-option>span:nth-child(2){flex:1;overflow-wrap:anywhere;line-height:1.5;font-size:14px}.player-option small{margin-left:6px;font-size:10px;color:#d8bd85}.player-option .player-number{width:28px;height:28px;flex-shrink:0;display:grid;place-items:center;border:1px solid #5b7470;border-radius:50%;font-size:13px}.player-option.selected{background:#3a4538;border-color:#d3b879;color:#f0e3bd;box-shadow:inset 0 0 0 1px #d3b879}.player-option:disabled:not(.selected){opacity:.5}.selection-check{height:18px;width:18px;display:grid;place-items:center;border:1px solid #6f8177;border-radius:50%;flex-shrink:0}.selected .selection-check{color:#243631;background:#d7c08c;border-color:#d7c08c}
-.game-action-footer{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-top:20px}.game-action-footer p{font-size:12px;color:#a6b8b7;line-height:1.7;margin:0}.game-action-footer .primary-button{width:auto;min-width:180px}
-.waiting-note{padding:18px 20px;border-radius:9px;border:1px dashed #476164;background:#14272e;font-size:13px;color:#b1c6c1;line-height:1.8;text-align:center;margin:17px 0 0}
-.proposed-team{display:flex;gap:18px;align-items:center;border-bottom:1px solid #ffffff13;padding:20px 0}.proposed-team>span{font-size:12px;color:#acbdb9;white-space:nowrap}.proposed-team>div{display:flex;flex-wrap:wrap;gap:8px}.team-member{display:inline-flex;align-items:center;gap:9px;font-size:13px;padding:7px 12px 7px 7px;background:#28403e;border:1px solid #526a5f;border-radius:7px;overflow-wrap:anywhere}.team-member b{background:#b4b28b;border-radius:4px;min-width:25px;height:25px;display:grid;place-items:center;color:#172b2c;font-weight:500}
-.voter-progress{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:25px}.voter-progress>span{display:flex;align-items:center;justify-content:center;gap:2px;width:36px;height:36px;border:1px solid #4b5a5d;border-radius:50%;font-size:13px;color:#91a6aa}.voter-progress .submitted{background:#315548;border-color:#81a28a;color:#d4e9d7}
-.vote-actions{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:22px 0 10px}.ballot-choice{min-height:91px;border:1px solid #607369;background:#28483e;color:#cee0c5;display:flex;align-items:center;justify-content:center;gap:13px;border-radius:11px;transition:border-color .15s,background .15s}.ballot-choice strong{font-size:21px;font-weight:500;letter-spacing:3px}.ballot-choice.reject{border-color:#805b5d;background:#452e35;color:#e4b9b1}.ballot-choice:disabled{opacity:.35}.ballot-choice.selected{box-shadow:inset 0 0 0 2px #e3c888;border-color:#e3c888}.ballot-choice:hover:not(:disabled){border-color:#e5cd95}
-.ballot-count{text-align:center;font-size:24px;color:#7d989b;margin:26px 0}.ballot-count b{font-size:40px;color:#d9c897;font-weight:400}.ballot-count>span{display:block;font-size:12px;letter-spacing:1px;margin-top:5px}.game-action>.primary-button{max-width:450px;margin:20px auto 0}.private-ballot-dialog h2{display:flex;align-items:center;gap:10px}.private-ballot-dialog .action-note{margin:17px 0 21px;text-align:left}
-.ballot-error{font-size:13px;line-height:1.8;padding:12px;border:1px solid #945f59;border-radius:8px;color:#efbeb1;background:#4b3037}
-.assassination .step-icon{border-color:#945a5a;color:#ebada2;background:#502b31}.assassination-button{background:#d5aa83!important}.last-proposal{display:flex;gap:10px;padding:17px 0 0;font-size:12px;color:#ceb498;line-height:1.9}.last-proposal svg{flex-shrink:0;margin-top:3px}
-.game-history{margin-top:25px;border-top:1px solid #435554;padding-top:18px}.game-history summary{cursor:pointer;display:flex;align-items:center;gap:10px;list-style:none;font-size:14px;color:#d3c39c;min-height:31px}.game-history summary:after{content:"展开 ＋";margin-left:auto;font-size:11px;color:#adc0bd}.game-history[open] summary:after{content:"收起 −"}.game-history summary small{font-size:11px;color:#8da5a7;margin-left:7px}.history-scroll{overflow:auto;margin-top:18px;border:1px solid #364b4d;border-radius:9px}.game-history table{width:100%;border-collapse:collapse;white-space:nowrap;font-size:12px;text-align:center}.game-history th{font-weight:500}.game-history thead{background:#243b3f;color:#c3cfc7}.game-history th,.game-history td{padding:13px 12px;border-bottom:1px solid #ffffff09}.game-history tbody th{color:#ddc494}.game-history tbody tr:nth-child(2n){background:#ffffff03}.vote-yes{color:#a7d4b3}.vote-no{color:#e0a8a0}.history-result{border-radius:4px;font-size:10px;padding:4px 6px}.history-result.passed{background:#365b45;color:#c4dfc3}.history-result.rejected{background:#5c393d;color:#eec0b4}.quest-history{margin-top:15px}.quest-history>div{display:grid;grid-template-columns:70px 1fr auto;gap:15px;padding:12px 0;font-size:12px;border-bottom:1px solid #ffffff0c;color:#b2c0bd}.quest-history strong{font-size:12px;font-weight:500}.game-history>.action-note{text-align:left;margin-top:17px}
-.game-start{display:grid;grid-template-columns:auto 1fr auto;gap:22px;align-items:center}.game-start h2{font-size:23px;line-height:1.5;margin:9px 0 7px}.game-start p{font-size:13px;line-height:1.8;color:#abc0b8;margin:0}.game-start .primary-button{width:auto;min-width:180px}.game-start-icon{color:#dbbf83;border:1px solid #626c59;border-radius:50%;width:67px;height:67px;display:grid;place-items:center}
-.room-details>summary{display:none}.room-details.in-game{border:1px solid #354b50;border-radius:12px;padding:0 21px}.room-details.in-game>summary{display:flex;align-items:center;justify-content:space-between;font-size:13px;color:#c6c7b1;cursor:pointer;min-height:62px}.room-details.in-game>summary>span{font-size:11px;color:#8fa8aa}.room-details.in-game[open]{padding-bottom:21px}.room-details.in-game[open]>summary{margin-bottom:10px}
-.game-result{display:flex;flex-direction:column;align-items:center;text-align:center;padding:21px 0 6px;color:#cae0bb}.game-result.evil{color:#e0afa5}.game-result>.eyebrow{margin-top:17px;color:inherit}.game-result h2{font-size:30px;letter-spacing:2px;font-weight:500;margin:17px 0 11px}.game-result>p{font-size:14px;color:#bacac2;line-height:1.85;margin:0}.game-result .assassination-result{margin-top:9px;color:#d8bc9a}.revealed-roles{display:grid;grid-template-columns:1fr 1fr;gap:0 24px;width:100%;max-width:650px;margin:25px 0}.revealed-roles>div{display:flex;align-items:center;gap:11px;font-size:13px;min-width:0;padding:12px 0;border-bottom:1px solid #ffffff14}.revealed-roles>div>span:nth-child(2){flex:1;text-align:left;overflow-wrap:anywhere;color:#cfdbd3}.revealed-roles .member-seat{flex-shrink:0}.revealed-roles strong{font-weight:500;white-space:nowrap;font-size:12px}.revealed-roles .good{color:#a9d2b4}.revealed-roles .evil{color:#e1a5a1}.game-result>.action-note{font-size:11px;color:#8ea8a8;margin-top:12px}
-@media(max-width:720px){
-  .game-panel{padding:21px 16px;border-radius:13px}.game-topline{gap:9px;margin-bottom:16px}.game-topline .eyebrow{font-size:9px;letter-spacing:1px}.game-score{gap:10px;font-size:10px}.game-score b{font-size:20px;margin-left:3px}
-  .quest-track{gap:5px;margin-bottom:17px}.quest-track li{padding:11px 2px;gap:6px;border-radius:7px}.quest-track li>span{font-size:9px;letter-spacing:0}.quest-track strong{font-size:14px}.quest-track small{font-size:8px;letter-spacing:-.3px}
-  .quest-context{gap:10px 16px;font-size:11px;padding-bottom:17px}.quest-context>span:first-child{width:100%}.game-action{padding-top:20px}.game-action-heading{gap:12px;margin-bottom:18px}.game-action-heading h2{font-size:20px;letter-spacing:0}.game-action-heading p{font-size:12px}.step-icon{width:38px;height:42px;border-radius:9px}.step-icon svg{width:21px}
-  .team-selector{grid-template-columns:1fr 1fr;gap:8px}.player-option{padding:10px 8px;gap:8px;min-height:57px}.player-option>span:nth-child(2){font-size:12px}.player-option .player-number{width:25px;height:25px;font-size:12px}.selection-check{height:15px;width:15px}.player-option small{display:block;margin:1px 0 0}
-  .game-action-footer{flex-direction:column;gap:14px;align-items:stretch;margin-top:17px}.game-action-footer p{text-align:center;font-size:11px}.game-action-footer .primary-button{width:100%}.waiting-note{font-size:12px;padding:16px 12px}
-  .proposed-team{align-items:flex-start;flex-direction:column;gap:12px;padding:16px 0}.team-member{font-size:12px;padding:5px 9px 5px 5px;gap:7px}.team-member b{height:23px;min-width:23px}.voter-progress{gap:6px}.voter-progress>span{width:29px;height:29px;font-size:11px}.vote-actions{gap:11px}.ballot-choice{min-height:84px;gap:11px}.ballot-choice strong{font-size:20px}.ballot-choice svg{width:21px}
-  .game-history summary{font-size:13px;gap:8px;flex-wrap:wrap}.game-history summary small{font-size:10px;margin-left:0}.game-history summary:after{font-size:10px}.game-history th,.game-history td{padding:12px 9px}.quest-history>div{grid-template-columns:48px 1fr;gap:8px;font-size:11px}.quest-history strong{grid-column:2;font-size:11px}.last-proposal{font-size:11px}.game-history>.action-note{font-size:10px}
-  .game-start{grid-template-columns:auto 1fr;gap:15px}.game-start-icon{width:47px;height:47px}.game-start-icon svg{width:24px}.game-start h2{font-size:20px}.game-start p{font-size:12px}.game-start .primary-button,.game-start .waiting-note{grid-column:1/-1;width:100%}.game-start .eyebrow{font-size:9px}
-  .room-details.in-game{padding:0 12px}.room-details.in-game>summary{font-size:12px;min-height:54px}.room-details.in-game .room-layout{gap:13px}.room-details.in-game .action-card{padding:17px}.room-details.in-game .room-table{padding:18px 10px}.room-details.in-game .config-card{padding:17px}
-  .game-result h2{font-size:24px;letter-spacing:1px}.game-result>p{font-size:12px}.revealed-roles{grid-template-columns:1fr;margin:20px 0}.revealed-roles>div{font-size:12px}.game-result>.secondary-button{font-size:12px}
+.game-panel {
+  min-width: 0;
+  margin: 0 0 24px;
+  padding: 30px;
+  border: 1px solid #2a4144;
+  border-radius: 22px;
+  background: linear-gradient(145deg, #16292d, #102024 76%);
+  box-shadow: 0 14px 48px #00000014;
 }
-.rematch-actions{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:12px;margin-top:24px}.rematch-actions .primary-button{width:auto}.rematch-actions .waiting-note{width:100%;margin:0}.rematch-actions .secondary-button{margin:0}
-@media(max-width:600px){.rematch-actions{flex-direction:column}.rematch-actions .primary-button,.rematch-actions .secondary-button{width:100%}}
+.game-topline { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 25px; }
+.game-kicker { display: block; color: #dbc18a; font-size: 11px; font-weight: 500; line-height: 1.5; letter-spacing: 2.2px; }
+.game-workspace-title { display: grid; gap: 8px; }
+.game-workspace-title > strong { color: #f4f0e6; font-size: 24px; font-weight: 600; line-height: 1.4; letter-spacing: -.5px; }
+.game-workspace-title > strong > span { display: inline-block; margin-left: 10px; color: #93a9a6; font-size: 12px; font-weight: 400; letter-spacing: 0; vertical-align: middle; }
+.game-phase-chip { display: inline-flex; align-items: center; justify-content: center; gap: 7px; flex-shrink: 0; padding: 9px 12px; border: 1px solid #6d664a; border-radius: 30px; background: #dbc18a0c; color: #e2cc9e; font-size: 12px; line-height: 1.4; }
+.game-phase-chip.danger { border-color: #79534e; background: #e9a59c0a; color: #e9a59c; }
+.game-score { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 23px; }
+.game-score-side { min-width: 0; display: grid; grid-template-columns: auto auto 1fr auto; align-items: center; gap: 11px; min-height: 64px; padding: 11px 17px; border: 1px solid #2b4945; border-radius: 12px; background: #9bcab706; color: #9bcab7; }
+.game-score-side > span { font-size: 13px; white-space: nowrap; }
+.game-score-side > strong { display: flex; align-items: baseline; gap: 7px; font-size: 27px; line-height: 1; font-weight: 500; font-variant-numeric: tabular-nums; }
+.game-score-side > strong > small { font-size: 12px; color: #899e99; font-weight: 400; }
+.game-score-side.evil { color: #e9a59c; border-color: #513c3b; background: #e9a59c06; }
+.score-dots { display: flex; justify-content: flex-end; gap: 5px; margin-right: 6px; }
+.score-dots i { width: 7px; height: 7px; border: 1px solid currentColor; border-radius: 50%; opacity: .25; }
+.score-dots i.filled { background: currentColor; opacity: .9; }
+.quest-track { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; list-style: none; padding: 0; margin: 0; }
+.quest-track li { min-width: 0; min-height: 108px; display: flex; flex-direction: column; align-items: center; gap: 7px; padding: 13px 8px; border: 1px solid #2a4144; border-radius: 12px; background: #0e1e22; color: #92a8a4; }
+.quest-step-label { font-size: 12px; line-height: 1.4; color: #a4b5b2; }
+.quest-step-symbol { display: grid; place-items: center; width: 28px; height: 24px; color: #6e8986; }
+.quest-track strong { font-size: 14px; line-height: 1.4; font-weight: 500; }
+.quest-track small { color: inherit; font-size: 12px; line-height: 1.4; white-space: nowrap; }
+.quest-track .current { border-color: #bba16c; background: #dbc18a0c; box-shadow: inset 0 3px #dbc18a; color: #e7cea1; }
+.quest-track .current .quest-step-symbol { color: #dbc18a; }
+.quest-track .success { border-color: #416258; background: #203c34; color: #b1d9c3; }
+.quest-track .success .quest-step-symbol { color: #b1d9c3; }
+.quest-track .failure { border-color: #72504a; background: #38282a; color: #efb7aa; }
+.quest-track .failure .quest-step-symbol { color: #efb7aa; }
+.quest-rule-note { margin: 12px 0 0; color: #96aaa6; font-size: 12px; line-height: 1.8; }
+.quest-context { display: flex; flex-wrap: wrap; align-items: center; gap: 13px 24px; padding: 20px 0 0; color: #a4b5b2; font-size: 13px; line-height: 1.7; }
+.quest-context > span { display: inline-flex; align-items: center; gap: 7px; }
+.quest-context svg { flex-shrink: 0; color: #b4bea9; }
+.quest-context b { color: #eee7d5; font-weight: 500; }
+.quest-context .quest-leader { margin-right: auto; min-width: 0; }
+.quest-leader > span { min-width: 0; overflow-wrap: anywhere; }
+.quest-leader b { margin-left: 7px; }
+.quest-context .danger-copy, .quest-context .danger-copy b, .quest-context .danger-copy svg { color: #e9a59c; }
+.game-action { margin-top: 24px; padding: 25px; border: 1px solid #30484a; border-radius: 17px; background: #192e31; }
+.game-action-heading { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 25px; }
+.game-action-heading > div { min-width: 0; }
+.step-icon { flex-shrink: 0; display: grid; place-items: center; width: 49px; height: 49px; border: 1px solid #6e7058; border-radius: 14px; background: #dbc18a08; color: #dbc18a; }
+.action-kicker { display: block; margin: 1px 0 8px; color: #d6bd88; font-size: 12px; line-height: 1.4; }
+.game-action-heading h2 { margin: 0 0 10px; font-size: 26px; font-weight: 600; letter-spacing: -.6px; line-height: 1.4; color: #f4f0e6; }
+.game-action-heading p { margin: 0; font-size: 14px; line-height: 1.8; color: #aebfba; }
+.team-selector { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.player-option { min-width: 0; min-height: 67px; display: flex; align-items: center; gap: 11px; padding: 14px 12px; border: 1px solid #3f595a; border-radius: 11px; background: #13272b; color: #d8e1d7; text-align: left; }
+.player-option > span:nth-child(2) { min-width: 0; flex: 1; font-size: 14px; line-height: 1.6; overflow-wrap: anywhere; }
+.player-option small { display: inline-block; margin-left: 6px; color: #d8bd85; font-size: 12px; }
+.player-option .player-number { flex-shrink: 0; display: grid; place-items: center; width: 30px; height: 30px; border: 1px solid #59736c; border-radius: 50%; color: #b9cec3; font-size: 13px; font-variant-numeric: tabular-nums; }
+.player-option:hover:not(:disabled) { background: #213a3b; border-color: #8a9985; }
+.player-option.selected { border-color: #c6ad78; background: #394338; color: #f0dfb4; box-shadow: inset 0 0 0 1px #c6ad78; }
+.player-option.selected .player-number { background: #dbc18a; color: #1a2c2b; border-color: #dbc18a; }
+.player-option:disabled:not(.selected) { opacity: .5; }
+.selection-check { flex-shrink: 0; display: grid; place-items: center; width: 19px; height: 19px; border: 1px solid #607d72; border-radius: 50%; }
+.selected .selection-check { border-color: #dbc18a; background: #dbc18a; color: #223a31; }
+.game-action-footer { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding-top: 21px; }
+.game-action-footer p { display: grid; gap: 5px; margin: 0; font-size: 12px; line-height: 1.5; color: #a4b5b2; }
+.game-action-footer p strong { color: #e1d3ae; font-size: 14px; font-weight: 500; }
+.game-action-footer .primary-button { width: auto; min-width: 185px; }
+.game-panel .waiting-note { margin: 18px 0 0; padding: 19px 21px; border: 1px solid #38554f; border-radius: 10px; background: #10282a; color: #bdcec3; font-size: 14px; line-height: 1.8; text-align: center; }
+.proposed-team { display: flex; align-items: center; gap: 22px; margin-top: 23px; padding: 18px 20px; border: 1px solid #485748; border-radius: 13px; background: #dbc18a06; }
+.proposed-team > span { flex-shrink: 0; color: #c0bda3; font-size: 13px; }
+.proposed-team > div { display: flex; flex-wrap: wrap; gap: 9px; min-width: 0; }
+.team-member { display: inline-flex; align-items: center; min-width: 0; gap: 8px; padding: 6px 11px 6px 6px; border: 1px solid #476359; border-radius: 8px; background: #263d35; color: #d0ddcd; font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
+.team-member b { flex-shrink: 0; display: grid; place-items: center; min-width: 26px; height: 26px; border-radius: 5px; background: #b8b18a; color: #1a2c28; font-size: 12px; font-weight: 500; }
+.voter-progress { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 23px; }
+.voter-progress > span { position: relative; display: grid; place-items: center; width: 37px; height: 37px; border: 1px solid #4c6562; border-radius: 50%; background: #11272a; color: #9db3ab; font-size: 13px; }
+.voter-progress .submitted { color: #d3e7d6; border-color: #789f85; background: #355646; }
+.voter-progress .submitted svg { position: absolute; right: -2px; bottom: -1px; width: 14px; height: 14px; border: 1px solid #355646; border-radius: 50%; background: #a1c8ad; color: #19342b; }
+.game-panel .action-note { color: #a4b5b2; font-size: 13px; line-height: 1.8; }
+.vote-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 23px 0 10px; }
+.ballot-choice { position: relative; min-width: 0; min-height: 118px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 13px; padding: 19px 14px; border: 1px solid #628571; border-radius: 14px; background: #244537; color: #cae1c4; }
+.ballot-choice strong { font-size: 23px; line-height: 1.2; font-weight: 500; letter-spacing: 3px; padding-left: 3px; }
+.ballot-choice.reject { border-color: #916861; background: #443032; color: #efc1b3; }
+.ballot-choice:hover:not(:disabled) { border-color: #e9d7a6; box-shadow: inset 0 0 0 1px #e9d7a6; }
+.ballot-choice:disabled { opacity: .4; }
+.ballot-choice.selected { border-color: #e1c890; box-shadow: inset 0 0 0 2px #e1c890; }
+.ballot-choice > svg:last-child { position: absolute; top: 12px; right: 12px; color: #f1ddae; }
+.sealed-progress { display: flex; justify-content: center; align-items: center; gap: 20px; padding: 24px 15px; margin: 23px 0; border: 1px dashed #52685c; border-radius: 12px; background: #11272a; color: #c7b98e; }
+.ballot-count { margin: 0; font-size: 23px; font-variant-numeric: tabular-nums; line-height: 1.2; color: #8ba59d; }
+.ballot-count b { margin-right: 3px; color: #ead5aa; font-size: 43px; font-weight: 400; }
+.ballot-count > span { display: block; margin-top: 7px; font-size: 13px; line-height: 1.5; color: #b5c3b5; }
+.game-action > .primary-button { max-width: 480px; margin: 20px auto 0; }
+.private-ballot-dialog, .game-confirm-dialog { max-height: calc(100dvh - 40px); overflow-y: auto; border-color: #49605b; border-radius: 18px; background: #13272b; }
+.private-ballot-dialog [data-slot=dialog-title] { font-size: 25px; line-height: 1.4; font-weight: 600; letter-spacing: -.5px; }
+.private-ballot-dialog [data-slot=dialog-description], .game-confirm-dialog [data-slot=alert-dialog-description] { color: #aebfba; font-size: 14px; line-height: 1.8; }
+.game-confirm-dialog [data-slot=alert-dialog-title] { line-height: 1.5; overflow-wrap: anywhere; }
+.private-ballot-label { display: inline-flex; align-items: center; gap: 7px; color: #dbc18a; font-size: 12px; line-height: 1.5; }
+.private-ballot-dialog .vote-actions { margin: 7px 0 0; }
+.private-ballot-dialog .action-note { margin: 5px 0 8px; color: #a4b5b2; font-size: 13px; line-height: 1.8; text-align: left; }
+.private-ballot-dialog .primary-button { min-height: 52px; }
+.private-ballot-dialog [data-slot=dialog-close] { width: 44px; height: 44px; top: 7px; right: 7px; display: grid; place-items: center; }
+.ballot-error { margin: 0; padding: 13px 15px; border: 1px solid #8d6157; border-radius: 10px; background: #412c2c; color: #ecc0b4; font-size: 13px; line-height: 1.8; }
+.assassination { border-color: #6b5149; background: linear-gradient(145deg, #332a29, #1c2b2c); }
+.assassination .step-icon { border-color: #92645c; color: #e9a59c; background: #e9a59c0a; }
+.assassination .action-kicker { color: #e9a59c; }
+.assassination .muted-copy { color: #c2b6aa; font-size: 14px; line-height: 1.8; }
+.assassination-button { background: #ddb68f !important; border-color: #ddb68f !important; }
+.last-proposal { display: flex; align-items: flex-start; gap: 10px; margin-top: 19px; padding: 14px 16px; border: 1px solid #564d39; border-radius: 10px; background: #40392540; color: #d4be95; font-size: 13px; line-height: 1.8; }
+.last-proposal svg { flex-shrink: 0; margin-top: 3px; }
+.game-history { margin-top: 24px; border-top: 1px solid #314a49; }
+.game-history summary { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 18px; min-height: 62px; padding: 11px 0 3px; list-style: none; cursor: pointer; color: #ddcca8; }
+.game-history summary::-webkit-details-marker { display: none; }
+.game-history summary:focus-visible, .history-scroll:focus-visible { outline: 2px solid #dbc18a; outline-offset: 4px; border-radius: 7px; }
+.history-title { display: inline-flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 500; }
+.game-history summary small { color: #9cb1aa; font-size: 12px; line-height: 1.5; }
+.history-chevron { margin-left: auto; color: #9cb1aa; flex-shrink: 0; transition: transform .2s; }
+.game-history[open] .history-chevron { transform: rotate(180deg); }
+.history-empty { margin: 13px 0 0; color: #9fb4ac; font-size: 13px; line-height: 1.8; }
+.history-hint { display: flex; align-items: center; gap: 8px; margin: 16px 0 10px; color: #9fb4ac; font-size: 12px; line-height: 1.7; }
+.history-hint svg { flex-shrink: 0; }
+.history-scroll { max-width: 100%; overflow: auto; border: 1px solid #354d4b; border-radius: 11px; scrollbar-color: #567066 #102024; }
+.game-history table { width: 100%; border-collapse: collapse; color: #c2cfc3; font-size: 13px; text-align: center; white-space: nowrap; }
+.game-history th { font-weight: 500; }
+.game-history thead { background: #243b38; color: #d2d8c4; }
+.game-history th, .game-history td { padding: 16px 13px; border-bottom: 1px solid #ffffff09; }
+.game-history tbody th { color: #dfc593; }
+.game-history tbody tr:nth-child(2n) { background: #ffffff03; }
+.vote-yes { color: #a8d0b6; }.vote-no { color: #e7aaa0; }
+.history-result { display: inline-block; padding: 4px 7px; border-radius: 5px; font-size: 12px; line-height: 1.5; }
+.history-result.passed { background: #345140; color: #c0dfc1; }.history-result.rejected { background: #503437; color: #edbeb0; }
+.quest-history { margin-top: 19px; padding: 0 2px; }
+.quest-history > div { display: grid; grid-template-columns: 70px 1fr auto; gap: 15px; padding: 14px 0; border-bottom: 1px solid #ffffff0c; color: #b4c4b8; font-size: 13px; line-height: 1.7; }
+.quest-history strong { font-size: 13px; font-weight: 500; }
+.game-history > .action-note { margin-top: 19px; text-align: left; }
+.game-start { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 22px; background: linear-gradient(135deg, #283b30, #14282a); border-color: #5c6a4f; }
+.game-start h2 { margin: 10px 0; color: #f1e7ce; font-size: 26px; line-height: 1.4; font-weight: 600; letter-spacing: -.5px; }
+.game-start p { margin: 0; color: #b6c7b7; font-size: 14px; line-height: 1.85; }
+.game-start p strong { font-weight: 500; color: #e0d4b5; }
+.game-start .primary-button { width: auto; min-width: 172px; }
+.game-start-icon { display: grid; place-items: center; width: 67px; height: 67px; border: 1px solid #849073; border-radius: 50%; color: #dbc18a; box-shadow: 0 0 0 7px #dbc18a05; }
+.game-result { display: flex; flex-direction: column; align-items: center; padding: 33px 15px 9px; text-align: center; color: #b7d4a9; }
+.game-result.evil { color: #e3aea0; }
+.result-emblem { display: grid; place-items: center; width: 84px; height: 84px; margin-bottom: 22px; border: 1px solid currentColor; border-radius: 50%; box-shadow: 0 0 0 9px #dbc18a04, 0 0 0 10px #dbc18a10; }
+.game-result > .game-kicker { color: inherit; font-size: 11px; letter-spacing: 2.7px; }
+.game-result h2 { margin: 16px 0 14px; color: #f4f0e6; font-size: clamp(27px, 3.3vw, 38px); font-weight: 500; line-height: 1.45; letter-spacing: -1px; }
+.game-result > p { margin: 0; max-width: 550px; color: #b7c9ba; font-size: 14px; line-height: 1.9; }
+.game-result .assassination-result { margin-top: 10px; color: #d8bb94; }
+.result-identity-list { width: 100%; max-width: 740px; margin-top: 33px; padding: 20px 22px; border: 1px solid #344c46; border-radius: 15px; background: #13272b; text-align: left; }
+.result-identity-list h3 { margin: 0 0 11px; color: #c3c6ac; font-size: 13px; line-height: 1.7; font-weight: 500; }
+.revealed-roles { display: grid; grid-template-columns: 1fr 1fr; gap: 0 28px; }
+.revealed-roles > div { display: flex; align-items: center; gap: 10px; min-width: 0; min-height: 54px; padding: 12px 0; border-bottom: 1px solid #ffffff0c; font-size: 14px; }
+.revealed-roles > div > span:nth-child(2) { min-width: 0; flex: 1; color: #d6dfd1; overflow-wrap: anywhere; }
+.revealed-roles .member-seat { flex-shrink: 0; display: grid; place-items: center; width: 25px; height: 25px; border: 1px solid #527363; border-radius: 50%; font-size: 12px; }
+.revealed-roles strong { flex-shrink: 0; border-radius: 5px; padding: 4px 7px; font-size: 12px; font-weight: 500; line-height: 1.5; }
+.revealed-roles .good { color: #aed5b8; background: #2d4838; }.revealed-roles .evil { color: #e9b0a3; background: #483036; }
+.rematch-actions { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 12px; width: 100%; margin-top: 28px; }
+.rematch-actions .primary-button { width: auto; }.rematch-actions .secondary-button { margin: 0; }.rematch-actions .waiting-note { width: 100%; margin: 0; }
+.game-result > .action-note { margin-top: 17px; color: #9ab2a6; font-size: 12px; }
+@media (max-width: 900px) {
+  .game-start { grid-template-columns: auto 1fr; }
+  .game-start .primary-button, .game-start .waiting-note { grid-column: 1 / -1; width: 100%; }
+}
+@media (max-width: 720px) {
+  .game-panel { padding: 20px 16px; border-radius: 18px; }
+  /* Put the current decision within reach; the five-task overview follows it. */
+  .game-panel:not(.game-start) { display: flex; flex-direction: column; }
+  .game-topline { order: 0; gap: 12px; margin-bottom: 16px; }
+  .game-score { order: 1; }
+  .quest-context { order: 2; }
+  .proposed-team { order: 3; }
+  .game-action, .game-result { order: 4; }
+  .last-proposal { order: 5; }
+  .quest-track { order: 6; margin-top: 22px; }
+  .quest-rule-note { order: 7; }
+  .game-history { order: 8; }
+  .game-workspace-title > strong { font-size: 21px; }
+  .game-workspace-title > strong > span { margin-left: 5px; }
+  .game-kicker { font-size: 10px; letter-spacing: 1.6px; }
+  .game-phase-chip { padding: 8px 10px; gap: 5px; }
+  .game-score { gap: 9px; margin-bottom: 12px; }
+  .game-score-side { min-height: 53px; gap: 8px; padding: 10px 11px; }
+  .game-score-side > strong { font-size: 24px; gap: 4px; }
+  .quest-track { gap: 6px; }.quest-track li { min-height: 103px; gap: 6px; padding: 11px 3px; border-radius: 9px; }
+  .quest-track strong { font-size: 13px; }.quest-step-symbol { height: 23px; }.quest-step-label { font-size: 12px; }
+  .quest-rule-note { margin-top: 11px; }
+  .quest-context { gap: 7px 19px; padding-top: 0; font-size: 12px; }
+  .quest-context .quest-leader { width: 100%; margin-right: 0; font-size: 13px; }
+  .game-action { margin-top: 16px; padding: 19px 15px; border-radius: 13px; }
+  .game-action-heading { gap: 12px; margin-bottom: 18px; }.step-icon { width: 39px; height: 42px; border-radius: 11px; }.step-icon svg { width: 22px; }
+  .game-action .action-kicker { display: none; }.game-action-heading h2 { margin-bottom: 7px; font-size: 21px; line-height: 1.5; letter-spacing: -.5px; }.game-action-heading p { font-size: 13px; }
+  .team-selector { grid-template-columns: 1fr 1fr; gap: 8px; }.player-option { min-height: 60px; gap: 8px; padding: 10px 9px; }.player-option > span:nth-child(2) { font-size: 13px; }.player-option .player-number { width: 25px; height: 25px; font-size: 12px; }.player-option small { display: block; margin: 0; }.selection-check { width: 17px; height: 17px; }
+  .game-action-footer { align-items: stretch; flex-direction: column; gap: 16px; padding-top: 18px; }.game-action-footer p { grid-template-columns: 1fr auto; align-items: center; }.game-action-footer .primary-button { width: 100%; }
+  .game-panel .waiting-note { padding: 16px 14px; font-size: 13px; }.game-panel .action-note { font-size: 12px; }
+  .proposed-team { flex-direction: row; align-items: center; gap: 12px; margin-top: 15px; padding: 13px 12px; }.proposed-team > div { flex: 1; gap: 8px; }.team-member { font-size: 13px; }
+  .voter-progress { gap: 7px; }.voter-progress > span { width: 33px; height: 33px; }
+  .vote-actions { gap: 11px; margin-top: 20px; }.ballot-choice { min-height: 111px; padding: 18px 10px; }.ballot-choice strong { font-size: 22px; }
+  .sealed-progress { padding: 20px 12px; gap: 17px; }.ballot-count b { font-size: 38px; }.ballot-count { font-size: 21px; }
+  .last-proposal { padding: 13px; font-size: 12px; }.game-history { margin-top: 21px; }.game-history summary { gap: 8px 12px; min-height: 61px; }.history-title { font-size: 13px; }.game-history summary small { font-size: 12px; }.game-history th, .game-history td { padding: 14px 11px; }
+  .quest-history > div { grid-template-columns: 58px 1fr; gap: 6px 10px; }.quest-history strong { grid-column: 2; font-size: 12px; }.game-history > .action-note { font-size: 12px; }
+  .game-start { gap: 17px; padding: 24px 19px; }.game-start-icon { width: 48px; height: 48px; }.game-start-icon svg { width: 24px; }.game-start h2 { font-size: 22px; }.game-start p { font-size: 13px; }
+  .game-result { padding: 29px 0 7px; }.result-emblem { width: 73px; height: 73px; }.game-result h2 { font-size: 27px; }.game-result > p { font-size: 13px; }
+  .result-identity-list { margin-top: 26px; padding: 16px; }.revealed-roles { grid-template-columns: 1fr; }.revealed-roles > div { font-size: 13px; }
+  .rematch-actions { flex-direction: column; margin-top: 23px; }.rematch-actions .primary-button, .rematch-actions .secondary-button { width: 100%; }
+}
+@media (max-width: 620px) {
+  .score-dots { display: none; }.game-score-side { grid-template-columns: auto 1fr auto; }
+}
+@media (max-width: 400px) {
+  .game-panel { padding: 19px 13px; }.game-topline { gap: 9px; }.game-workspace-title > strong { font-size: 20px; }.game-workspace-title > strong > span { display: none; }.game-phase-chip { padding: 8px; }
+  .game-score-side { padding: 10px 8px; gap: 6px; }.game-score-side > svg { width: 16px; }.game-score-side > span { font-size: 12px; }.game-score-side > strong { font-size: 23px; }.game-score-side > strong > small { font-size: 12px; }
+  .quest-track { gap: 5px; }.quest-track li { padding-left: 1px; padding-right: 1px; }
+  .game-action { padding: 20px 12px; }.game-action-heading { gap: 10px; }.game-action-heading h2 { font-size: 20px; }.step-icon { width: 34px; height: 38px; }
+  .player-option { gap: 6px; padding: 10px 7px; }.selection-check { width: 15px; height: 15px; }.player-option .player-number { width: 23px; height: 23px; }
+  .game-action-footer p { display: flex; flex-wrap: wrap; gap: 9px; }.game-history summary small { margin-left: auto; }.history-chevron { display: none; }
+}

@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 const base=process.env.AVALON_TEST_URL||"http://localhost:5173";
+const hostKey=process.env.AVALON_TEST_HOST_KEY||"AVL-TEST-KEYS-2345-6789";
 assert.ok(["localhost","127.0.0.1","[::1]"].includes(new URL(base).hostname),"Integration checks only run against a local server.");
 class Client{
  cookie="";
@@ -10,8 +11,24 @@ class Client{
 for(const capacity of [5,7,10]){
  const clients=await Promise.all(Array.from({length:capacity+2},()=>new Client().init()));
  const host=clients[0],requestId=crypto.randomUUID();
- const created=await host.call({action:"create",name:"集成测试房主",capacity,preset:capacity===10?"full":"classic",requestId});assert.equal(created.status,200,JSON.stringify(created));const code=created.data.code;
- const again=await host.call({action:"create",name:"集成测试房主",capacity,preset:capacity===10?"full":"classic",requestId});assert.equal(again.data.code,code);
+ const creation={action:"create",name:"集成测试房主",capacity,preset:capacity===10?"full":"classic",requestId};
+ if(capacity===5){
+  for(const invalidKey of [undefined,null,{},"invalid","AVL-TAST-KEYS-2345-6789",hostKey.padEnd(129," ")]){
+   const denied=await host.call({...creation,hostKey:invalidKey});assert.equal(denied.status,403,JSON.stringify(denied));
+   assert.ok(!JSON.stringify(denied.data).includes(hostKey),"key errors must not echo the submitted secret");
+  }
+  assert.equal((await host.call({...creation,hostKey:"X".repeat(4096)})).status,413);
+  const chunked=await fetch(`${base}/api/room`,{method:"POST",headers:{"Content-Type":"application/json",Origin:base,Cookie:host.cookie},duplex:"half",body:new ReadableStream({start(controller){controller.enqueue(new TextEncoder().encode('{"action":"create","hostKey":"'));controller.enqueue(new TextEncoder().encode("X".repeat(2048)));controller.enqueue(new TextEncoder().encode('"}'));controller.close();}})});
+  assert.equal(chunked.status,413,"oversized bodies without Content-Length must be rejected");
+ }
+ const created=await host.call({...creation,hostKey});assert.equal(created.status,200,JSON.stringify(created));const code=created.data.code;
+ assert.ok(!Object.hasOwn(created.data,"hostKey")&&!Object.hasOwn(created.data,"HOST_KEY_HASHES")&&!JSON.stringify(created.data).includes(hostKey),"room responses must not contain creation credentials");
+ const again=await host.call({...creation,hostKey});assert.equal(again.data.code,code);
+ if(capacity===5){
+  assert.equal((await host.call(creation)).status,403,"an existing create receipt must not bypass host-key verification");
+  assert.equal((await host.call({...creation,hostKey:"AVL-TAST-KEYS-2345-6789"})).status,403);
+  console.log("PASS host-key gate: missing/invalid/oversized keys denied, streamed body bounded, retries authorized, credentials never returned");
+ }
  const race=await Promise.all([clients[1].call({action:"join",code,name:"抢座甲",seat:2}),clients[capacity].call({action:"join",code,name:"抢座乙",seat:2})]);assert.equal(race.filter(r=>r.status===200).length,1);assert.equal(race.filter(r=>r.status===409).length,1);
  if(race[1].status===200)[clients[1],clients[capacity]]=[clients[capacity],clients[1]];
  const joins=await Promise.all(clients.slice(2,capacity).map((c,i)=>c.call({action:"join",code,name:`玩家${i+3}`,seat:i+3})));assert.ok(joins.every(r=>r.status===200),JSON.stringify(joins));

@@ -8,6 +8,8 @@
 
 MVP 收尾（v0.4）：房主可在发身份前移出玩家，随时移交房主，或中止正在进行的对局、回到大厅调整人员后重开。
 
+v0.5：重做手机与桌面视觉、阶段进度、选队／投票／复盘界面；房主凭服务器验证的 Key 建房，朋友入房不需要 Key。完整交接见 `HANDOFF.md`。
+
 ## 实现
 
 - React + TypeScript 手机界面，运行在 Cloudflare Workers 兼容的 Vinext。
@@ -27,7 +29,7 @@ MVP 收尾（v0.4）：房主可在发身份前移出玩家，随时移交房主
 
 ## 本地开发
 
-要求 Node 22.13+，推荐 Node 24。依次运行 `npm ci`、`npm run db:migrate:local`、`npm run dev`。本地开发不需要登录任何云服务。
+要求 Node 22.13+，推荐 Node 24。依次运行 `npm ci`，复制 `.dev.vars.example` 为 `.dev.vars`（保留已有私有配置），再运行 `npm run db:migrate:local`、`npm run dev`。本地房主 Key 使用 README 中的公开测试值，正式环境使用 Cloudflare Secret `HOST_KEY_HASHES`。本地开发不需要登录任何云服务。
 
 本机 npm 的命令脚本有路径解析问题时，直接运行 `node scripts/run-framework.mjs dev` 或 `node scripts/run-framework.mjs build`。
 
