@@ -1,5 +1,7 @@
 import { Check } from "lucide-react";
 import type { RoomView } from "@/lib/game";
+import { msg } from "@/lib/i18n/core";
+import { useI18n } from "@/lib/i18n/react";
 
 type RoomProgressProps = {
   room: RoomView;
@@ -22,7 +24,7 @@ type StageSummary = {
   tone?: "good" | "evil";
 };
 
-const steps = ["入座", "身份", "对局", "复盘"];
+const steps = [msg("入座"), msg("身份"), msg("对局"), msg("复盘")];
 
 function currentStep(phase: RoomView["phase"]): number {
   if (phase === "lobby") return 0;
@@ -32,7 +34,7 @@ function currentStep(phase: RoomView["phase"]): number {
   return 2;
 }
 
-function stageSummary(room: RoomView): StageSummary {
+function stageSummary(room: RoomView, t: ReturnType<typeof useI18n>["t"]): StageSummary {
   const game = room.game;
   const ready = room.players.filter(player => player.ready).length;
   const confirmed = room.players.filter(player => player.confirmed).length;
@@ -41,109 +43,110 @@ function stageSummary(room: RoomView): StageSummary {
     case "lobby":
       return {
         title: room.players.length < room.capacity
-          ? "等待朋友入座"
-          : ready === room.capacity ? "等待房主发身份" : "人已到齐，准备开局",
-        description: "入座后确认准备，房主将统一分配身份。",
+          ? t("等待朋友入座")
+          : ready === room.capacity ? t("等待房主发身份") : t("人已到齐，准备开局"),
+        description: t("入座后确认准备，房主将统一分配身份。"),
         progress: {
           value: ready,
           max: room.capacity,
-          label: "准备进度",
-          detail: `入座 ${room.players.length} / ${room.capacity} · 准备 ${ready} / ${room.capacity}`,
+          label: t("准备进度"),
+          detail: t("入座 {seated} / {capacity} · 准备 {ready} / {capacity}", { seated: room.players.length, capacity: room.capacity, ready }),
         },
       };
     case "identity":
       return {
-        title: "身份确认中",
-        description: "各自查看秘密身份，全员确认后进入对局。",
+        title: t("身份确认中"),
+        description: t("各自查看秘密身份，全员确认后进入对局。"),
         progress: {
           value: confirmed,
           max: room.capacity,
-          label: "身份确认",
-          detail: `${confirmed} / ${room.capacity} 人已确认`,
+          label: t("身份确认"),
+          detail: t("{confirmed} / {capacity} 人已确认", { confirmed, capacity: room.capacity }),
         },
       };
     case "ready":
       return {
-        title: "全员就绪",
-        description: "等待房主开始第一轮任务。",
+        title: t("全员就绪"),
+        description: t("等待房主开始第一轮任务。"),
         progress: {
           value: room.capacity,
           max: room.capacity,
-          label: "身份确认",
-          detail: "全员已确认",
+          label: t("身份确认"),
+          detail: t("全员已确认"),
         },
       };
     case "team": {
-      if (!game) return { title: "队长正在选队", description: "房间成员正在讨论本次任务的队伍。" };
+      if (!game) return { title: t("队长正在选队"), description: t("房间成员正在讨论本次任务的队伍。") };
       const leader = room.players.find(player => player.seat === game.leaderSeat);
       return {
-        title: `任务 ${game.quest} · 等待选队`,
-        description: `队长 ${game.leaderSeat} 号 · ${leader?.name ?? "玩家"}，本次需选 ${game.teamSize} 人。`,
+        title: t("任务 {quest} · 等待选队", { quest: game.quest }),
+        description: t("队长 {seat} 号 · {name}，本次需选 {size} 人。", { seat: game.leaderSeat, name: leader?.name ?? t("玩家"), size: game.teamSize }),
       };
     }
     case "vote":
-      if (!game) return { title: "全员表决中", description: "等待房间成员完成对队伍的表决。" };
+      if (!game) return { title: t("全员表决中"), description: t("等待房间成员完成对队伍的表决。") };
       return {
-        title: `任务 ${game.quest} · 全员表决`,
-        description: "所有人提交后，统一揭晓赞成与反对。",
+        title: t("任务 {quest} · 全员表决", { quest: game.quest }),
+        description: t("所有人提交后，统一揭晓赞成与反对。"),
         progress: {
           value: game.votedSeats.length,
           max: room.capacity,
-          label: "组队表决",
-          detail: `${game.votedSeats.length} / ${room.capacity} 人已提交`,
+          label: t("组队表决"),
+          detail: t("{done} / {total} 人已提交", { done: game.votedSeats.length, total: room.capacity }),
         },
       };
     case "quest":
-      if (!game) return { title: "任务进行中", description: "等待任务队员提交各自的秘密任务牌。" };
+      if (!game) return { title: t("任务进行中"), description: t("等待任务队员提交各自的秘密任务牌。") };
       return {
-        title: `任务 ${game.quest} · 秘密投牌`,
-        description: "任务牌收齐后，只公布失败牌的总数。",
+        title: t("任务 {quest} · 秘密投牌", { quest: game.quest }),
+        description: t("任务牌收齐后，只公布失败牌的总数。"),
         progress: {
           value: game.submittedQuestCount,
           max: game.teamSize,
-          label: "任务投牌",
-          detail: `${game.submittedQuestCount} / ${game.teamSize} 张已提交`,
+          label: t("任务投牌"),
+          detail: t("{done} / {total} 张已提交", { done: game.submittedQuestCount, total: game.teamSize }),
         },
       };
     case "lake":
       return {
-        title: "湖中仙女查验中",
-        description: room.game?.lake ? `令牌由 ${room.game.lake.holderSeat} 号玩家持有，等待其私密查验阵营。` : "等待湖中仙女完成查验。",
+        title: t("湖中仙女查验中"),
+        description: room.game?.lake ? t("令牌由 {seat} 号玩家持有，等待其私密查验阵营。", { seat: room.game.lake.holderSeat }) : t("等待湖中仙女完成查验。"),
       };
     case "assassination":
       return {
-        title: "最后的刺杀",
-        description: "三次任务成功，等待刺客作出最终选择。",
+        title: t("最后的刺杀"),
+        description: t("三次任务成功，等待刺客作出最终选择。"),
       };
     case "finished": {
-      if (!game?.result) return { title: "本局已结束", description: "房间成员可以查看本局结果与复盘记录。" };
+      if (!game?.result) return { title: t("本局已结束"), description: t("房间成员可以查看本局结果与复盘记录。") };
       const descriptions = {
-        "three-failures": "三次任务失败，可以查看本局记录与身份。",
-        "five-rejections": "连续五次组队被否决，可以查看本局记录与身份。",
-        "merlin-assassinated": "梅林被刺中，可以查看本局记录与身份。",
-        "assassin-missed": "梅林躲过刺杀，可以查看本局记录与身份。",
+        "three-failures": t("三次任务失败，可以查看本局记录与身份。"),
+        "five-rejections": t("连续五次组队被否决，可以查看本局记录与身份。"),
+        "merlin-assassinated": t("梅林被刺中，可以查看本局记录与身份。"),
+        "assassin-missed": t("梅林躲过刺杀，可以查看本局记录与身份。"),
       };
       return {
-        title: game.result.winner === "good" ? "正义阵营获胜" : "邪恶阵营获胜",
+        title: game.result.winner === "good" ? t("正义阵营获胜") : t("邪恶阵营获胜"),
         description: descriptions[game.result.reason],
         tone: game.result.winner,
       };
     }
     case "closed":
-      return { title: "房间已关闭", description: "返回首页，创建或加入另一张圆桌。" };
+      return { title: t("房间已关闭"), description: t("返回首页，创建或加入另一张圆桌。") };
   }
 }
 
 export function RoomProgress({ room, connected, live = false }: RoomProgressProps) {
+  const { t } = useI18n();
   const activeStep = currentStep(room.phase);
-  const summary = stageSummary(room);
+  const summary = stageSummary(room, t);
   const progress = summary.progress;
   const value = progress ? Math.max(0, Math.min(progress.value, progress.max)) : 0;
 
   return (
-    <section className={`room-progress${room.game ? " room-progress--playing" : ""}${summary.tone ? ` room-progress--${summary.tone}` : ""}`} aria-label="房间进度">
+    <section className={`room-progress${room.game ? " room-progress--playing" : ""}${summary.tone ? ` room-progress--${summary.tone}` : ""}`} aria-label={t("房间进度")}>
       <div className="room-progress-topline">
-        <ol className="room-progress-steps" aria-label="对局阶段">
+        <ol className="room-progress-steps" aria-label={t("对局阶段")}>
           {steps.map((label, index) => (
             <li
               key={label}
@@ -153,13 +156,13 @@ export function RoomProgress({ room, connected, live = false }: RoomProgressProp
               <span className="room-progress-step-number" aria-hidden="true">
                 {index < activeStep ? <Check size={12} strokeWidth={2} /> : index + 1}
               </span>
-              <span>{label}</span>
+              <span>{t(label)}</span>
             </li>
           ))}
         </ol>
-        <span className={`room-progress-connection${connected ? (live ? " is-live" : "") : " is-reconnecting"}`} role="status" title={connected ? (live ? "实时连接：其他人的操作会立即显示" : "定时同步：每隔几秒刷新一次") : undefined}>
+        <span className={`room-progress-connection${connected ? (live ? " is-live" : "") : " is-reconnecting"}`} role="status" title={connected ? (live ? t("实时连接：其他人的操作会立即显示") : t("定时同步：每隔几秒刷新一次")) : undefined}>
           <span aria-hidden="true" />
-          {connected ? (live ? "实时" : "已同步") : "重连中"}
+          {connected ? (live ? t("实时") : t("已同步")) : t("重连中")}
         </span>
       </div>
 

@@ -1,5 +1,5 @@
 /* Only a public offline notice is cached. Game data and private cards never are. */
-const OFFLINE_CACHE = "avalon-offline-v1";
+const OFFLINE_CACHE = "avalon-offline-v2";
 const OFFLINE_URL = "/offline.html";
 
 self.addEventListener("install", event => {

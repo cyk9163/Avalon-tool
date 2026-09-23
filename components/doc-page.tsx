@@ -1,17 +1,23 @@
 import Link from "next/link";
 import { ArrowLeft, Crown } from "lucide-react";
 import type { ReactNode } from "react";
+import { LangToggle } from "@/components/lang-toggle";
+import { serverLang, serverT } from "@/lib/i18n/server";
 
-/** Shared frame for the static reading pages (rules, privacy). */
-export function DocPage({ eyebrow, title, lead, children }: { eyebrow: string; title: string; lead: ReactNode; children: ReactNode }) {
+/** Shared frame for the server-rendered reading pages (rules, privacy). */
+export async function DocPage({ eyebrow, title, lead, children }: { eyebrow: string; title: string; lead: ReactNode; children: ReactNode }) {
+  const t = serverT(await serverLang());
   return (
     <main className="app-shell doc-shell">
       <header className="topbar">
-        <Link className="brand" href="/" aria-label="圆桌首页">
+        <Link className="brand" href="/" aria-label={t("圆桌首页")}>
           <span className="brand-icon"><Crown size={22} /></span>
-          <span>圆桌<span className="brand-sub">AVALON</span></span>
+          <span>{t("圆桌")}<span className="brand-sub">AVALON</span></span>
         </Link>
-        <Link className="doc-back" href="/"><ArrowLeft size={16} />返回圆桌</Link>
+        <div className="doc-actions">
+          <LangToggle reload />
+          <Link className="doc-back" href="/"><ArrowLeft size={16} />{t("返回圆桌")}</Link>
+        </div>
       </header>
       <article className="doc">
         <header className="doc-head">
@@ -26,13 +32,14 @@ export function DocPage({ eyebrow, title, lead, children }: { eyebrow: string; t
   );
 }
 
-export function DocFooter() {
+export async function DocFooter() {
+  const t = serverT(await serverLang());
   return (
     <footer className="page-footer doc-footer">
-      <span className="footer-brand"><Crown size={14} />把推理留在圆桌。</span>
-      <nav className="footer-links" aria-label="站点信息">
-        <Link href="/rules">规则教学</Link>
-        <Link href="/privacy">隐私说明</Link>
+      <span className="footer-brand"><Crown size={14} />{t("把推理留在圆桌。")}</span>
+      <nav className="footer-links" aria-label={t("站点信息")}>
+        <Link href="/rules">{t("规则教学")}</Link>
+        <Link href="/privacy">{t("隐私说明")}</Link>
       </nav>
     </footer>
   );

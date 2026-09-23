@@ -71,7 +71,7 @@ button svg { flex-shrink: 0; }
 .status-dot { width: 5px; height: 5px; border-radius: 50%; background: #9bcab7; box-shadow: 0 0 0 4px #9bcab70a; }
 .icon-button { display: grid; place-items: center; min-width: 44px; min-height: 44px; border: 1px solid transparent; background: transparent; color: #a4b5b2; border-radius: 10px; }
 .icon-button:hover { background: #ffffff06; border-color: var(--border); color: var(--foreground); }
-.home-layout { display: grid; grid-template-columns: minmax(0,1fr) minmax(390px,465px); grid-template-areas: "intro entry" "visual entry"; column-gap: 76px; row-gap: 8px; align-items: start; padding: 28px 0 54px; }
+.home-layout { display: grid; grid-template-columns: minmax(0,1fr) minmax(390px,465px); grid-template-areas: "intro entry" "visual entry"; column-gap: 76px; row-gap: 8px; align-items: start; padding: 16px 0 54px; }
 .home-intro { grid-area: intro; }
 .eyebrow { display: flex; align-items: center; gap: 11px; font-size: 10px; letter-spacing: 2.4px; color: var(--primary); line-height: 1.6; }
 .eyebrow-line { width: 25px; height: 1px; background: var(--primary); opacity: .65; }
@@ -81,12 +81,12 @@ h1 span { color: var(--primary); }
 .home-benefits { display: flex; flex-wrap: wrap; align-items: center; gap: 21px; margin-top: 22px; color: #9aafa3; font-size: 12px; }
 .home-benefits span { display: inline-flex; align-items: center; gap: 7px; }
 .home-benefits svg { color: #b5c2a4; }
-.entry-panel { grid-area: entry; color-scheme: light; --foreground: #203b33; --primary: #244e42; --primary-foreground: #fffdf4; --muted-foreground: #5c7167; --border: #cbd2c7; --input: #bfcbbc; --ring: #456b58; --accent: #dce6d9; color: var(--foreground); background: #f3f0e6; padding: 24px 30px 25px; border: 1px solid #fdfbef; border-radius: 22px; box-shadow: 0 18px 65px #00000025; }
+.entry-panel { grid-area: entry; color-scheme: light; --foreground: #203b33; --primary: #244e42; --primary-foreground: #fffdf4; --muted-foreground: #5c7167; --border: #cbd2c7; --input: #bfcbbc; --ring: #456b58; --accent: #dce6d9; color: var(--foreground); background: #f3f0e6; padding: 20px 30px 25px; border: 1px solid #fdfbef; border-radius: 22px; box-shadow: 0 18px 65px #00000025; }
 .entry-card-heading { display: flex; justify-content: space-between; align-items: center; gap: 18px; }
 .entry-card-heading > svg { color: #657c58; flex-shrink: 0; }
 .entry-kicker { color: #768266; font-size: 9px; letter-spacing: 2px; }
 .entry-card-heading h2 { margin: 8px 0 0; font-size: 26px; font-weight: 600; letter-spacing: -.8px; line-height: 1.4; }
-.entry-tabs { margin-top: 18px; gap: 0 !important; }
+.entry-tabs { margin-top: 14px; gap: 0 !important; }
 .entry-tab-list { width: 100%; height: 48px !important; padding: 5px !important; background: #e5e8dd !important; border-radius: 10px !important; }
 .entry-tab-list button { color: #687a6b !important; font-size: 14px !important; font-weight: 500; border-radius: 7px; }
 .entry-tab-list button[data-state=active] { background: #fffdf6 !important; color: #234e40 !important; box-shadow: 0 2px 6px #243d2710; }
@@ -452,3 +452,15 @@ legend { font-size: 14px; margin-bottom: 11px; color: #354e40; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }
+/* v1.0 language switch */
+.lang-toggle { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 12px; border: 1px solid #b6c9ba2a; border-radius: 999px; background: transparent; color: #c9d4cc; font-size: 13px; font-weight: 500; letter-spacing: .02em; }
+.lang-toggle:hover { border-color: #dbc18a66; color: var(--primary); }
+.lang-toggle svg { color: var(--primary); }
+.doc-actions { display: flex; align-items: center; gap: 10px; }
+@media (max-width: 720px) {
+  .lang-toggle { min-height: 34px; padding: 0 10px; font-size: 12px; }
+}
+.lang-toggle span { white-space: nowrap; }
+/* The brand's wide tracking suits two Chinese characters, not "Round Table". */
+html[lang="en"] .brand { letter-spacing: .4px; }
+html[lang="en"] .count-option span:empty { display: none; }

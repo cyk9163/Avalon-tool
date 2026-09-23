@@ -220,3 +220,5 @@
 .replay-export .action-note { margin: 0; max-width: 520px; }
 .replay-fallback { width: 100%; font: 13px/1.6 ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; color: var(--foreground); background: #0c171a; border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; resize: vertical; }
 @media (max-width: 760px) { .replay-export-actions { width: 100%; flex-direction: column; } .replay-export-actions .secondary-button { width: 100%; justify-content: center; } }
+/* v1.0: approve/reject tally under each team-vote result */
+.history-tally { display: block; margin-top: 3px; font-size: 11px; color: #9fb0aa; white-space: nowrap; font-variant-numeric: tabular-nums; }

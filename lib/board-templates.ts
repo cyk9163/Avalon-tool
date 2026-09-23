@@ -3,6 +3,7 @@
 // templates live in localStorage only. Every template is checked against the
 // same validation the server applies when the room is created.
 import { CUSTOM_EVIL_ROLES, CUSTOM_GOOD_ROLES, EVIL_COUNTS, ROLES, validateCustomRoles, type Role } from "./game.ts";
+import { msg } from "./i18n/core.ts";
 
 export type BoardTemplate = { id: string; name: string; hint?: string; specials: Role[]; ladyOfLake: boolean; builtIn?: boolean };
 
@@ -13,13 +14,13 @@ const CAPACITIES = [5, 6, 7, 8, 9, 10] as const;
 const SPECIALS = new Set<Role>([...CUSTOM_GOOD_ROLES, ...CUSTOM_EVIL_ROLES]);
 
 export const BUILT_IN_TEMPLATES: readonly BoardTemplate[] = [
-  { id: "mordred-shadow", name: "暗影莫德雷德", hint: "梅林看不见莫德雷德", specials: ["merlin", "percival", "assassin", "mordred"], ladyOfLake: false, builtIn: true },
-  { id: "oberon-alone", name: "孤狼奥伯伦", hint: "奥伯伦与同伴互不相识", specials: ["merlin", "percival", "assassin", "oberon"], ladyOfLake: false, builtIn: true },
-  { id: "lake-classic", name: "湖中仙女经典局", hint: "经典角色，加上湖中仙女查验", specials: ["merlin", "percival", "assassin", "morgana"], ladyOfLake: true, builtIn: true },
-  { id: "lancelot", name: "兰斯洛特对决", hint: "两位兰斯洛特彼此认识", specials: ["merlin", "percival", "goodLancelot", "assassin", "morgana", "evilLancelot"], ladyOfLake: false, builtIn: true },
-  { id: "cleric", name: "牧师开局", hint: "牧师知道首任队长的阵营", specials: ["merlin", "percival", "cleric", "assassin", "morgana"], ladyOfLake: false, builtIn: true },
-  { id: "revealer", name: "迷雾揭露", hint: "莫德雷德藏身，揭露者会现身", specials: ["merlin", "percival", "assassin", "mordred", "revealer"], ladyOfLake: false, builtIn: true },
-  { id: "wild", name: "失控的邪恶", hint: "疯子必出失败，野蛮人后期收手", specials: ["merlin", "percival", "assassin", "lunatic", "brute"], ladyOfLake: false, builtIn: true },
+  { id: "mordred-shadow", name: msg("暗影莫德雷德"), hint: msg("梅林看不见莫德雷德"), specials: ["merlin", "percival", "assassin", "mordred"], ladyOfLake: false, builtIn: true },
+  { id: "oberon-alone", name: msg("孤狼奥伯伦"), hint: msg("奥伯伦与同伴互不相识"), specials: ["merlin", "percival", "assassin", "oberon"], ladyOfLake: false, builtIn: true },
+  { id: "lake-classic", name: msg("湖中仙女经典局"), hint: msg("经典角色，加上湖中仙女查验"), specials: ["merlin", "percival", "assassin", "morgana"], ladyOfLake: true, builtIn: true },
+  { id: "lancelot", name: msg("兰斯洛特对决"), hint: msg("两位兰斯洛特彼此认识"), specials: ["merlin", "percival", "goodLancelot", "assassin", "morgana", "evilLancelot"], ladyOfLake: false, builtIn: true },
+  { id: "cleric", name: msg("牧师开局"), hint: msg("牧师知道首任队长的阵营"), specials: ["merlin", "percival", "cleric", "assassin", "morgana"], ladyOfLake: false, builtIn: true },
+  { id: "revealer", name: msg("迷雾揭露"), hint: msg("莫德雷德藏身，揭露者会现身"), specials: ["merlin", "percival", "assassin", "mordred", "revealer"], ladyOfLake: false, builtIn: true },
+  { id: "wild", name: msg("失控的邪恶"), hint: msg("疯子必出失败，野蛮人后期收手"), specials: ["merlin", "percival", "assassin", "lunatic", "brute"], ladyOfLake: false, builtIn: true },
 ];
 
 /** The full role list for a capacity: chosen specials, padded with loyal servants and minions. */

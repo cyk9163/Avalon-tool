@@ -83,7 +83,7 @@ test("the replay lists result, identities, quests and every vote", () => {
   assert.match(text, /结果：邪恶获胜（刺客找到了梅林） · 刺杀目标：1 号 小明/);
   assert.match(text, /1 号 小明 — 梅林（正义）/);
   assert.match(text, /5 号 大雄 — 莫甘娜（邪恶）/);
-  assert.match(text, /任务 2：失败 · 队员 2、3、4 号 · 1 张失败牌/);
+  assert.match(text, /任务 2：失败 · 队员 2、3、4 号 · 2 张成功牌、1 张失败牌/);
   assert.match(text, /任务 1 第 1 次 · 队长 1 号 小明 · 队员 1、2 号 → 通过（赞成 3：1、2、4 号；反对 2：3、5 号）/);
   assert.match(text, /任务 2 第 1 次 .* → 否决（赞成 2：2、5 号；反对 3：1、3、4 号）/);
   assert.ok(!text.includes("123456"), "the room code is not exported");
@@ -99,4 +99,17 @@ test("the replay needs a result and hides identities from non-members", () => {
   const outsider = replayText({...room, meId: null, game: {...room.game, revealedRoles: null}});
   assert.match(outsider, /完整身份仅向本局成员揭晓。/);
   assert.ok(!outsider.includes("梅林（正义）"));
+});
+
+test("the English replay has no Chinese text apart from player nicknames", () => {
+  const room = finishedRoom({ladyOfLake: true, preset: "mist"});
+  room.roles = ["merlin", "percival", "loyal", "assassin", "morgana"];
+  room.game.publicReveals = [{seat: 5, role: "morgana"}];
+  const text = replayText(room, new Date(2026, 8, 23, 21, 5), "en");
+  assert.match(text, /^Round Table · Avalon recap\n2026-09-23 21:05 · Game 2 · 5 players · /);
+  assert.match(text, /Quest 1, attempt 1 · Leader #1 小明 · Team #1, #2 → /);
+  const nicknames = room.players.map(player => player.name).filter(Boolean);
+  const stripped = nicknames.reduce((result, nickname) => result.split(nickname).join(""), text);
+  assert.ok(!/[㐀-鿿　-〿！-～]/.test(stripped), stripped);
+  assert.equal(replayText(room, new Date(2026, 8, 23, 21, 5), "zh"), replayText(room, new Date(2026, 8, 23, 21, 5)), "Chinese stays the default");
 });

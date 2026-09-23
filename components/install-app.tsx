@@ -3,6 +3,7 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { Download, Smartphone } from "lucide-react";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { useI18n } from "@/lib/i18n/react";
 
 type InstallPrompt = Event & {
   prompt: () => Promise<void>;
@@ -25,6 +26,7 @@ const noopSubscribe = () => () => {};
 const serverFalse = () => false;
 
 export function InstallApp() {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   // Browser-only facts are read through external stores: the server renders
   // the neutral state and the client updates without a cascading effect.
@@ -68,9 +70,9 @@ export function InstallApp() {
       await currentPrompt.prompt();
       const choice = await currentPrompt.userChoice;
       if (choice.outcome === "accepted") setOpen(false);
-      else setMessage("暂不添加也可以继续使用；之后可从浏览器菜单添加。");
+      else setMessage(t("暂不添加也可以继续使用；之后可从浏览器菜单添加。"));
     } catch {
-      setMessage("这次未能打开安装窗口，请按下方步骤从浏览器菜单添加。");
+      setMessage(t("这次未能打开安装窗口，请按下方步骤从浏览器菜单添加。"));
     } finally {
       setBusy(false);
     }
@@ -80,30 +82,30 @@ export function InstallApp() {
 
   return <Dialog open={open} onOpenChange={setOpen}>
     <DialogTrigger asChild>
-      <button className="install-app-button" type="button" aria-label="添加圆桌阿瓦隆到主屏幕" title="添加到主屏幕">
-        <Smartphone size={18} aria-hidden="true" /><span>添加到主屏幕</span>
+      <button className="install-app-button" type="button" aria-label={t("添加圆桌阿瓦隆到主屏幕")} title={t("添加到主屏幕")}>
+        <Smartphone size={18} aria-hidden="true" /><span>{t("添加到主屏幕")}</span>
       </button>
     </DialogTrigger>
     <DialogContent className="install-app-dialog" showCloseButton={false}>
       <div className="install-app-symbol"><Smartphone size={27} strokeWidth={1.6} aria-hidden="true" /></div>
-      <DialogTitle>把圆桌放到主屏幕</DialogTitle>
-      <DialogDescription>下次聚会，直接点图标进入。无需应用商店，也不需要订阅。</DialogDescription>
-      <p className="install-session-note"><strong>建议入房前添加。</strong>主屏幕应用和浏览器可能使用不同的玩家身份；已经入房时，请继续从原来的入口玩完本局。</p>
+      <DialogTitle>{t("把圆桌放到主屏幕")}</DialogTitle>
+      <DialogDescription>{t("下次聚会，直接点图标进入。无需应用商店，也不需要订阅。")}</DialogDescription>
+      <p className="install-session-note"><strong>{t("建议入房前添加。")}</strong>{t("主屏幕应用和浏览器可能使用不同的玩家身份；已经入房时，请继续从原来的入口玩完本局。")}</p>
       {prompt && <button className="primary-button" type="button" disabled={busy} onClick={() => void install()}>
-        <Download size={18} aria-hidden="true" />{busy ? "等待浏览器确认…" : "添加到主屏幕"}
+        <Download size={18} aria-hidden="true" />{busy ? t("等待浏览器确认…") : t("添加到主屏幕")}
       </button>}
-      {ios ? <ol className="install-app-steps" aria-label="iPhone 和 iPad 添加步骤">
-        <li>在 Safari 中打开圆桌网站。</li>
-        <li>点浏览器的「分享」，选择「添加到主屏幕」。若没有看到，向下滚动或编辑操作。</li>
-        <li>若显示「作为网页 App 打开」，保持开启，再点「添加」。</li>
-      </ol> : <ol className="install-app-steps" aria-label="浏览器添加步骤">
-        <li>打开浏览器菜单，选择「安装应用」或「添加到主屏幕」。</li>
-        <li>按提示确认，再从主屏幕图标进入圆桌。</li>
-        <li>如果没有此选项，可尝试 Chrome、Edge，或在 iPhone 的 Safari 中使用「分享 → 添加到主屏幕」。</li>
+      {ios ? <ol className="install-app-steps" aria-label={t("iPhone 和 iPad 添加步骤")}>
+        <li>{t("在 Safari 中打开圆桌网站。")}</li>
+        <li>{t("点浏览器的「分享」，选择「添加到主屏幕」。若没有看到，向下滚动或编辑操作。")}</li>
+        <li>{t("若显示「作为网页 App 打开」，保持开启，再点「添加」。")}</li>
+      </ol> : <ol className="install-app-steps" aria-label={t("浏览器添加步骤")}>
+        <li>{t("打开浏览器菜单，选择「安装应用」或「添加到主屏幕」。")}</li>
+        <li>{t("按提示确认，再从主屏幕图标进入圆桌。")}</li>
+        <li>{t("如果没有此选项，可尝试 Chrome、Edge，或在 iPhone 的 Safari 中使用「分享 → 添加到主屏幕」。")}</li>
       </ol>}
       {message && <p className="install-app-message" role="status">{message}</p>}
-      <p className="install-online-note">对局需要联网。断网时请等待恢复，再继续操作。</p>
-      <DialogClose asChild><button className="secondary-button wide" type="button">知道了</button></DialogClose>
+      <p className="install-online-note">{t("对局需要联网。断网时请等待恢复，再继续操作。")}</p>
+      <DialogClose asChild><button className="secondary-button wide" type="button">{t("知道了")}</button></DialogClose>
     </DialogContent>
   </Dialog>;
 }

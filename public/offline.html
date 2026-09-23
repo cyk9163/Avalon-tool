@@ -4,19 +4,33 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#101c22">
-  <title>等待连接 · 圆桌阿瓦隆</title>
+  <title>等待连接 · 圆桌阿瓦隆 / Offline · Round Table</title>
   <style>
     *{box-sizing:border-box}body{margin:0;min-height:100dvh;display:grid;place-items:center;background:#101c22;color:#f3f1e9;font-family:Arial,"Microsoft YaHei",sans-serif;padding:28px}main{width:100%;max-width:440px;border:1px solid #32464c;border-radius:18px;padding:34px 26px;background:#15252c}svg{color:#dbbd7c}h1{font-size:25px;line-height:1.5;margin:22px 0 12px}p{color:#a5b6bb;font-size:14px;line-height:1.9;margin:12px 0}.eyebrow{font-size:11px;letter-spacing:3px;color:#dbbd7c;margin-top:20px}button{display:block;width:100%;min-height:50px;margin-top:25px;border:1px solid #dbbd7c;border-radius:9px;background:#dbbd7c;color:#142129;font:600 15px Arial,"Microsoft YaHei",sans-serif;cursor:pointer}button:focus-visible{outline:2px solid #f3f1e9;outline-offset:4px}.note{font-size:12px;margin-top:19px}
+    /* Chinese by default; English when the saved choice or the browser says so. */
+    [lang="en"]{display:none}html.en [lang="zh-CN"]{display:none}html.en [lang="en"]{display:block}
   </style>
+  <script>
+    try{var c=document.cookie.match(/(?:^|;\s*)avalon_lang=(zh|en)/),l=c?c[1]:(/^zh/i.test(navigator.language||"zh")?"zh":"en");if(l==="en"){document.documentElement.className="en";document.documentElement.lang="en";document.title="Offline · Round Table";}}catch(e){}
+  </script>
 </head>
 <body>
   <main>
     <svg width="42" height="42" viewBox="0 0 64 64" fill="none" aria-hidden="true"><circle cx="32" cy="32" r="27" stroke="currentColor" stroke-width="2"/><path d="m18 24 8 8 6-14 6 14 8-8-4 20H22z" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/></svg>
-    <p class="eyebrow">圆桌 · 阿瓦隆助手</p>
-    <h1>暂时连不上圆桌</h1>
-    <p>请检查网络连接，恢复后重试。对局需要联网，才能同步所有人的操作。</p>
-    <button type="button" onclick="window.location.reload()">重新连接</button>
-    <p class="note">请使用原来的浏览器或主屏幕入口返回房间。断网期间的操作不会自动提交。</p>
+    <div lang="zh-CN">
+      <p class="eyebrow">圆桌 · 阿瓦隆助手</p>
+      <h1>暂时连不上圆桌</h1>
+      <p>请检查网络连接，恢复后重试。对局需要联网，才能同步所有人的操作。</p>
+      <button type="button" onclick="window.location.reload()">重新连接</button>
+      <p class="note">请使用原来的浏览器或主屏幕入口返回房间。断网期间的操作不会自动提交。</p>
+    </div>
+    <div lang="en">
+      <p class="eyebrow">ROUND TABLE · AVALON</p>
+      <h1>Can't reach Round Table</h1>
+      <p>Check your connection and try again. The game needs internet to keep everyone in sync.</p>
+      <button type="button" onclick="window.location.reload()">Reconnect</button>
+      <p class="note">Return to your room from the same browser or home-screen icon. Nothing you did while offline is sent automatically.</p>
+    </div>
   </main>
 </body>
 </html>
