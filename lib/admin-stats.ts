@@ -15,6 +15,7 @@ export type AdminStats = {
   results: { winner: string; reason: string; count: number }[];
   hourly: number[]; // rooms created per hour, index 0 = the last hour, 23 = a day ago
   limits: { activeBuckets: number; blockedNetworks: number; blockedRecoveries: number };
+  flow: { started: number; finished: number; rematches: number };
 };
 
 type CountRow = { label: string | number | null; count: number };
@@ -27,7 +28,7 @@ function toRecord(rows: CountRow[]): Record<string, number> {
 
 export async function collectAdminStats(db: Db, now = Date.now()): Promise<AdminStats> {
   const active = "expires_at > ?1";
-  const [totals, phases, capacities, presets, results, hourly, limits] = await db.batch([
+  const [totals, phases, capacities, presets, results, hourly, limits, flow] = await db.batch([
     db.prepare(`SELECT COUNT(*) AS rooms, COALESCE(SUM(json_array_length(state, '$.players')), 0) AS players, COALESCE(SUM(COALESCE(json_extract(state, '$.round'), 1)), 0) AS rounds, SUM(CASE WHEN expires_at - ${DAY_MS} > ?1 - ${HOUR_MS} THEN 1 ELSE 0 END) AS recent FROM rooms WHERE ${active}`).bind(now),
     db.prepare(`SELECT json_extract(state, '$.phase') AS label, COUNT(*) AS count FROM rooms WHERE ${active} GROUP BY label`).bind(now),
     db.prepare(`SELECT json_extract(state, '$.capacity') AS label, COUNT(*) AS count FROM rooms WHERE ${active} GROUP BY label`).bind(now),
@@ -35,6 +36,7 @@ export async function collectAdminStats(db: Db, now = Date.now()): Promise<Admin
     db.prepare(`SELECT json_extract(state, '$.game.result.winner') AS winner, json_extract(state, '$.game.result.reason') AS reason, COUNT(*) AS count FROM rooms WHERE ${active} AND json_extract(state, '$.phase') = 'finished' GROUP BY winner, reason`).bind(now),
     db.prepare(`SELECT CAST((?1 - (expires_at - ${DAY_MS})) / ${HOUR_MS} AS INTEGER) AS label, COUNT(*) AS count FROM rooms WHERE ${active} GROUP BY label`).bind(now),
     db.prepare(`SELECT COUNT(*) AS buckets, SUM(CASE WHEN key LIKE 'miss:%' AND count >= 30 THEN 1 ELSE 0 END) AS networks, SUM(CASE WHEN key LIKE 'recover%' AND count >= 8 THEN 1 ELSE 0 END) AS recoveries FROM rate_limits WHERE expires_at > ?1`).bind(now),
+    db.prepare(`SELECT SUM(CASE WHEN json_extract(state, '$.phase') NOT IN ('lobby', 'closed') THEN 1 ELSE 0 END) AS started, SUM(CASE WHEN json_extract(state, '$.phase') = 'finished' OR COALESCE(json_array_length(state, '$.history'), 0) > 0 THEN 1 ELSE 0 END) AS finished, SUM(CASE WHEN COALESCE(json_extract(state, '$.round'), 1) > 1 THEN 1 ELSE 0 END) AS rematches FROM rooms WHERE ${active}`).bind(now),
   ]);
   const total = (totals.results[0] ?? {}) as { rooms?: number; players?: number; rounds?: number; recent?: number };
   const buckets = Array<number>(24).fill(0);
@@ -44,6 +46,7 @@ export async function collectAdminStats(db: Db, now = Date.now()): Promise<Admin
     if (Number.isInteger(index) && index >= 0 && index < 24) buckets[index] += row.count;
   }
   const limit = (limits.results[0] ?? {}) as { buckets?: number; networks?: number; recoveries?: number };
+  const progress = (flow.results[0] ?? {}) as { started?: number; finished?: number; rematches?: number };
   return {
     generatedAt: new Date(now).toISOString(),
     rooms: { active: total.rooms ?? 0, players: total.players ?? 0, roundsPlayed: total.rounds ?? 0, createdLastHour: total.recent ?? 0 },
@@ -54,5 +57,6 @@ export async function collectAdminStats(db: Db, now = Date.now()): Promise<Admin
       .map(row => ({ winner: row.winner ?? "unknown", reason: row.reason ?? "unknown", count: row.count })),
     hourly: buckets,
     limits: { activeBuckets: limit.buckets ?? 0, blockedNetworks: limit.networks ?? 0, blockedRecoveries: limit.recoveries ?? 0 },
+    flow: { started: progress.started ?? 0, finished: progress.finished ?? 0, rematches: progress.rematches ?? 0 },
   };
 }

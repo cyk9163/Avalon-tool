@@ -1,0 +1,71 @@
+name: Deploy
+# Push to main updates staging only. Production is a manual run, and it asks
+# for the real-phone checklist in RELEASE.md. Both steps no-op with a notice
+# until the repository secret CLOUDFLARE_API_TOKEN exists.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Where to deploy
+        type: choice
+        options: [staging, production]
+        default: staging
+      device_check:
+        description: Production only — the RELEASE.md phone checklist is done for this version
+        type: boolean
+        default: false
+permissions:
+  contents: read
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  staging:
+    name: Staging
+    if: github.event_name == 'push' || inputs.target == 'staging'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - id: token
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: if [ -n "$CLOUDFLARE_API_TOKEN" ]; then echo "ready=true" >> "$GITHUB_OUTPUT"; else echo "ready=false" >> "$GITHUB_OUTPUT"; echo "CLOUDFLARE_API_TOKEN is not set; staging deploy skipped."; fi
+      - if: steps.token.outputs.ready == 'true'
+        run: npm ci
+      - if: steps.token.outputs.ready == 'true'
+        run: npm run db:migrate:staging
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      - if: steps.token.outputs.ready == 'true'
+        run: npm run deploy:staging
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
+  production:
+    name: Production
+    if: github.event_name == 'workflow_dispatch' && inputs.target == 'production'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Require the phone checklist
+        if: inputs.device_check != true
+        run: echo "Tick device_check after the RELEASE.md iPhone and Android checklist." && exit 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run db:migrate:remote
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      - run: npm run deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

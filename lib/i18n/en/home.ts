@@ -95,6 +95,8 @@ export const HOME: Record<string, string> = {
   "邀请朋友，房间码 {code}": "Invite friends, room code {code}",
   "邀请入座": "Invite",
   "连接暂时中断，座位和身份保存在服务器上，恢复网络后自动同步。换了设备可以用恢复码回到座位。": "Connection lost for now. Your seat and role are safe on the server and will sync when you're back online. On a new device, use your recovery code to return to your seat.",
+  "上一动作没送出，请再按一次。已经成功的操作不会重复执行。": "The last tap did not go out. Tap again. Anything that already succeeded will not run twice.",
+  "正在重连。刚才的操作已经在服务器上，座位和身份也还在。": "Reconnecting. The last action is already on the server, and so are your seat and role.",
   "立即重试": "Retry now",
   "上一局已由房主作废，身份和记录已清除。玩家与座位已保留，请重新准备；需要补位时可由房主移除离场玩家。": "The host cancelled the last game; roles and records are cleared. Players and seats are kept, so get ready again. The host can remove anyone who left to free their seat.",
   "我的身份与圆桌座位": "My role & seat",

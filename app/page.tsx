@@ -29,6 +29,7 @@ import { Brand, RoleChips, SeatTable as Table } from "@/components/seat-table";
 import { HelpDialog } from "@/components/help-dialog";
 import { ensureSession, rememberInvite, request } from "@/lib/room-client";
 import { useRoomSync } from "@/lib/use-room-sync";
+import { submitDelivery } from "@/lib/submit-status";
 import { BUILT_IN_TEMPLATES, MAX_SAVED_TEMPLATES, MAX_TEMPLATE_NAME, fillCustomRoles, loadSavedTemplates, newTemplateId, sameBoard, storeSavedTemplates, templateFits, templateMinimum, type BoardTemplate } from "@/lib/board-templates";
 import { useI18n } from "@/lib/i18n/react";
 import { msg, type Vars } from "@/lib/i18n/core";
@@ -46,7 +47,7 @@ export default function Home(){
   // Saved boards live on this device only. The picker renders only after the
   // host chooses a custom board, so reading storage here cannot affect hydration.
   const [savedTemplates,setSavedTemplates]=useState<BoardTemplate[]>(()=>typeof window==="undefined"?[]:loadSavedTemplates()),[templateName,setTemplateName]=useState<string|null>(null);
-  const [room,setRoom]=useState<RoomView|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState(""),[sessionReady,setSessionReady]=useState(false),[connected,setConnected]=useState(true);
+  const [room,setRoom]=useState<RoomView|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState(""),[sessionReady,setSessionReady]=useState(false),[connected,setConnected]=useState(true),[delivery,setDelivery]=useState<"saved"|"unsent"|null>(null);
   const [membershipNotice,setMembershipNotice]=useState<Notice>(null);
   // Code of a room the server reported as expired or closed: stop syncing it.
   const [goneCode,setGoneCode]=useState("");
@@ -108,20 +109,24 @@ export default function Home(){
     return()=>{cancelled=true;};
   },[share,inviteUrl]);
   const act=useCallback(async(action:string,extra:Record<string,unknown>={})=>{
-    if(navigator.onLine===false){setConnected(false);setError(msg("网络已断开。联网后请重新提交，操作不会在后台自动发送。"));return null;}
+    if(navigator.onLine===false){setConnected(false);setDelivery("unsent");setError(msg("网络已断开。联网后请重新提交，操作不会在后台自动发送。"));return null;}
     if(busyRef.current)return null;busyRef.current=true;setBusy(true);setError("");
     try{
       const data=await request("/api/room",{action,code:currentCode.current,round:latest.current?.round,hostRevision:latest.current?.hostRevision,...extra},currentCode.current) as RoomView;
       if(action==="create"){currentCode.current=data.code;latest.current=null;createId.current="";}
       if(action==="leave"){
+        setDelivery("saved");
         currentCode.current="";latest.current=null;setRoom(null);setCode("");setReveal(false);setMembershipNotice(null);history.replaceState(null,"","/");try{localStorage.removeItem("avalon:last-room");}catch{};return data;
       }
       accept(data);
+      setDelivery("saved");
       if(data.meId){history.replaceState(null,"",`/?room=${data.code}`);try{localStorage.setItem("avalon:last-room",data.code);if(typeof extra.name==="string"||action==="create")localStorage.setItem("avalon:nickname",String(extra.name||name));}catch{}}
       return data;
     }catch(e){
-      if([403,409].includes((e as {status?:number}).status??0)&&currentCode.current)await load(currentCode.current).catch(()=>setConnected(false));
-      setError((e as Error).name==="TimeoutError"?msg("连接超时，请重试。已完成的操作不会重复执行。"):(e as Error).message);return null;
+      const failure=e as Error&{status?:number};
+      setDelivery(submitDelivery(failure));
+      if([403,409].includes(failure.status??0)&&currentCode.current)await load(currentCode.current).catch(()=>setConnected(false));
+      setError(failure.name==="TimeoutError"?msg("连接超时，请重试。已完成的操作不会重复执行。"):failure.message);return null;
     }
     finally{busyRef.current=false;setBusy(false);}
   },[accept,name,load]);
@@ -243,7 +248,8 @@ export default function Home(){
         <div className="room-heading-copy"><span className="eyebrow">{room.phase==="lobby"?"GATHER AROUND":room.phase==="finished"?"THE STORY IS TOLD":"AT THE ROUND TABLE"}</span><h1>{room.phase==="lobby"?t("圆桌已就位。"):room.phase==="finished"?t("这一局，值得复盘。"):room.game?t("线索，就在每一票里。"):t("守好你的秘密。")}</h1><div className="room-meta"><span>{t("{n} 人",{n:room.capacity})}</span><span>{t(PRESETS[room.preset].name)}</span><span>{t("第 {n} 局",{n:room.round})}</span></div></div>
         <button className="room-invite" onClick={()=>setShare(true)} aria-label={t("邀请朋友，房间码 {code}",{code:room.code})}><span><small>{t("房间码")}</small><strong>{room.code}</strong></span><QrCode size={23}/><span className="invite-caption">{t("邀请入座")}<ArrowRight size={13}/></span></button>
       </div>
-      {!connected&&<div className="connection-banner" role="status"><RefreshCw size={17}/><span>{t("连接暂时中断，座位和身份保存在服务器上，恢复网络后自动同步。换了设备可以用恢复码回到座位。")}</span><button onClick={()=>void load(room.code).catch(()=>setConnected(false))}>{t("立即重试")}</button></div>}
+      {delivery==="unsent"&&<div className="connection-banner" role="status"><RefreshCw size={17}/><span>{t("上一动作没送出，请再按一次。已经成功的操作不会重复执行。")}</span></div>}
+      {!connected&&delivery!=="unsent"&&<div className="connection-banner" role="status"><RefreshCw size={17}/><span>{delivery==="saved"?t("正在重连。刚才的操作已经在服务器上，座位和身份也还在。"):t("连接暂时中断，座位和身份保存在服务器上，恢复网络后自动同步。换了设备可以用恢复码回到座位。")}</span><button onClick={()=>void load(room.code).catch(()=>setConnected(false))}>{t("立即重试")}</button></div>}
       {membershipNotice&&<div className="membership-notice dismissible" role="status"><p>{t(membershipNotice.text,membershipNotice.vars)}</p><button type="button" aria-label={t("关闭提示")} onClick={()=>setMembershipNotice(null)}>×</button></div>}
       {room.phase==="lobby"&&room.resetReason==="abort"&&<p className="membership-notice" role="status">{t("上一局已由房主作废，身份和记录已清除。玩家与座位已保留，请重新准备；需要补位时可由房主移除离场玩家。")}</p>}
       {room.game&&<RoomSectionNav showNotes={!!room.meId} connected={connected} live={live} turn={turn}/>}<p className="sr-only" role="status" aria-live="polite">{turn?t(turn):""}</p><GuideHint room={room}/>{room.game&&<RevealOverlay key={room.round} room={room}/>}

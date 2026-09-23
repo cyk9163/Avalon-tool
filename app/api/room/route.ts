@@ -109,7 +109,7 @@ export async function POST(request:Request){
     }
   }catch(error){result=fail(requestId,error);}
   log(result.status>=500?"error":result.status>=400?"warn":"info","room.action",{
-    requestId,action,room:await roomRef(code),status:result.status,durationMs:Date.now()-started,conflicts:stats.conflicts,ray:request.headers.get("cf-ray"),
+    requestId,action,room:await roomRef(code),status:result.status,outcome:result.status>=500?"unavailable":result.status>=400?"rejected":"ok",durationMs:Date.now()-started,conflicts:stats.conflicts,ray:request.headers.get("cf-ray"),
   });
   return result;
 }

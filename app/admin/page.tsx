@@ -136,6 +136,9 @@ export default function AdminPage() {
             <div className="admin-tile"><small>{t("在座玩家")}</small><strong>{stats.rooms.players}</strong></div>
             <div className="admin-tile"><small>{t("最近 1 小时新建")}</small><strong>{stats.rooms.createdLastHour}</strong></div>
             <div className="admin-tile"><small>{t("累计局次（含重开）")}</small><strong>{stats.rooms.roundsPlayed}</strong></div>
+            <div className="admin-tile"><small>{t("已开局")}</small><strong>{stats.flow.started}</strong></div>
+            <div className="admin-tile"><small>{t("已结束或留有战绩")}</small><strong>{stats.flow.finished}</strong></div>
+            <div className="admin-tile"><small>{t("同房重开过")}</small><strong>{stats.flow.rematches}</strong></div>
           </div>
 
           <div className="admin-grid">

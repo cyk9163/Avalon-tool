@@ -35,6 +35,7 @@ test("admin statistics are shaped from aggregate rows only", async () => {
     [{winner: "good", reason: "assassin-missed", count: 1}, {winner: "evil", reason: "three-failures", count: 1}],
     [{label: 0, count: 1}, {label: 5, count: 2}, {label: 30, count: 9}, {label: null, count: 4}],
     [{buckets: 12, networks: 1, recoveries: null}],
+    [{started: 2, finished: 2, rematches: 1}],
   ];
   const statements = [];
   const db = {
@@ -50,6 +51,7 @@ test("admin statistics are shaped from aggregate rows only", async () => {
   assert.equal(stats.hourly[5], 2);
   assert.equal(stats.hourly.reduce((a, b) => a + b, 0), 3, "out-of-range buckets are ignored");
   assert.deepEqual(stats.limits, {activeBuckets: 12, blockedNetworks: 1, blockedRecoveries: 0});
+  assert.deepEqual(stats.flow, {started: 2, finished: 2, rematches: 1});
   assert.ok(statements.every(statement => statement.values.length === 1 && statement.values[0] === 1_790_000_000_000));
   for (const {sql} of statements) {
     assert.ok(!/SELECT\s+(code|state|owner_key|key)\b/i.test(sql), `aggregates only: ${sql}`);
