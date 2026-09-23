@@ -1,5 +1,11 @@
 // English entries keyed by the Chinese source text (server).
 export const SERVER: Record<string, string> = {
+  "发言进度无效，请刷新后重试。": "Invalid speaking turn. Refresh and try again.",
+  "只有正在发言的玩家、队长或房主可以轮到下一位。": "Only the current speaker, the leader or the host can pass the floor on.",
+  "只有队长或房主可以重新开始发言。": "Only the leader or the host can restart the speaking round.",
+  "只有队长或房主可以设置发言计时。": "Only the leader or the host can set the speaking timer.",
+  "请选择有效的发言时间。": "Choose a valid speaking time.",
+  "未知的发言操作。": "Unknown speaking action.",
   "只有本轮队长可以亮车。": "Only this round's leader can show a team.",
   "你开局属于正义阵营。第 3–5 轮若翻到「转换」忠诚牌，你会和邪恶兰斯洛特互换阵营。属于正义时只能出成功，属于邪恶时只能出失败。": "You start on Good's side. If a Switch loyalty card comes up in rounds 3–5, you and Evil Lancelot swap sides. On Good's side you must play Success; on Evil's side you must play Fail.",
   "你开局属于邪恶阵营，认识除奥伯伦外的邪恶同伴。第 3–5 轮若翻到「转换」忠诚牌，你会和正义兰斯洛特互换阵营。属于邪恶时只能出失败，属于正义时只能出成功。": "You start on Evil's side and know your Evil allies except Oberon. If a Switch loyalty card comes up in rounds 3–5, you and Good Lancelot swap sides. On Evil's side you must play Fail; on Good's side you must play Success.",

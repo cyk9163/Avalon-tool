@@ -8,6 +8,7 @@ import { ROLES, type GameView, type Role, type RoomView } from "@/lib/game";
 import { ReplayExport } from "@/components/replay-export";
 import { MarkTag } from "@/components/player-notes";
 import { GameTable } from "@/components/game-table";
+import { SpeechBar } from "@/components/speech-bar";
 import { VoteMatrix } from "@/components/vote-matrix";
 import { RulesButton } from "@/components/rules-card";
 import { usePlayerNotes } from "@/lib/player-notes";
@@ -153,6 +154,7 @@ export function GamePanel({ room, busy, connected, error, act, onNewGame }: Prop
 
     {room.phase === "team" && <div className="game-action">
       <div className="game-action-heading"><span className="step-icon"><Users size={25} aria-hidden="true" /></span><div><span className="action-kicker">{leader ? t("轮到你了") : t("现在可以线下讨论")}</span><h2>{leader ? t("选出你的任务队伍") : t("等待队长提议队伍")}</h2><p>{game.rejections === 4 ? t("这是最后一次组队机会。再次否决，邪恶阵营将直接获胜。") : t("面对面讨论后，由队长选出 {n} 位执行任务的玩家。", { n: game.teamSize })}</p></div></div>
+      <SpeechBar room={room} game={game} blocked={blocked} act={act} />
       {leader ? <>
         <p className="table-pick-hint">{t("在上方圆桌上点选队员，再点一次取消。")}</p>
         <p className="draft-status" role="status">{!drafted ? t("先亮车给大家看，所有人发言后可以改车，再发起表决。") : draftChanged ? t("改动还没亮给大家：点「改车」更新，或直接发起表决。") : t("已亮车：{seats}。大家发言后可以改车或发起表决。", { seats: seatsLabel(game.draftTeam) })}</p>

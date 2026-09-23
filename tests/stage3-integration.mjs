@@ -146,7 +146,9 @@ const ongoing = await host.get(code);
 const duplicateDuringGame = ok(await host.call({action: "rematch", code, round: 1}));
 assert.equal(duplicateDuringGame.round, 2);
 assert.equal(duplicateDuringGame.phase, "team");
-assert.deepEqual(duplicateDuringGame.game, ongoing.game);
+// speech.now is the server clock at read time (v1.8), so it differs between reads.
+const withoutClock = game => ({...game, speech: game.speech && {...game.speech, now: 0}});
+assert.deepEqual(withoutClock(duplicateDuringGame.game), withoutClock(ongoing.game));
 const second = await finishGame(2, secondIdentities, false, first.turns[0]);
 assert.ok(second.turns.every(turnId => !first.turns.includes(turnId)));
 assert.equal(second.finished.game.result.winner, "good");

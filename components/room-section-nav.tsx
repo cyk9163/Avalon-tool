@@ -18,7 +18,7 @@ const SECTIONS: readonly Section[] = [
  * my identity, my notes or the game log, opening a collapsed section on the
  * way. Presentation only — it never changes game state.
  */
-export function RoomSectionNav({ showNotes, connected, live }: { showNotes: boolean; connected: boolean; live: boolean }) {
+export function RoomSectionNav({ showNotes, connected, live, turn }: { showNotes: boolean; connected: boolean; live: boolean; turn?: string | null }) {
   const { t } = useI18n();
   const sections = useMemo(() => SECTIONS.filter(section => showNotes || section.id !== "room-notes"), [showNotes]);
   const [active, setActive] = useState(sections[0].id);
@@ -55,8 +55,8 @@ export function RoomSectionNav({ showNotes, connected, live }: { showNotes: bool
   return (
     <nav className="room-section-nav" aria-label={t("房间分区")}>
       {sections.map(({ id, label, Icon }) => (
-        <button key={id} type="button" className={active === id ? "active" : undefined} aria-current={active === id ? "true" : undefined} onClick={() => go(id)}>
-          <Icon size={15} aria-hidden="true" />{t(label)}
+        <button key={id} type="button" className={[active === id ? "active" : "", id === "room-game" && turn ? "your-turn" : ""].filter(Boolean).join(" ") || undefined} aria-current={active === id ? "true" : undefined} onClick={() => go(id)}>
+          <Icon size={15} aria-hidden="true" />{t(label)}{id === "room-game" && turn && <span className="sr-only">{t("，")}{t(turn)}</span>}
         </button>
       ))}
       <span className={`room-section-status${connected ? live ? " live" : "" : " offline"}`} role="status" title={connected ? live ? t("实时连接：其他人的操作会立即显示") : t("定时同步：每隔几秒刷新一次") : t("重连中")} aria-label={connected ? live ? t("实时") : t("已同步") : t("重连中")}>

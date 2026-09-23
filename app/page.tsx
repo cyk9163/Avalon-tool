@@ -17,6 +17,9 @@ import { TakeoverAlert, TakeoverRequests } from "@/components/takeover-requests"
 import { EarlyAssassination } from "@/components/early-assassination";
 import { PlayerNotesPanel } from "@/components/player-notes";
 import { RoomSectionNav } from "@/components/room-section-nav";
+import { RevealOverlay } from "@/components/reveal-overlay";
+import { useTurnReminder } from "@/components/turn-reminder";
+import { myTurn } from "@/lib/turn";
 import { RulesCard } from "@/components/rules-card";
 import { useRoomLive } from "@/lib/use-room-live";
 import { LIVE_FALLBACK_POLL_MS } from "@/lib/live";
@@ -86,6 +89,9 @@ export default function Home(){
   const [booting,setBooting]=useState(true);
   const [share,setShare]=useState(false),[qrImage,setQrImage]=useState<{url:string;data:string}|null>(null),[copied,setCopied]=useState(false),[reveal,setReveal]=useState(false),[seen,setSeen]=useState(false),[confirmStart,setConfirmStart]=useState(false),[confirmLeave,setConfirmLeave]=useState(false),[help,setHelp]=useState(false);
   const currentCode=useRef(""),createId=useRef(""),latest=useRef<RoomView|null>(null),busyRef=useRef(false);
+  // v1.8: tab title, buzz and badge when it is this player's move.
+  const turn=room?myTurn(room):null;
+  useTurnReminder(turn);
   const accept=useCallback((data:RoomView)=>{
     if(data.code!==currentCode.current)return;
     if(latest.current?.code===data.code&&latest.current.version>data.version)return;
@@ -312,7 +318,7 @@ export default function Home(){
       {!connected&&<div className="connection-banner" role="status"><RefreshCw size={17}/><span>{t("连接暂时中断，座位和身份保存在服务器上，恢复网络后自动同步。换了设备可以用恢复码回到座位。")}</span><button onClick={()=>void load(room.code).catch(()=>setConnected(false))}>{t("立即重试")}</button></div>}
       {membershipNotice&&<div className="membership-notice dismissible" role="status"><p>{t(membershipNotice.text,membershipNotice.vars)}</p><button type="button" aria-label={t("关闭提示")} onClick={()=>setMembershipNotice(null)}>×</button></div>}
       {room.phase==="lobby"&&room.resetReason==="abort"&&<p className="membership-notice" role="status">{t("上一局已由房主作废，身份和记录已清除。玩家与座位已保留，请重新准备；需要补位时可由房主移除离场玩家。")}</p>}
-      {room.game&&<RoomSectionNav showNotes={!!room.meId} connected={connected} live={live}/>}
+      {room.game&&<RoomSectionNav showNotes={!!room.meId} connected={connected} live={live} turn={turn}/>}{room.game&&<RevealOverlay key={room.round} room={room}/>}
       <TakeoverAlert room={room} busy={busy} connected={connected} act={act}/>
       <TakeoverRequests room={room} busy={busy} connected={connected} act={act}/>
       <RoomProgress room={room} connected={connected} live={live}/>

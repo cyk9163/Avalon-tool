@@ -146,6 +146,11 @@ interface GameState {
   // The leader's shown team before the vote (v1.6): public, editable while
   // the table talks, cleared when the vote starts or the leadership passes.
   draftTeam?: number[];
+  // Speaking order for the current team turn (v1.8): public. It starts with the
+  // leader and goes round the table; index === capacity means everyone spoke.
+  speech?: { turnId: string; index: number; startedAt: number };
+  // Soft per-speaker timer in seconds (0 = off), kept across turns.
+  speechSeconds?: number;
 }
 export type LoyaltyCard = "keep" | "switch";
 export interface GameView {
@@ -170,6 +175,9 @@ export interface GameView {
   loyalty: LoyaltyCard[] | null;
   lancelotsSwitched: boolean;
   draftTeam: number[];
+  // Who has the floor during team building; null outside the team phase.
+  // `now` is the server clock, so every phone counts down the same timer.
+  speech: { order: number[]; index: number; startedAt: number; seconds: number; now: number } | null;
   revealedRoles: { seat: number; role: Role }[] | null;
   // Who played which quest card. Secret during play; after the game ends it is
   // shown to this game's members only, alongside the full role reveal (v1.5).
@@ -427,6 +435,13 @@ function gameView(room: Room, me: Player): GameView | null {
     loyalty: game.loyalty ? [...game.loyalty] : null,
     lancelotsSwitched: lancelotsSwitched(game, game.quest),
     draftTeam: room.phase === "team" ? [...(game.draftTeam ?? [])] : [],
+    speech: room.phase === "team" && game.speech?.turnId === game.turnId ? {
+      order: speakingOrder(room, game.leaderSeat),
+      index: game.speech.index,
+      startedAt: game.speech.startedAt,
+      seconds: game.speechSeconds ?? DEFAULT_SPEECH_SECONDS,
+      now: Date.now(),
+    } : null,
     revealedRoles: room.phase === "finished"
       ? room.players.filter((player): player is Player & { role: Role } => !!player.role)
         .map(({ seat, role }) => ({ seat, role })).sort((a, b) => a.seat - b.seat)
@@ -514,6 +529,7 @@ function newTeamTurn(room: Room, game: GameState): void {
   game.leaderSeat = game.leaderSeat % room.capacity + 1;
   game.turnId = crypto.randomUUID();
   delete game.draftTeam;
+  game.speech = { turnId: game.turnId, index: 0, startedAt: Date.now() };
   game.team = [];
   game.teamVotes = {};
   game.questVotes = {};
@@ -552,7 +568,47 @@ function beginGame(room: Room, me: Player): void {
     publicReveals: [],
     ...(room.players.some(player => player.role === "goodLancelot") ? { loyalty: shuffle<LoyaltyCard>(["keep", "keep", "keep", "switch", "switch"]).slice(0, 3) } : {}),
   };
+  room.game.speech = { turnId: room.game.turnId, index: 0, startedAt: Date.now() };
   room.phase = "team";
+}
+
+export const SPEECH_SECONDS = [0, 60, 90, 120, 180] as const;
+const DEFAULT_SPEECH_SECONDS = 90;
+
+/** Leader first, then round the table by seat number. */
+export function speakingOrder(room: Pick<Room, "capacity">, leaderSeat: number): number[] {
+  return Array.from({ length: room.capacity }, (_, index) => (leaderSeat - 1 + index) % room.capacity + 1);
+}
+
+/**
+ * Speaking turns (v1.8). "next" passes the floor on (the speaker, the leader
+ * or the host may do it, so an absent player can be skipped); "restart" lets
+ * the leader or host start a new round of talk; "timer" sets the soft timer.
+ * `index` makes a repeated "next" harmless.
+ */
+function speech(room: Room, game: GameState, me: Player, input: Record<string, unknown>): void {
+  const turnId = requireTurnId(input.turnId);
+  requireCurrentTurn(room, game, turnId, "team");
+  const chair = me.seat === game.leaderSeat || me.id === room.hostId;
+  const state = game.speech?.turnId === turnId ? game.speech : { turnId, index: 0, startedAt: Date.now() };
+  if (input.step === "next") {
+    if (typeof input.index !== "number" || !Number.isInteger(input.index)) throw new GameError("发言进度无效，请刷新后重试。", 400);
+    if (input.index < state.index) return; // Already passed on.
+    if (input.index !== state.index || state.index >= room.capacity) throw new GameError("这一步已结束，请查看最新进度。 ");
+    const speaker = speakingOrder(room, game.leaderSeat)[state.index];
+    if (me.seat !== speaker && !chair) throw new GameError("只有正在发言的玩家、队长或房主可以轮到下一位。", 403);
+    game.speech = { turnId, index: state.index + 1, startedAt: Date.now() };
+  } else if (input.step === "restart") {
+    if (!chair) throw new GameError("只有队长或房主可以重新开始发言。", 403);
+    game.speech = { turnId, index: 0, startedAt: Date.now() };
+  } else if (input.step === "timer") {
+    if (!chair) throw new GameError("只有队长或房主可以设置发言计时。", 403);
+    if (!SPEECH_SECONDS.includes(input.seconds as never)) throw new GameError("请选择有效的发言时间。", 400);
+    game.speechSeconds = input.seconds as number;
+    game.speech = { ...state, startedAt: Date.now() };
+  } else {
+    throw new GameError("未知的发言操作。", 400);
+  }
 }
 
 /** The leader shows (or changes, or clears) a team for discussion before calling the vote. */
@@ -759,6 +815,7 @@ function gameAction(room: Room, me: Player, action: string, input: Record<string
   if (!game) throw new GameError("请先确认身份并开始任务。 ");
   if (action === "propose") proposeTeam(room, game, me, input);
   else if (action === "draft") draftTeam(room, game, me, input);
+  else if (action === "speech") speech(room, game, me, input);
   else if (action === "vote") voteOnTeam(room, game, me, input);
   else if (action === "quest") submitQuest(room, game, me, input);
   else if (action === "lake-check") checkLake(room, game, me, input);
@@ -999,7 +1056,7 @@ export function mutateRoom(room: Room, key: string, action: string, input: Recor
     return;
   }
   if (!me) throw new GameError("请先加入房间。", 403);
-  if (["begin", "propose", "draft", "vote", "quest", "lake-check", "assassinate"].includes(action)) {
+  if (["begin", "propose", "draft", "speech", "vote", "quest", "lake-check", "assassinate"].includes(action)) {
     gameAction(room, me, action, input);
     return;
   }

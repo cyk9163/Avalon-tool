@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Crown, Waves } from "lucide-react";
+import { Check, Crown, Mic, Waves } from "lucide-react";
 import { ROLES, type GameView, type RoomView } from "@/lib/game";
 import { useI18n } from "@/lib/i18n/react";
 import { MarkTag } from "@/components/player-notes";
@@ -41,13 +41,14 @@ export function GameTable({ room, game, selection, onToggle, marks }: {
         const team = onTeam(seat);
         const voted = room.phase === "vote" && game.votedSeats.includes(seat);
         const lake = game.lake?.holderSeat === seat && room.phase !== "finished";
+        const speaking = !!game.speech && game.speech.order[game.speech.index] === seat;
         const revealed = game.publicReveals.find(item => item.seat === seat);
         const mark = mine ? undefined : marks[seat];
         const disabled = !picking || (!team && (selection?.length ?? 0) >= game.teamSize);
         const label = [
           t("{n} 号", { n: seat }), player?.name, mine ? t("我") : "",
           leader ? t("队长") : "", team ? (picking ? t("已选入队伍") : room.phase === "team" ? t("队长亮车") : t("在车上")) : "",
-          voted ? t("已表决") : "", lake ? t("持有湖中仙女") : "",
+          voted ? t("已表决") : "", lake ? t("持有湖中仙女") : "", speaking ? t("正在发言") : "",
         ].filter(Boolean).join(t("，"));
         const Seat = picking ? "button" : "div";
         return (
@@ -55,11 +56,12 @@ export function GameTable({ room, game, selection, onToggle, marks }: {
             <Seat
               {...(picking ? { type: "button" as const, disabled, "aria-pressed": team, onClick: () => onToggle?.(seat) } : { role: "img" })}
               aria-label={label}
-              className={`seat-circle occupied${mine ? " mine" : ""}${team ? " on-team" : ""}${leader ? " leader" : ""}${mark?.side ? ` marked-${mark.side}` : ""}${room.phase === "vote" && !voted ? " pending" : ""}`}
+              className={`seat-circle occupied${mine ? " mine" : ""}${team ? " on-team" : ""}${leader ? " leader" : ""}${mark?.side ? ` marked-${mark.side}` : ""}${room.phase === "vote" && !voted ? " pending" : ""}${speaking ? " speaking" : ""}`}
             >
               <span>{String(seat).padStart(2, "0")}</span>
               {leader && <Crown className="seat-badge seat-badge-leader" size={14} aria-hidden="true" />}
               {voted && <Check className="seat-check" size={14} aria-hidden="true" />}
+              {speaking && <Mic className="seat-badge seat-badge-speaking" size={13} aria-hidden="true" />}
               {lake && <Waves className="seat-badge seat-badge-lake" size={13} aria-hidden="true" />}
             </Seat>
             <span className={`seat-name${mine ? " mine" : ""}`}>{player?.name || t("已入座")}{mine ? ` · ${t("我")}` : ""}</span>

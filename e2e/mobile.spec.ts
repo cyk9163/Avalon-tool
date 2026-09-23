@@ -110,3 +110,40 @@ test("losing the network shows reconnecting and the room recovers by itself", as
     await game.close();
   }
 });
+
+test("speaking turns pass round the table and the tab title tells whose move it is", async ({ browser }) => {
+  const game = await startedGame(browser);
+  try {
+    const leaderPage = await game.leader.open(game.code);
+    const otherPage = await game.other.open(game.code);   // the next seat speaks second
+    await expect(leaderPage).toHaveTitle(/^● 轮到你发言/);
+    await expect(otherPage.locator(".speech-now")).toContainText(`正在发言：${game.leader.seat} 号`);
+    await leaderPage.getByRole("button", { name: "我说完了" }).click();
+    await expect(leaderPage).toHaveTitle(/^● 轮到你选队/);
+    await expect(otherPage).toHaveTitle(/^● 轮到你发言/, { timeout: 5_000 });
+    await expect(otherPage.locator(".speech-order li.current")).toHaveText(String(game.other.seat));
+    await otherPage.getByRole("button", { name: "我说完了" }).click();
+    await expect(otherPage).not.toHaveTitle(/^●/);
+  } finally {
+    await game.close();
+  }
+});
+
+test("a resolved team vote is revealed on every phone and can be skipped", async ({ browser }) => {
+  const game = await startedGame(browser);
+  try {
+    const page = await game.other.open(game.code);
+    const { turnId } = (await game.leader.get(game.code)).game!;
+    await game.leader.call({ action: "propose", code: game.code, turnId, team: [game.leader.seat, game.other.seat] });
+    for (const player of game.players) await player.call({ action: "vote", code: game.code, turnId, approve: player.seat !== game.other.seat });
+    const overlay = page.locator(".reveal-overlay");
+    await expect(overlay).toBeVisible({ timeout: 5_000 });
+    await expect(overlay.locator(".reveal-ballot")).toHaveCount(5);
+    await expect(overlay.locator(".reveal-result")).toContainText("通过");
+    await expect(overlay.locator(".reveal-result")).toContainText("4 赞成 · 1 反对");
+    await overlay.getByRole("button", { name: "跳过" }).click();
+    await expect(overlay).toBeHidden();
+  } finally {
+    await game.close();
+  }
+});
