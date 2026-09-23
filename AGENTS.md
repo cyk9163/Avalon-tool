@@ -6,7 +6,7 @@
 - 正式地址：`https://avalon-roundtable.yunkangchen2017.workers.dev`。
 - 使用个人 Cloudflare Workers + D1，保持免费方案，不重新部署到 GPT Sites。
 - 使用 Node 24；`npm ci`、`npm run db:migrate:local`、`npm run dev`。
-- 阶段检查：`npm run lint`（0 警告）、`npm run typecheck`、`npm test`、`npm run audit:prod`、本地 `npm run test:integration`、`npm run build`。部署后 `npm run deploy` 会自动运行 smoke test。涉及界面时检查手机排版与实际操作。
+- 阶段检查：`npm run lint`（0 警告）、`npm run typecheck`、`npm test`、`npm run audit:prod`、本地 `npm run test:integration`、`npm run test:e2e`（涉及界面时）、`npm run build`。部署后 `npm run deploy` 会自动运行 smoke test。涉及界面时检查手机排版与实际操作。
 - `npm run deploy` 构建并部署。数据库结构变化时，先审查迁移，再应用线上迁移；不要更改已应用的迁移文件。
 - 不提交 `.env*`、`.dev.vars*`、Cookie、令牌、数据库文件、备份、`work/` 或构建产物。
 - 角色、未揭晓组队票及任务牌均在服务端授权；任务牌与玩家的关联在对局中不得向客户端公开，结局后只向本局成员公开（v1.5 起按用户要求调整）。

@@ -56,3 +56,28 @@ jobs:
       - name: Server log
         if: failure()
         run: cat dev-server.log
+
+  e2e:
+    name: Phone browsers (WebKit iPhone, Chromium Android)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Prepare public local test configuration
+        run: cp .dev.vars.example .dev.vars
+      - run: npm run db:migrate:local
+      - name: Install WebKit and Chromium
+        run: npx playwright install --with-deps webkit chromium
+      - run: npm run test:e2e
+      - name: Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7

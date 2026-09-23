@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ArrowLeftRight, Eye, ArrowRight, Check, ChevronDown, CircleDashed, Crown, Flag, History, LockKeyhole, RotateCcw, Shield, Swords, ThumbsDown, ThumbsUp, Trophy, Users, Waves, X } from "lucide-react";
+import { Eye, ArrowRight, Check, ChevronDown, CircleDashed, Crown, Flag, History, LockKeyhole, RotateCcw, Shield, Swords, ThumbsDown, ThumbsUp, Trophy, Users, Waves, X } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { ROLES, type GameView, type Role, type RoomView } from "@/lib/game";
 import { ReplayExport } from "@/components/replay-export";
 import { MarkTag } from "@/components/player-notes";
 import { GameTable } from "@/components/game-table";
+import { VoteMatrix } from "@/components/vote-matrix";
 import { RulesButton } from "@/components/rules-card";
 import { usePlayerNotes } from "@/lib/player-notes";
 import { msg } from "@/lib/i18n/core";
@@ -218,10 +219,7 @@ export function GamePanel({ room, busy, connected, error, act, onNewGame }: Prop
 
     <details id="room-log" className="game-history" open={room.phase === "finished" ? true : undefined}>
       <summary><span className="history-title"><History size={18} aria-hidden="true" /><span>{t("对局记录")}</span></span><small>{t("{p} 次表决 · {q} 次任务", { p: game.proposals.length, q: game.quests.length })}</small><ChevronDown className="history-chevron" size={17} aria-hidden="true" /></summary>
-      {!game.proposals.length ? <p className="history-empty">{t("完成第一次组队表决后，记录会显示在这里。")}</p> : <><p className="history-hint"><ArrowLeftRight size={15} aria-hidden="true" />{t("左右滑动，查看每位玩家的表决。")}</p><div className="history-scroll" tabIndex={0} role="region" aria-label={t("组队投票历史，可左右滚动")}><table><caption className="sr-only">{t("每次组队的队长、队员及逐人表决结果")}</caption><thead><tr><th>{t("任务 / 提议")}</th><th>{t("队长")}</th><th>{t("队员")}</th>{room.players.map(player => <th key={player.id} title={player.name}>{t("{n} 号", { n: player.seat })}</th>)}<th>{t("结果")}</th></tr></thead><tbody>{game.proposals.map(proposal => <tr key={proposal.id}><th>{proposal.quest} / {proposal.attempt}</th><td>{t("{n} 号", { n: proposal.leaderSeat })}</td><td>{proposal.team.join(t("、"))}</td>{room.players.map(player => {
-        const vote = proposal.votes.find(item => item.seat === player.seat);
-        return <td key={player.id} className={vote?.approve ? "vote-yes" : "vote-no"} aria-label={vote?.approve ? t("{n} 号赞成", { n: player.seat }) : t("{n} 号反对", { n: player.seat })}>{vote?.approve ? t("赞成") : t("反对")}</td>;
-      })}<td><span className={`history-result ${proposal.approved ? "passed" : "rejected"}`}>{proposal.approved ? t("通过") : t("否决")}</span><small className="history-tally">{t("{yes} 赞成 · {no} 反对", { yes: proposal.votes.filter(vote => vote.approve).length, no: proposal.votes.filter(vote => !vote.approve).length })}</small></td></tr>)}</tbody></table></div></>}
+      {!game.proposals.length ? <p className="history-empty">{t("完成第一次组队表决后，记录会显示在这里。")}</p> : <VoteMatrix room={room} game={game} />}
       {game.quests.length > 0 && <div className="quest-history">{game.quests.map(quest => { const cards = game.questCards?.find(item => item.quest === quest.quest)?.cards; return <div key={quest.quest}><span>{t("任务 {n}", { n: quest.quest })}</span><span>{seatsLabel(quest.team)}</span><strong className={quest.success ? "vote-yes" : "vote-no"}>{quest.success ? t("成功") : t("失败")} · {t("{s} 张成功 · {f} 张失败", { s: quest.team.length - quest.failCount, f: quest.failCount })}</strong>{cards && cards.length > 0 && <span className="quest-cards">{cards.map(({ seat, card }) => <span key={seat} className={card === "fail" ? "vote-no" : "vote-yes"}>{t("{n} 号 · {name}：{card}", { n: seat, name: playerName(seat), card: card === "fail" ? t("失败") : t("成功") })}</span>)}</span>}</div>; })}</div>}
       <p className="action-note">{t("组队表决公开记录；任务牌在对局中只公布总数，结局后公开每个人出的牌。")}</p>
     </details>

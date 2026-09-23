@@ -1,6 +1,6 @@
 {
   "name": "avalon-roundtable",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "private": true,
   "engines": {
     "node": ">=24"
@@ -25,6 +25,7 @@
     "cf:tail:staging": "node scripts/wrangler.mjs tail --config wrangler.jsonc --env staging --format pretty",
     "test": "node --experimental-transform-types --test --test-isolation=none tests/game.test.mjs tests/expansion.test.mjs tests/stage2.test.mjs tests/stage3.test.mjs tests/pwa.test.mjs tests/management.test.mjs tests/host-key.test.mjs tests/recovery.test.mjs tests/security.test.mjs tests/live.test.mjs tests/templates-replay.test.mjs tests/admin.test.mjs tests/i18n.test.mjs tests/assassin.test.mjs tests/player-notes.test.mjs",
     "test:integration": "node tests/integration.mjs",
+    "test:e2e": "playwright test",
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --max-warnings=0",
     "i18n:check": "node --experimental-transform-types --no-warnings scripts/i18n-check.mjs",
@@ -47,6 +48,7 @@
   "devDependencies": {
     "@cloudflare/vite-plugin": "1.57.3",
     "@cloudflare/workers-types": "5.20260922.1",
+    "@playwright/test": "1.63.0",
     "@tailwindcss/postcss": "4.2.1",
     "@types/node": "22.19.19",
     "@types/qrcode": "^1.5.6",

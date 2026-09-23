@@ -1,5 +1,7 @@
 // English entries keyed by the Chinese source text (room).
 export const ROOM: Record<string, string> = {
+  "【玩家统计】": "[Player stats]",
+  "{player}：当队长 {led} 次 · 被选上车 {picked} 次 · 执行任务 {played} 次 · 赞成率 {rate}": "{player}: led {led} · picked {picked} · went on {played} quests · approved {rate}",
   "  出牌：{cards}": "  Cards: {cards}",
   "{player} {card}": "{player} {card}",
   "提前出刀": "early strike",

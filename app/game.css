@@ -346,3 +346,36 @@
   .draft-buttons { width: 100%; }
   .draft-buttons > * { flex: 1 1 0; justify-content: center; }
 }
+
+/* v1.7 vote matrix: one row per proposal, one narrow column per seat, fits 10 seats at 360px */
+.vote-matrix-block { margin-top: 12px; }
+.vote-matrix-wrap { overflow-x: auto; }
+.game-history table.vote-matrix { table-layout: fixed; width: 100%; min-width: calc(88px + var(--seats) * 24px); font-size: 12px; }
+.game-history .vote-matrix th, .game-history .vote-matrix td { padding: 7px 0; border-bottom: 1px solid #ffffff0d; }
+.game-history .vote-matrix thead th { color: #d2d8c4; font-variant-numeric: tabular-nums; }
+.game-history .vote-matrix th:first-child { width: 38px; }
+.game-history .vote-matrix th:last-child, .game-history .vote-matrix .matrix-result { width: 50px; }
+.vote-matrix tbody th { font-variant-numeric: tabular-nums; }
+.vote-matrix td { position: relative; color: #8ea39b; }
+.vote-matrix td svg { display: inline-block; vertical-align: middle; }
+.vote-matrix td.yes { color: var(--success); }
+.vote-matrix td.no { color: var(--danger); }
+.vote-matrix td.on-team::before { content: ""; position: absolute; inset: 3px 1px; border: 1.5px solid #dbc18a; border-radius: 6px; pointer-events: none; }
+.vote-matrix .matrix-leader { position: absolute; top: 0; left: 50%; transform: translate(-50%, -1px); color: #dbc18a; }
+.vote-matrix .matrix-result { font-size: 11px; }
+.vote-matrix tr.approved .matrix-result { color: var(--success); }
+.vote-matrix tr.rejected .matrix-result { color: var(--danger); }
+.matrix-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 10px 0 0; color: #9fb4ac; font-size: 11px; }
+.matrix-legend span { display: inline-flex; align-items: center; gap: 4px; }
+.matrix-legend svg:first-child { color: #dbc18a; }
+.matrix-legend span:nth-child(1) svg { color: var(--success); }
+.matrix-legend span:nth-child(2) svg { color: var(--danger); }
+.matrix-legend .legend-team::before { content: ""; width: 12px; height: 12px; border: 1.5px solid #dbc18a; border-radius: 4px; }
+.seat-stats-wrap { margin-top: 18px; }
+.game-history table.seat-stats { table-layout: fixed; font-size: 12px; white-space: normal; }
+.seat-stats caption { caption-side: top; padding-bottom: 8px; color: #ddcca8; font-size: 13px; text-align: left; }
+.game-history .seat-stats th, .game-history .seat-stats td { padding: 8px 2px; font-variant-numeric: tabular-nums; }
+.game-history .seat-stats thead th { font-size: 11px; line-height: 1.3; }
+.game-history .seat-stats th:first-child { width: 34%; text-align: left; padding-left: 6px; }
+.game-history .seat-stats tbody th { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #c2cfc3; }
+.seat-stats tbody th b { color: #dfc593; margin-right: 3px; }

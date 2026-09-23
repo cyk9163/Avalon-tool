@@ -4,6 +4,7 @@
 // fail card. Private lake-of-the-lake results are left out as well.
 // v1.0: written in the viewer's interface language (Chinese by default).
 import { PRESETS, ROLES, type RoomView } from "./game.ts";
+import { seatStats } from "./seat-stats.ts";
 import { msg, translate, type Lang, type Vars } from "./i18n/core.ts";
 
 const REASONS = {
@@ -71,6 +72,10 @@ export function replayText(room: RoomView, date = new Date(), lang: Lang = "zh")
     }));
   }
 
+  lines.push("", t("【玩家统计】"));
+  for (const row of seatStats(room, game)) {
+    lines.push(t("{player}：当队长 {led} 次 · 被选上车 {picked} 次 · 执行任务 {played} 次 · 赞成率 {rate}", { player: name(row.seat), led: row.led, picked: row.picked, played: row.played, rate: row.votes ? `${Math.round(row.approvals / row.votes * 100)}%` : "—" }));
+  }
   lines.push("", t("对局中任务牌只公布张数；以上出牌记录在结局后公开，仅本局成员可见。"));
   return lines.join("\n") + "\n";
 }

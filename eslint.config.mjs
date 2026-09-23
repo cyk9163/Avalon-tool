@@ -19,6 +19,8 @@ const eslintConfig = defineConfig([
     ".sites-runtime/**",
     "work/**",
     "coverage/**",
+    "test-results/**",
+    "playwright-report/**",
   ]),
   {
     files: ["components/ui/**/*.{ts,tsx}", "hooks/use-mobile.ts"],

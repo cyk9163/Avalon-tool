@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {BUILT_IN_TEMPLATES, MAX_SAVED_TEMPLATES, fillCustomRoles, sameBoard, sanitizeTemplates, templateFits, templateMinimum} from "../lib/board-templates.ts";
 import {validateCustomRoles, EVIL_COUNTS} from "../lib/game.ts";
 import {replayFileName, replayText} from "../lib/replay.ts";
+import {seatStats} from "../lib/seat-stats.ts";
 
 test("every built-in template is a valid custom board from its minimum player count up", () => {
   assert.ok(BUILT_IN_TEMPLATES.length >= 4);
@@ -114,4 +115,17 @@ test("the English replay has no Chinese text apart from player nicknames", () =>
   const stripped = nicknames.reduce((result, nickname) => result.split(nickname).join(""), text);
   assert.ok(!/[㐀-鿿　-〿！-～]/.test(stripped), stripped);
   assert.equal(replayText(room, new Date(2026, 8, 23, 21, 5), "zh"), replayText(room, new Date(2026, 8, 23, 21, 5)), "Chinese stays the default");
+});
+
+test("per-seat stats count leads, picks, quests and approval rate from the public record", () => {
+  const room = finishedRoom();
+  assert.deepEqual(seatStats(room, room.game).map(({seat, led, picked, played, approvals, votes}) => [seat, led, picked, played, approvals, votes]), [
+    [1, 1, 1, 1, 1, 2], [2, 1, 2, 2, 2, 2], [3, 0, 1, 1, 0, 2], [4, 0, 0, 1, 1, 2], [5, 0, 1, 0, 1, 2],
+  ]);
+  const empty = seatStats(room, {proposals: [], quests: []});
+  assert.ok(empty.every(row => row.led === 0 && row.votes === 0));
+  room.roles = ["merlin", "percival", "loyal", "assassin", "morgana"];
+  const text = replayText(room, new Date(2026, 8, 23, 21, 5));
+  assert.ok(text.includes("【玩家统计】\n1 号 小明：当队长 1 次 · 被选上车 1 次 · 执行任务 1 次 · 赞成率 50%\n2 号 阿花：当队长 1 次 · 被选上车 2 次 · 执行任务 2 次 · 赞成率 100%\n"), text);
+  assert.match(replayText(room, new Date(2026, 8, 23, 21, 5), "en"), /\[Player stats\]\n#1 小明: led 1 · picked 1 · went on 1 quests · approved 50%\n/);
 });

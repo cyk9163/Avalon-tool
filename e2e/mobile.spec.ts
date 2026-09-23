@@ -1,0 +1,112 @@
+import { expect, test, type Page } from "@playwright/test";
+import { expectNoHorizontalScroll, startedGame } from "./helpers";
+
+const seatButton = (page: Page, seat: number) =>
+  page.locator("#room-game .game-table").getByRole("button", { name: new RegExp(`^${seat} 号`) });
+
+test("public pages fit the phone without sideways scrolling", async ({ page }) => {
+  for (const path of ["/", "/rules", "/privacy"]) {
+    await page.goto(path);
+    await expect(page.locator("main").first()).toBeVisible();
+    await expectNoHorizontalScroll(page);
+  }
+});
+
+test("the leader shows a team on the table, changes it and calls the vote; the table sees it live", async ({ browser }) => {
+  const game = await startedGame(browser);
+  try {
+    const leaderPage = await game.leader.open(game.code);
+    const otherPage = await game.other.open(game.code);
+    expect(leaderPage.viewportSize()!.width, "phone-sized context").toBeLessThan(500);
+    await expect(otherPage.locator(".room-section-status")).toHaveAttribute("aria-label", "实时");
+
+    // Pick on the round table; the action bar stays fixed at the bottom of the screen.
+    const third = game.players.find(player => player !== game.leader && player !== game.other)!;
+    await seatButton(leaderPage, game.leader.seat).click();
+    await seatButton(leaderPage, game.other.seat).click();
+    await expect(seatButton(leaderPage, game.other.seat)).toHaveAttribute("aria-pressed", "true");
+    const footer = leaderPage.locator(".game-action-footer");
+    await expect(footer).toBeInViewport({ ratio: 1 });
+    const box = await footer.boundingBox();
+    expect(box!.y + box!.height).toBeLessThanOrEqual(leaderPage.viewportSize()!.height + 1);
+
+    // 亮车: everyone else sees the shown team without reloading.
+    await leaderPage.getByRole("button", { name: "亮车" }).click();
+    const draft = otherPage.locator(".draft-view");
+    await expect(draft).toContainText("队长亮车", { timeout: 5_000 });
+    await expect(draft).toContainText(`${game.other.seat}`);
+
+    // 改车 after the table has talked.
+    await seatButton(leaderPage, game.other.seat).click();
+    await seatButton(leaderPage, third.seat).click();
+    await leaderPage.getByRole("button", { name: "改车" }).click();
+    await expect(draft.locator(".team-member b")).toHaveText([game.leader.seat, third.seat].sort((a, b) => a - b).map(String), { timeout: 5_000 });
+
+    // 发起表决 behind a confirmation.
+    await leaderPage.getByRole("button", { name: "发起表决" }).click();
+    await leaderPage.getByRole("alertdialog").getByRole("button", { name: "发起表决" }).click();
+
+    // The other phone gets the vote buttons in reach, votes and is locked in.
+    const approve = otherPage.getByRole("button", { name: "赞成", exact: true });
+    await expect(approve).toBeInViewport({ timeout: 5_000 });
+    await approve.click();
+    await otherPage.getByRole("alertdialog").getByRole("button", { name: "确认赞成" }).click();
+    await expect(otherPage.getByText("你的表决已锁定，等待全员揭晓。")).toBeVisible();
+    // The leader's table marks that seat as voted, live.
+    await expect(leaderPage.locator("#room-game .game-table").getByRole("img", { name: new RegExp(`^${game.other.seat} 号.*已表决`) })).toBeVisible({ timeout: 5_000 });
+
+    await expectNoHorizontalScroll(leaderPage);
+    await expectNoHorizontalScroll(otherPage);
+  } finally {
+    await game.close();
+  }
+});
+
+test("the identity card shows only while held and hides when the app loses focus", async ({ browser }) => {
+  const game = await startedGame(browser);
+  try {
+    const page = await game.other.open(game.code);
+    await page.locator("#room-identity > summary").click();
+    const surface = page.locator(".identity-surface");
+    const reveal = page.locator(".reveal-button");
+    await reveal.scrollIntoViewIfNeeded();
+    await expect(surface).not.toHaveClass(/revealed/);
+
+    const box = (await reveal.boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await expect(surface).toHaveClass(/revealed/);
+    await expect(surface.locator(".side-label")).toBeVisible();
+    await page.mouse.up();
+    await expect(surface).not.toHaveClass(/revealed/);
+
+    // Switching apps (window blur) hides it even while the finger is still down.
+    await page.mouse.down();
+    await expect(surface).toHaveClass(/revealed/);
+    await page.evaluate(() => window.dispatchEvent(new Event("blur")));
+    await expect(surface).not.toHaveClass(/revealed/);
+    await page.mouse.up();
+  } finally {
+    await game.close();
+  }
+});
+
+test("losing the network shows reconnecting and the room recovers by itself", async ({ browser }) => {
+  const game = await startedGame(browser);
+  try {
+    const page = await game.other.open(game.code);
+    const status = page.locator(".room-section-status");
+    await game.other.context.setOffline(true);
+    await expect(status).toHaveAttribute("aria-label", "重连中", { timeout: 20_000 });
+
+    // Something happens at the table while this phone is offline.
+    const view = await game.leader.get(game.code);
+    await game.leader.call({ action: "draft", code: game.code, turnId: view.game!.turnId, team: [game.leader.seat] });
+
+    await game.other.context.setOffline(false);
+    await expect(status).toHaveAttribute("aria-label", /实时|已同步/, { timeout: 20_000 });
+    await expect(page.locator(".draft-view")).toContainText("队长亮车", { timeout: 20_000 });
+  } finally {
+    await game.close();
+  }
+});

@@ -7,7 +7,7 @@
 - 仓库：[cyk9163/Avalon-tool](https://github.com/cyk9163/Avalon-tool)，主分支 `main`。
 - 正式地址：[圆桌 · 阿瓦隆助手](https://avalon-roundtable.yunkangchen2017.workers.dev)。个人 Cloudflare Workers + D1 + Durable Objects（SQLite 版），保持免费方案，不再部署到 GPT Sites。
 - staging：[avalon-roundtable-staging](https://avalon-roundtable-staging.yunkangchen2017.workers.dev)，独立 Worker、独立 D1（`avalon-roundtable-staging-db`）和独立房主 Key 白名单；明文 Key 在原机器被 Git 忽略的 `work/staging-host-keys.txt`。
-- 当前为 v1.6.0：v0.6 的自定义板子与扩展角色之上，v0.7 完成企业级基础治理（lint 清零、安全头、结构化日志、健康检查、Cron 清理、依赖漏洞清零、CI 扩充、部署后 smoke test），v0.8 加入换设备恢复（恢复码／房主批准）与带口令的邀请链接，v0.9 加入 Durable Object + WebSocket 实时同步与 staging 环境，v0.9.1 轮换房主 Key 并简化 Key 输入，v0.10 加入规则教学页与隐私说明页，v0.11 加入板子模板与复盘导出，v0.12 加入管理后台，v1.0 加入中英双语，v1.1 加入本机推理笔记，v1.2 把「坏人互相知道具体角色」「刺客随时出刀一次」定为所有房间的固定规则（与官方规则不同，规则页已注明），v1.2.1 加入发言草稿，v1.3 兰斯洛特改为官方阵营转换规则（公开忠诚牌：`game.loyalty`、`currentSide`），v1.4 优化手机交互（`app/mobile.css`、`components/room-section-nav.tsx`，只改展示），v1.5 结局后向本局成员公开每次任务谁出了哪张牌（`game.questCards`），v1.6 圆桌主视图、队长亮车（`draft` 动作与公开的 `game.draftTeam`）、队长顺序与第五车警示、本局规则卡。
+- 当前为 v1.7.0：v0.6 的自定义板子与扩展角色之上，v0.7 完成企业级基础治理（lint 清零、安全头、结构化日志、健康检查、Cron 清理、依赖漏洞清零、CI 扩充、部署后 smoke test），v0.8 加入换设备恢复（恢复码／房主批准）与带口令的邀请链接，v0.9 加入 Durable Object + WebSocket 实时同步与 staging 环境，v0.9.1 轮换房主 Key 并简化 Key 输入，v0.10 加入规则教学页与隐私说明页，v0.11 加入板子模板与复盘导出，v0.12 加入管理后台，v1.0 加入中英双语，v1.1 加入本机推理笔记，v1.2 把「坏人互相知道具体角色」「刺客随时出刀一次」定为所有房间的固定规则（与官方规则不同，规则页已注明），v1.2.1 加入发言草稿，v1.3 兰斯洛特改为官方阵营转换规则（公开忠诚牌：`game.loyalty`、`currentSide`），v1.4 优化手机交互（`app/mobile.css`、`components/room-section-nav.tsx`，只改展示），v1.5 结局后向本局成员公开每次任务谁出了哪张牌（`game.questCards`），v1.6 圆桌主视图、队长亮车（`draft` 动作与公开的 `game.draftTeam`）、队长顺序与第五车警示、本局规则卡，v1.7 投票矩阵与玩家统计（`components/vote-matrix.tsx`、`lib/seat-stats.ts`）以及 Playwright 手机浏览器测试（`e2e/`，WebKit iPhone + Chromium Android）。
 - 交接日期：2026-09-23。规则测试覆盖自定义阵容、扩展身份线索、强制任务牌、揭露者和湖中仙女隐私；每次发布的最终验证结果以 `CHANGELOG.md`、GitHub CI 与交付消息为准。
 - 发布证据入口：[main 最新提交](https://github.com/cyk9163/Avalon-tool/commits/main)、[自动检查](https://github.com/cyk9163/Avalon-tool/actions)、上述正式站点。不能仅凭版本号认定上线；每次交付消息还应给出具体提交与线上验证结果。
 
@@ -139,6 +139,8 @@ npm run build
 ```
 
 本地开发服务器运行时，另开终端执行 `npm run test:integration`。测试只允许本地地址，会创建独立测试房间；默认 http://localhost:5173，可通过 `AVALON_TEST_URL` 覆盖。Key 默认使用上述公开本地测试值，也支持 `AVALON_TEST_HOST_KEY`。不要让集成测试写入正式站点。
+
+手机浏览器测试：`npx playwright install webkit chromium` 后执行 `npm run test:e2e`，同样只针对本地服务器（`E2E_BASE_URL` 可覆盖）。CI 的 `e2e` 任务会安装浏览器并运行，失败时上传 `playwright-report`。`test-results/`、`playwright-report/` 已忽略，不要提交。
 
 GitHub Actions 分两个任务：lint（0 警告）、类型检查、单元测试、生产依赖审计（阻断）、全量审计（仅报告）、构建；以及在本地 D1 上运行全部集成测试。未配置自动上线。v0.7 起全仓 `npm run lint` 为 0 错误 0 警告，`npm audit` 为 0。
 

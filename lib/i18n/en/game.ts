@@ -1,5 +1,14 @@
 // English entries keyed by the Chinese source text (game).
 export const GAME: Record<string, string> = {
+  "每一车的队长、队员和每位玩家的表决": "Each proposal's leader, team and every player's vote",
+  "车": "Team",
+  "未表决": "no vote",
+  "金框：在车上": "Gold frame: on the team",
+  "玩家统计": "Player stats",
+  "当队长": "Led",
+  "被选上车": "Picked",
+  "出任务": "Quests",
+  "赞成率": "Approve %",
   "先亮车给大家看，所有人发言后可以改车，再发起表决。": "Show your team to the table first; after everyone has spoken you can change it, then call the vote.",
   "改动还没亮给大家：点「改车」更新，或直接发起表决。": "Your changes aren't shown yet: tap \"Change team\" to update, or call the vote now.",
   "已亮车：{seats}。大家发言后可以改车或发起表决。": "Shown: {seats}. After everyone speaks you can change it or call the vote.",
