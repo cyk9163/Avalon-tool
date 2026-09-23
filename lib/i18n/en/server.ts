@@ -1,5 +1,6 @@
 // English entries keyed by the Chinese source text (server).
 export const SERVER: Record<string, string> = {
+  "只有本轮队长可以亮车。": "Only this round's leader can show a team.",
   "你开局属于正义阵营。第 3–5 轮若翻到「转换」忠诚牌，你会和邪恶兰斯洛特互换阵营。属于正义时只能出成功，属于邪恶时只能出失败。": "You start on Good's side. If a Switch loyalty card comes up in rounds 3–5, you and Evil Lancelot swap sides. On Good's side you must play Success; on Evil's side you must play Fail.",
   "你开局属于邪恶阵营，认识除奥伯伦外的邪恶同伴。第 3–5 轮若翻到「转换」忠诚牌，你会和正义兰斯洛特互换阵营。属于邪恶时只能出失败，属于正义时只能出成功。": "You start on Evil's side and know your Evil allies except Oberon. If a Switch loyalty card comes up in rounds 3–5, you and Good Lancelot swap sides. On Evil's side you must play Fail; on Good's side you must play Success.",
   "你不知道邪恶兰斯洛特是谁。忠诚牌翻到「转换」时，你会换到邪恶阵营，那时只能出失败牌。": "You don't know who Evil Lancelot is. When a Switch loyalty card comes up, you move to Evil's side and must then play Fail.",

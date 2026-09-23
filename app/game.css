@@ -281,3 +281,68 @@
 /* v1.5: after the game, who played which quest card */
 .quest-cards { display: flex; flex-wrap: wrap; gap: 4px 10px; grid-column: 1 / -1; font-size: 12px; }
 .quest-cards span { white-space: nowrap; }
+/* v1.6 round table as the game's main view */
+.game-table-wrap { margin: 6px 0 4px; }
+.game-table { max-width: 360px; margin: 8px auto 6px; }
+.game-table .table-center { gap: 4px; inset: 30% 18%; }
+.game-table-quest { font-size: 18px; font-weight: 600; color: var(--foreground); letter-spacing: .02em; }
+.game-table .table-center p { font-size: 11px; }
+.game-table-hammer { color: var(--danger) !important; font-weight: 600; }
+.game-table-pick { color: var(--primary) !important; font-weight: 600; }
+.game-table .seat-position { width: 64px; }
+.game-table .seat-circle { width: 44px; height: 44px; min-width: 44px; min-height: 44px; transition: box-shadow .15s, background .15s, border-color .15s; }
+.game-table .seat-circle.on-team { background: #dbc18a; border-color: #f0d9a6; color: #1d3025; box-shadow: 0 0 0 4px #dbc18a40, 0 0 0 7px #132623; }
+.game-table .seat-circle.mine:not(.on-team) { background: #2b463b; border-color: #dbc18a; color: var(--primary); }
+.game-table .seat-circle.marked-good { box-shadow: 0 0 0 3px var(--success), 0 0 0 7px #132623; }
+.game-table .seat-circle.marked-evil { box-shadow: 0 0 0 3px var(--danger), 0 0 0 7px #132623; }
+.game-table .seat-circle.on-team.marked-good, .game-table .seat-circle.on-team.marked-evil { box-shadow: 0 0 0 4px #dbc18a40, 0 0 0 7px #132623; }
+.game-table .seat-circle.pending { opacity: .72; }
+.game-table.picking .seat-circle:not(:disabled) { cursor: pointer; }
+.game-table.picking .seat-circle:disabled:not(.on-team) { opacity: .5; }
+.seat-badge { position: absolute; border-radius: 50%; padding: 2px; }
+.seat-badge-leader { top: -9px; left: 50%; transform: translateX(-50%); background: #dbc18a; color: #1d3025; width: 20px; height: 20px; }
+.seat-badge-lake { bottom: -4px; left: -4px; background: #7fb4c8; color: #0c171a; width: 18px; height: 18px; }
+.game-table .mark-tag { margin: 3px 0 0; font-size: 10px; padding: 0 6px; max-width: 64px; overflow: hidden; text-overflow: ellipsis; }
+.table-pick-hint { margin: 0 0 4px; font-size: 13px; color: #aebfba; }
+/* leader order and the fifth-attempt warning */
+.leader-order { display: grid; gap: 8px; margin: 4px 0 8px; }
+.leader-order ol { display: flex; gap: 6px; margin: 0; padding: 0; list-style: none; overflow-x: auto; scrollbar-width: none; }
+.leader-order li { flex: 1 0 auto; display: grid; justify-items: center; gap: 1px; min-width: 58px; padding: 6px 8px; border-radius: 10px; border: 1px solid var(--border); background: #ffffff05; }
+.leader-order li small { font-size: 10px; color: #9fb0aa; }
+.leader-order li b { font-size: 13px; font-weight: 600; color: #dfe6e0; }
+.leader-order li.current { border-color: #dbc18a88; background: #dbc18a14; }
+.leader-order li.current b { color: var(--primary); }
+.leader-order li.hammer { border-color: #e9a59c66; }
+.leader-order li.hammer small { color: var(--danger); }
+.hammer-warning { display: flex; align-items: center; gap: 8px; margin: 0; padding: 10px 12px; border-radius: 12px; background: #e9a59c1f; border: 1px solid #e9a59c66; color: var(--danger); font-size: 14px; font-weight: 600; }
+/* rules */
+.game-topline-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.rules-button { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 12px; border-radius: 999px; border: 1px solid #b6c9ba2a; background: transparent; color: #c9d4cc; font-size: 13px; }
+.rules-button:hover { border-color: #dbc18a66; color: var(--primary); }
+.rules-list { margin: 10px 0 0; padding-left: 1.2em; display: grid; gap: 7px; font-size: 13px; line-height: 1.65; color: #c9d4cc; }
+.rules-card .config-heading h3 { display: inline-flex; align-items: center; gap: 6px; }
+.rules-card .config-heading a { font-size: 12px; color: var(--primary); text-decoration: underline; text-underline-offset: 3px; }
+.rules-dialog .rules-list { margin-top: 14px; }
+.rules-dialog-link { display: inline-block; margin-top: 14px; color: var(--primary); text-decoration: underline; text-underline-offset: 3px; font-size: 14px; }
+@media (max-width: 720px) {
+  .game-table-wrap { order: 1; }
+  .game-table { max-width: 320px; }
+  .game-table .seat-position { width: 56px; }
+}
+@media (hover: none) and (pointer: coarse) { .rules-button { min-height: 44px; } }
+/* v1.6 leader's shown team (亮车) before the vote */
+.draft-status { margin: 6px 0 0; font-size: 13px; line-height: 1.6; color: #c9d4cc; }
+.draft-footer { flex-wrap: wrap; }
+.draft-buttons { display: flex; gap: 8px; flex: 1 1 auto; justify-content: flex-end; }
+.draft-buttons .secondary-button { margin: 0; width: auto; display: inline-flex; align-items: center; gap: 6px; }
+.draft-footer .draft-buttons .primary-button { min-width: 0; width: auto; }
+.draft-withdraw { margin-top: 2px; }
+.draft-view { display: grid; gap: 8px; padding: 12px 14px; border-radius: 12px; border: 1px dashed #dbc18a66; background: #dbc18a0d; }
+.draft-view .draft-label { font-size: 12px; font-weight: 600; color: var(--primary); }
+.draft-view > div { display: flex; flex-wrap: wrap; gap: 8px; }
+.draft-view small { font-size: 12px; color: #9fb0aa; line-height: 1.6; }
+.draft-view .waiting-note { margin: 0; }
+@media (max-width: 720px) {
+  .draft-buttons { width: 100%; }
+  .draft-buttons > * { flex: 1 1 0; justify-content: center; }
+}

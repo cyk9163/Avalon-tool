@@ -59,13 +59,20 @@ body { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-ins
   .room-section-nav button.active { background: #dbc18a1a; border-color: #dbc18a55; color: var(--primary); }
   #room-game, #room-identity, #room-notes, #room-log { scroll-margin-top: calc(68px + env(safe-area-inset-top)); }
 
-  /* Primary actions stay in the thumb zone while their card is on screen. */
-  .game-action-footer, .game-action .vote-actions {
-    position: sticky; bottom: 0; z-index: 10;
-    margin-bottom: -4px; padding: 12px 0 calc(12px + env(safe-area-inset-bottom));
-    background: #192e31; box-shadow: 0 -14px 18px -6px #192e31;
+  /* The current primary action lives in a bar fixed to the bottom of the
+     screen (thumb zone), independent of scrolling: team pick, vote, quest card. */
+  .game-action-footer, .game-action .vote-actions, .game-action > .primary-button {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; margin: 0;
+    padding: 12px max(16px, env(safe-area-inset-right)) calc(12px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+    background: #132327f2; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border-top: 1px solid #b6c9ba26; box-shadow: 0 -10px 30px #0006;
   }
-  .game-action > .primary-button, .game-action.lake-action .primary-button, .game-action.assassination .assassination-button {
+  .game-action > .primary-button { border-radius: 0; min-height: calc(64px + env(safe-area-inset-bottom)); border: 0; border-top: 1px solid #f0d9a6; }
+  .game-action .vote-actions { display: grid; gap: 10px; }
+  .game-action-footer p { font-size: 12px; }
+  /* Keep the end of the page clear of the fixed bar. */
+  .room-page:has(.game-action-footer, .game-action .vote-actions, .game-action > .primary-button) { padding-bottom: calc(150px + env(safe-area-inset-bottom)); }
+  .game-action.lake-action .primary-button, .game-action.assassination .assassination-button {
     position: sticky; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 10;
     box-shadow: 0 8px 24px #0009, 0 -10px 18px -4px #192e31;
   }

@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ArrowLeftRight, ArrowRight, Check, ChevronDown, CircleDashed, Crown, Flag, History, LockKeyhole, RotateCcw, Shield, Swords, ThumbsDown, ThumbsUp, Trophy, Users, Waves, X } from "lucide-react";
+import { ArrowLeftRight, Eye, ArrowRight, Check, ChevronDown, CircleDashed, Crown, Flag, History, LockKeyhole, RotateCcw, Shield, Swords, ThumbsDown, ThumbsUp, Trophy, Users, Waves, X } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { ROLES, type Role, type RoomView } from "@/lib/game";
+import { ROLES, type GameView, type Role, type RoomView } from "@/lib/game";
 import { ReplayExport } from "@/components/replay-export";
 import { MarkTag } from "@/components/player-notes";
+import { GameTable } from "@/components/game-table";
+import { RulesButton } from "@/components/rules-card";
 import { usePlayerNotes } from "@/lib/player-notes";
 import { msg } from "@/lib/i18n/core";
 import { useI18n } from "@/lib/i18n/react";
@@ -28,10 +30,22 @@ const reasonCopy = {
   "assassin-missed": msg("刺客未能找到梅林，正义阵营守住了胜利。"),
 };
 
+/** Who leads each remaining attempt of this quest; the fifth attempt decides the game if rejected. */
+function LeaderOrder({ room, game }: { room: RoomView; game: GameView }) {
+  const { t } = useI18n();
+  if (room.phase !== "team" && room.phase !== "vote") return null;
+  const attempt = game.rejections + 1;
+  const items = Array.from({ length: 6 - attempt }, (_, index) => ({ attempt: attempt + index, seat: (game.leaderSeat - 1 + index) % room.capacity + 1 }));
+  return <div className={`leader-order${attempt === 5 ? " hammer-now" : ""}`}>
+    {attempt === 5 && <p className="hammer-warning" role="status"><Flag size={16} aria-hidden="true" />{t("第五车：本车若被否决，邪恶直接获胜。")}</p>}
+    <ol aria-label={t("接下来的队长顺序")}>{items.map(item => <li key={item.attempt} className={`${item.attempt === attempt ? "current" : ""}${item.attempt === 5 ? " hammer" : ""}`}><small>{t("第 {a} 车", { a: item.attempt })}</small><b>{t("{n} 号", { n: item.seat })}</b></li>)}</ol>
+  </div>;
+}
+
 export function GamePanel({ room, busy, connected, error, act, onNewGame }: Props) {
   const { t, ts } = useI18n();
   const { notes } = usePlayerNotes(room.code, room.round, room.roles);
-  const [selection, setSelection] = useState<number[]>([]);
+  const [selection, setSelection] = useState<number[]>(() => room.game?.draftTeam ?? []);
   const [target, setTarget] = useState<number | null>(null);
   const [pending, setPending] = useState<Pending | null>(null);
   const [ballotOpen, setBallotOpen] = useState(false);
@@ -85,6 +99,8 @@ export function GamePanel({ room, busy, connected, error, act, onNewGame }: Prop
     : room.phase === "lake" ? { label: t("湖中仙女"), Icon: Waves }
     : room.phase === "assassination" ? { label: t("最后刺杀"), Icon: Swords }
     : { label: t("本局结束"), Icon: Trophy };
+  const drafted = game.draftTeam.length > 0;
+  const draftChanged = selection.length !== game.draftTeam.length || selection.some((seat, index) => seat !== game.draftTeam[index]);
   const toggleSeat = (seat: number) => setSelection(current => current.includes(seat)
     ? current.filter(value => value !== seat)
     : current.length < game.teamSize ? [...current, seat].sort((a, b) => a - b) : current);
@@ -99,12 +115,16 @@ export function GamePanel({ room, busy, connected, error, act, onNewGame }: Prop
   return <section id="room-game" className={`game-panel phase-${room.phase}`} aria-label={t("当前对局")}>
     <div className="game-topline">
       <div className="game-workspace-title"><span className="game-kicker">THE ROUND TABLE</span><strong>{t("圆桌议事")} <span>{t("第 {n} 局", { n: room.round })}</span></strong></div>
-      <span className={`game-phase-chip ${room.phase === "assassination" ? "danger" : ""}`}><stage.Icon size={15} aria-hidden="true" />{stage.label}</span>
+      <div className="game-topline-actions"><RulesButton room={room} /><span className={`game-phase-chip ${room.phase === "assassination" ? "danger" : ""}`}><stage.Icon size={15} aria-hidden="true" />{stage.label}</span></div>
     </div>
     <div className="game-score" aria-label={t("任务比分：正义 {good}，邪恶 {evil}", { good: goodWins, evil: evilWins })}>
       <div className="game-score-side good"><Shield size={19} aria-hidden="true" /><span>{t("正义任务")}</span><div className="score-dots" aria-hidden="true">{[1, 2, 3].map(point => <i key={point} className={point <= goodWins ? "filled" : ""} />)}</div><strong>{goodWins}<small>/ 3</small></strong></div>
       <div className="game-score-side evil"><Swords size={19} aria-hidden="true" /><span>{t("邪恶任务")}</span><div className="score-dots" aria-hidden="true">{[1, 2, 3].map(point => <i key={point} className={point <= evilWins ? "filled" : ""} />)}</div><strong>{evilWins}<small>/ 3</small></strong></div>
     </div>
+    {room.phase !== "finished" && <div className="game-table-wrap">
+      <GameTable room={room} game={game} selection={selection} onToggle={room.phase === "team" && leader && !blocked ? toggleSeat : undefined} marks={notes.marks} />
+      <LeaderOrder room={room} game={game} />
+    </div>}
     <ol className="quest-track" aria-label={t("五次任务进度")}>
       {[1, 2, 3, 4, 5].map(number => {
         const quest = game.quests.find(item => item.quest === number);
@@ -133,11 +153,17 @@ export function GamePanel({ room, busy, connected, error, act, onNewGame }: Prop
     {room.phase === "team" && <div className="game-action">
       <div className="game-action-heading"><span className="step-icon"><Users size={25} aria-hidden="true" /></span><div><span className="action-kicker">{leader ? t("轮到你了") : t("现在可以线下讨论")}</span><h2>{leader ? t("选出你的任务队伍") : t("等待队长提议队伍")}</h2><p>{game.rejections === 4 ? t("这是最后一次组队机会。再次否决，邪恶阵营将直接获胜。") : t("面对面讨论后，由队长选出 {n} 位执行任务的玩家。", { n: game.teamSize })}</p></div></div>
       {leader ? <>
-        <div className="team-selector" aria-label={t("选择任务队员")}>{room.players.map(player => <button key={player.id} className={`player-option ${selection.includes(player.seat) ? "selected" : ""}`} aria-pressed={selection.includes(player.seat)} disabled={blocked || (!selection.includes(player.seat) && selection.length === game.teamSize)} onClick={() => toggleSeat(player.seat)}>
-          <span className="player-number">{player.seat}</span><span>{player.name}{player.id === me?.id ? <small>{t("我")}</small> : <MarkTag mark={notes.marks[player.seat]} />}</span><span className="selection-check">{selection.includes(player.seat) && <Check size={15} />}</span>
-        </button>)}</div>
-        <div className="game-action-footer"><p><strong>{t("已选 {n} / {size} 人", { n: selection.length, size: game.teamSize })}</strong><span>{t("可以不选自己")}</span></p><button className="primary-button" disabled={blocked || selection.length !== game.teamSize} onClick={() => setPending({ action: "propose", input: { turnId: game.turnId, team: selection }, title: t("提交这支队伍？"), description: t("队员：{seats}。提交后由全员表决，本次队伍不能再更改。", { seats: seatsLabel(selection) }), label: t("提交队伍") })}>{t("提交队伍")}<ArrowRight size={17} /></button></div>
-      </> : <p className="waiting-note" role="status">{me ? t("现在可以线下讨论，队长提交后所有人将同时投票。") : t("你正在查看房间的公开对局状态。")}</p>}
+        <p className="table-pick-hint">{t("在上方圆桌上点选队员，再点一次取消。")}</p>
+        <p className="draft-status" role="status">{!drafted ? t("先亮车给大家看，所有人发言后可以改车，再发起表决。") : draftChanged ? t("改动还没亮给大家：点「改车」更新，或直接发起表决。") : t("已亮车：{seats}。大家发言后可以改车或发起表决。", { seats: seatsLabel(game.draftTeam) })}</p>
+        <div className="game-action-footer draft-footer">
+          <p><strong>{t("已选 {n} / {size} 人", { n: selection.length, size: game.teamSize })}</strong><span>{t("可以不选自己")}</span></p>
+          <div className="draft-buttons">
+            <button type="button" className="secondary-button" disabled={blocked || selection.length === 0 || !draftChanged} onClick={() => void act("draft", { turnId: game.turnId, team: selection })}><Eye size={16} aria-hidden="true" />{drafted ? t("改车") : t("亮车")}</button>
+            <button className="primary-button" disabled={blocked || selection.length !== game.teamSize} onClick={() => setPending({ action: "propose", input: { turnId: game.turnId, team: selection }, title: t("发起表决？"), description: t("队员：{seats}。发起后全员表决，这一车不能再改。", { seats: seatsLabel(selection) }), label: t("发起表决") })}>{t("发起表决")}<ArrowRight size={17} /></button>
+          </div>
+        </div>
+        {drafted && <button type="button" className="text-button subtle draft-withdraw" disabled={blocked} onClick={() => { setSelection([]); void act("draft", { turnId: game.turnId, team: [] }); }}>{t("撤回亮车")}</button>}
+      </> : me ? <div className="draft-view" role="status">{game.draftTeam.length ? <><span className="draft-label">{t("队长亮车")}</span><div>{game.draftTeam.map(seat => <span className="team-member" key={seat}><b>{seat}</b>{playerName(seat)}</span>)}</div><small>{t("发言后队长可能改车，发起表决后才开始投票。")}</small></> : <p className="waiting-note">{t("等待队长亮车。现在可以线下讨论。")}</p>}</div> : <p className="waiting-note" role="status">{t("你正在查看房间的公开对局状态。")}</p>}
     </div>}
 
     {(room.phase === "vote" || room.phase === "quest") && <div className="proposed-team"><span>{room.phase === "vote" ? t("提议队伍") : t("执行任务")}</span><div>{game.team.map(seat => <span className="team-member" key={seat}><b>{seat}</b>{playerName(seat)}</span>)}</div></div>}

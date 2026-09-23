@@ -143,6 +143,9 @@ interface GameState {
   // Lancelot loyalty cards for rounds 3, 4 and 5 (official variant 2: dealt
   // face up when the game starts, so everyone knows when the switches come).
   loyalty?: LoyaltyCard[];
+  // The leader's shown team before the vote (v1.6): public, editable while
+  // the table talks, cleared when the vote starts or the leadership passes.
+  draftTeam?: number[];
 }
 export type LoyaltyCard = "keep" | "switch";
 export interface GameView {
@@ -166,6 +169,7 @@ export interface GameView {
   // Public Lancelot loyalty cards for rounds 3–5, and whether the Lancelots are currently swapped.
   loyalty: LoyaltyCard[] | null;
   lancelotsSwitched: boolean;
+  draftTeam: number[];
   revealedRoles: { seat: number; role: Role }[] | null;
   // Who played which quest card. Secret during play; after the game ends it is
   // shown to this game's members only, alongside the full role reveal (v1.5).
@@ -422,6 +426,7 @@ function gameView(room: Room, me: Player): GameView | null {
     publicReveals: (game.publicReveals ?? []).map(({ seat, role }) => ({ seat, role })),
     loyalty: game.loyalty ? [...game.loyalty] : null,
     lancelotsSwitched: lancelotsSwitched(game, game.quest),
+    draftTeam: room.phase === "team" ? [...(game.draftTeam ?? [])] : [],
     revealedRoles: room.phase === "finished"
       ? room.players.filter((player): player is Player & { role: Role } => !!player.role)
         .map(({ seat, role }) => ({ seat, role })).sort((a, b) => a.seat - b.seat)
@@ -508,6 +513,7 @@ function sameTeam(a: number[], b: number[]): boolean {
 function newTeamTurn(room: Room, game: GameState): void {
   game.leaderSeat = game.leaderSeat % room.capacity + 1;
   game.turnId = crypto.randomUUID();
+  delete game.draftTeam;
   game.team = [];
   game.teamVotes = {};
   game.questVotes = {};
@@ -549,6 +555,17 @@ function beginGame(room: Room, me: Player): void {
   room.phase = "team";
 }
 
+/** The leader shows (or changes, or clears) a team for discussion before calling the vote. */
+function draftTeam(room: Room, game: GameState, me: Player, input: Record<string, unknown>): void {
+  const turnId = requireTurnId(input.turnId);
+  if (me.seat !== game.leaderSeat) throw new GameError("只有本轮队长可以亮车。", 403);
+  requireCurrentTurn(room, game, turnId, "team");
+  const team = readTeam(room, input.team);
+  if (team.length > teamSize(room, game.quest)) throw new GameError(`本次任务需要选择 ${teamSize(room, game.quest)} 人。`, 400);
+  if (team.length) game.draftTeam = team;
+  else delete game.draftTeam;
+}
+
 function proposeTeam(room: Room, game: GameState, me: Player, input: Record<string, unknown>): void {
   const turnId = requireTurnId(input.turnId);
   const team = readTeam(room, input.team);
@@ -565,6 +582,7 @@ function proposeTeam(room: Room, game: GameState, me: Player, input: Record<stri
   if (team.length !== teamSize(room, game.quest)) {
     throw new GameError(`本次任务需要选择 ${teamSize(room, game.quest)} 人。`, 400);
   }
+  delete game.draftTeam;
   game.team = team;
   room.phase = "vote";
 }
@@ -740,6 +758,7 @@ function gameAction(room: Room, me: Player, action: string, input: Record<string
   const game = room.game;
   if (!game) throw new GameError("请先确认身份并开始任务。 ");
   if (action === "propose") proposeTeam(room, game, me, input);
+  else if (action === "draft") draftTeam(room, game, me, input);
   else if (action === "vote") voteOnTeam(room, game, me, input);
   else if (action === "quest") submitQuest(room, game, me, input);
   else if (action === "lake-check") checkLake(room, game, me, input);
@@ -980,7 +999,7 @@ export function mutateRoom(room: Room, key: string, action: string, input: Recor
     return;
   }
   if (!me) throw new GameError("请先加入房间。", 403);
-  if (["begin", "propose", "vote", "quest", "lake-check", "assassinate"].includes(action)) {
+  if (["begin", "propose", "draft", "vote", "quest", "lake-check", "assassinate"].includes(action)) {
     gameAction(room, me, action, input);
     return;
   }

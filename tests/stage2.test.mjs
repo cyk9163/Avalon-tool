@@ -348,3 +348,27 @@ test("Quest cards stay secret during play and are revealed to the game's members
   }
   assert.equal(roomView(room, "outsider", 1).game, null, "people outside the game see no cards");
 });
+
+test("The leader can show a team, change or withdraw it while everyone talks, and only then call the vote", () => {
+  const room = begin();
+  const leaderSeat = game(room).leaderSeat, other = leaderSeat % 5 + 1, turnId = game(room).turnId;
+  assertUnchanged(room, () => act(room, other, "draft", {turnId, team: [1, 2]}));
+  assertUnchanged(room, () => act(room, leaderSeat, "draft", {turnId, team: [1, 2, 3]}));   // more than the team size
+  assertUnchanged(room, () => act(room, leaderSeat, "draft", {turnId, team: [1, 1]}));
+  assertUnchanged(room, () => act(room, leaderSeat, "draft", {turnId: "00000000-0000-4000-8000-000000000000", team: [1]}));
+  act(room, leaderSeat, "draft", {turnId, team: [2, 1]});
+  assert.equal(room.phase, "team", "showing a team does not start the vote");
+  for (const p of room.players) assert.deepEqual(game(room, p.seat).draftTeam, [1, 2], "everyone sees the shown team");
+  act(room, leaderSeat, "draft", {turnId, team: [3, 4]});
+  assert.deepEqual(game(room, other).draftTeam, [3, 4], "the leader can change it");
+  act(room, leaderSeat, "draft", {turnId, team: []});
+  assert.deepEqual(game(room, other).draftTeam, [], "and withdraw it");
+  act(room, leaderSeat, "draft", {turnId, team: [4, 5]});
+  act(room, leaderSeat, "propose", {turnId, team: [4, 5]});
+  assert.equal(room.phase, "vote");
+  assert.deepEqual(game(room, other).draftTeam, [], "the draft is gone once the vote starts");
+  assertUnchanged(room, () => act(room, leaderSeat, "draft", {turnId, team: [1, 2]}));
+  for (const p of room.players) act(room, p.seat, "vote", {turnId, approve: false});
+  assert.equal(room.phase, "team");
+  assert.deepEqual(game(room, 1).draftTeam, [], "the next leader starts without a draft");
+});
