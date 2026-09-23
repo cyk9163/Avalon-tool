@@ -17,6 +17,6 @@
 
 ## 密钥
 
-仓库 Secret `CLOUDFLARE_API_TOKEN` 配好之后，推到 `main` 会自动迁移并部署 staging。正式环境只走上面的手动步骤。
+推到 `main` 会自动迁移并部署 staging。仓库 Secret `CLOUDFLARE_OAUTH_REFRESH_TOKEN` 已配置；若改用长期 API 令牌，放到 `CLOUDFLARE_API_TOKEN`。正式环境只走上面的手动步骤。
 
 锁屏提醒还要在 staging 和正式环境分别设置 `VAPID_PRIVATE_KEY`，值在本机 `work/vapid-private.txt`，不要写进仓库或聊天。
