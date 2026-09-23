@@ -268,3 +268,13 @@
 .player-draft textarea { width: 100%; min-height: 72px; padding: 8px 10px; border-radius: 9px; border: 1px solid var(--border); background: #0c171a; color: var(--foreground); font: 16px/1.5 inherit; resize: vertical; }
 .player-draft textarea::placeholder { color: #7f928b; }
 .player-draft small { justify-self: end; color: #93a59e; font-size: 11px; font-variant-numeric: tabular-nums; }
+/* v1.3 Lancelot loyalty track (public) */
+.loyalty-track { display: grid; gap: 6px; margin: 10px 0 0; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--border); background: #ffffff05; }
+.loyalty-title { font-size: 12px; font-weight: 600; color: #c9d4cc; }
+.loyalty-cards { display: flex; flex-wrap: wrap; gap: 6px; }
+.loyalty-card { font-size: 12px; padding: 3px 9px; border-radius: 999px; border: 1px dashed #b6c9ba40; color: #9fb0aa; white-space: nowrap; }
+.loyalty-card.switch { border-color: #dbc18a66; color: var(--primary); }
+.loyalty-card.active { border-style: solid; background: #ffffff0a; }
+.loyalty-card.switch.active { background: #dbc18a1f; }
+.loyalty-track small { font-size: 12px; color: #9fb0aa; line-height: 1.6; }
+.revealed-roles strong small { font-weight: 400; font-size: 11px; margin-left: 4px; }

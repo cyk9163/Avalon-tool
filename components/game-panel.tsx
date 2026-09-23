@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { ArrowLeftRight, ArrowRight, Check, ChevronDown, CircleDashed, Crown, Flag, History, LockKeyhole, RotateCcw, Shield, Swords, ThumbsDown, ThumbsUp, Trophy, Users, Waves, X } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { ROLES, type RoomView } from "@/lib/game";
+import { ROLES, type Role, type RoomView } from "@/lib/game";
 import { ReplayExport } from "@/components/replay-export";
 import { MarkTag } from "@/components/player-notes";
 import { usePlayerNotes } from "@/lib/player-notes";
@@ -59,6 +59,8 @@ export function GamePanel({ room, busy, connected, error, act, onNewGame }: Prop
 
   const playerName = (seat: number) => room.players.find(player => player.seat === seat)?.name ?? t("玩家");
   const seatsLabel = (seats: number[]) => seats.map(seat => t("{n} 号", { n: seat })).join(t("、"));
+  // Lancelots end the game on whichever side the loyalty cards left them.
+  const finalSide = (role: Role) => (role === "goodLancelot" || role === "evilLancelot") && game?.lancelotsSwitched ? (ROLES[role].side === "good" ? "evil" : "good") : ROLES[role].side;
   const seatName = (seat: number) => t("{n} 号 · {name}", { n: seat, name: playerName(seat) });
 
   if (!game) {
@@ -116,6 +118,11 @@ export function GamePanel({ room, busy, connected, error, act, onNewGame }: Prop
       })}
     </ol>
     <p className="quest-rule-note">{room.capacity >= 7 ? t("第 4 次任务需要 2 张失败牌才会失败，其余任务 1 张即失败。") : t("任务中出现 1 张失败牌，该次任务即失败。")}</p>
+    {game.loyalty && <div className="loyalty-track" role="group" aria-label={t("兰斯洛特忠诚牌")}>
+      <span className="loyalty-title">{t("兰斯洛特忠诚牌")}</span>
+      <span className="loyalty-cards">{game.loyalty.map((card, index) => <span key={index} className={`loyalty-card ${card}${game.quest >= index + 3 ? " active" : ""}`}>{t("第 {n} 轮", { n: index + 3 })} · {card === "switch" ? t("转换") : t("不变")}</span>)}</span>
+      <small>{game.lancelotsSwitched ? t("两位兰斯洛特目前已互换阵营：原正义兰斯洛特只能出失败，原邪恶兰斯洛特只能出成功。") : t("两位兰斯洛特目前保持原阵营：正义兰斯洛特只能出成功，邪恶兰斯洛特只能出失败。")}</small>
+    </div>}
 
     {room.phase !== "finished" && room.phase !== "assassination" && <div className="quest-context">
       <span className="quest-leader"><Crown size={17} aria-hidden="true" /><span>{t("当前队长")} <b>{seatName(game.leaderSeat)}</b></span></span>
@@ -171,7 +178,7 @@ export function GamePanel({ room, busy, connected, error, act, onNewGame }: Prop
     {room.phase === "finished" && game.result && <div className={`game-result ${game.result.winner}`}>
       <span className="result-emblem"><Trophy size={38} strokeWidth={1.3} aria-hidden="true" /></span><span className="game-kicker">THE STORY IS TOLD</span><h2>{game.result.winner === "good" ? t("正义守住了圆桌。") : t("暗影笼罩了圆桌。")}</h2><p>{t(reasonCopy[game.result.reason])}</p>{game.result.early && <p className="assassination-result">{t("刺客在对局中提前出刀，本局就此结束。")}</p>}
       {game.result.targetSeat != null && <p className="assassination-result">{t("刺杀目标：{n} 号 · {name}", { n: game.result.targetSeat, name: playerName(game.result.targetSeat) })}</p>}
-      {game.revealedRoles && <div className="result-identity-list"><h3>{t("此刻，身份揭晓。")}</h3><div className="revealed-roles">{game.revealedRoles.map(player => <div key={player.seat}><span className="member-seat">{player.seat}</span><span>{playerName(player.seat)}</span><strong className={ROLES[player.role].side}>{t(ROLES[player.role].name)}</strong></div>)}</div></div>}
+      {game.revealedRoles && <div className="result-identity-list"><h3>{t("此刻，身份揭晓。")}</h3><div className="revealed-roles">{game.revealedRoles.map(player => <div key={player.seat}><span className="member-seat">{player.seat}</span><span>{playerName(player.seat)}</span><strong className={finalSide(player.role)}>{t(ROLES[player.role].name)}{finalSide(player.role) !== ROLES[player.role].side && <small>{finalSide(player.role) === "good" ? t("（最终属于正义）") : t("（最终属于邪恶）")}</small>}</strong></div>)}</div></div>}
       {!me && <p className="action-note">{t("完整身份仅向本局成员揭晓。")}</p>}
       <div className="rematch-actions">{me?.id === room.hostId ? <button className="primary-button" disabled={blocked} onClick={() => setPending({ action: "rematch", input: { round: room.round }, title: t("同房再来一局？"), description: t("保留房间码、玩家和座位，清除本局身份与全部投票记录。请先完成复盘；重开后所有人重新准备、重新发身份。房间仍在创建 24 小时后过期。"), label: t("确认重开") })}><RotateCcw size={17} />{t("同房再来一局")}</button> : me && <p className="waiting-note" role="status">{t("复盘完成后，可以请房主开启同房新一局。")}</p>}
       <button className="secondary-button" onClick={onNewGame}>{t("返回首页")}<ArrowRight size={16} /></button></div>

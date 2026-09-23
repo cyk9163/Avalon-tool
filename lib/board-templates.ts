@@ -17,7 +17,7 @@ export const BUILT_IN_TEMPLATES: readonly BoardTemplate[] = [
   { id: "mordred-shadow", name: msg("暗影莫德雷德"), hint: msg("梅林看不见莫德雷德"), specials: ["merlin", "percival", "assassin", "mordred"], ladyOfLake: false, builtIn: true },
   { id: "oberon-alone", name: msg("孤狼奥伯伦"), hint: msg("奥伯伦与同伴互不相识"), specials: ["merlin", "percival", "assassin", "oberon"], ladyOfLake: false, builtIn: true },
   { id: "lake-classic", name: msg("湖中仙女经典局"), hint: msg("经典角色，加上湖中仙女查验"), specials: ["merlin", "percival", "assassin", "morgana"], ladyOfLake: true, builtIn: true },
-  { id: "lancelot", name: msg("兰斯洛特对决"), hint: msg("两位兰斯洛特彼此认识"), specials: ["merlin", "percival", "goodLancelot", "assassin", "morgana", "evilLancelot"], ladyOfLake: false, builtIn: true },
+  { id: "lancelot", name: msg("兰斯洛特对决"), hint: msg("忠诚牌会让两人互换阵营"), specials: ["merlin", "percival", "goodLancelot", "assassin", "morgana", "evilLancelot"], ladyOfLake: false, builtIn: true },
   { id: "cleric", name: msg("牧师开局"), hint: msg("牧师知道首任队长的阵营"), specials: ["merlin", "percival", "cleric", "assassin", "morgana"], ladyOfLake: false, builtIn: true },
   { id: "revealer", name: msg("迷雾揭露"), hint: msg("莫德雷德藏身，揭露者会现身"), specials: ["merlin", "percival", "assassin", "mordred", "revealer"], ladyOfLake: false, builtIn: true },
   { id: "wild", name: msg("失控的邪恶"), hint: msg("疯子必出失败，野蛮人后期收手"), specials: ["merlin", "percival", "assassin", "lunatic", "brute"], ladyOfLake: false, builtIn: true },

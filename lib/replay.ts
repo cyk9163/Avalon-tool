@@ -46,7 +46,7 @@ export function replayText(room: RoomView, date = new Date(), lang: Lang = "zh")
 
   lines.push("", t("【身份】"));
   if (game.revealedRoles) {
-    for (const { seat, role } of game.revealedRoles) lines.push(t("{player} — {role}（{side}）", { player: name(seat), role: t(ROLES[role].name), side: ROLES[role].side === "good" ? t("正义") : t("邪恶") }));
+    for (const { seat, role } of game.revealedRoles) { const side = (role === "goodLancelot" || role === "evilLancelot") && game.lancelotsSwitched ? (ROLES[role].side === "good" ? "evil" : "good") : ROLES[role].side; lines.push(t("{player} — {role}（{side}）", { player: name(seat), role: t(ROLES[role].name), side: side === "good" ? t("正义") : t("邪恶") })); }
   } else {
     lines.push(t("完整身份仅向本局成员揭晓。"));
   }

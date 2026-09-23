@@ -52,7 +52,7 @@ export const DOCS: Record<string, string> = {
   "<b>梅林</b>看见所有邪恶玩家，但看不见莫德雷德。": "<b>Merlin</b> sees every Evil player except Mordred.",
   "<b>派西维尔</b>看见梅林和莫甘娜，但分不清谁是谁。": "<b>Percival</b> sees Merlin and Morgana but can't tell which is which.",
   "<b>邪恶玩家</b>互相认识，并且知道彼此的具体角色（包括邪恶兰斯洛特），但看不见奥伯伦；<b>奥伯伦</b>也不认识其他邪恶玩家。（本站规则，官方规则中坏人只知道彼此是坏人。）": "<b>Evil players</b> know each other and each other's exact roles (including Evil Lancelot), but can't see Oberon; <b>Oberon</b> doesn't know the other Evil players either. (A house rule here; officially Evil players only know that the others are Evil.)",
-  "<b>两位兰斯洛特</b>互相知道对方的身份与阵营。本版不使用阵营转换变体。": "<b>The two Lancelots</b> know each other's role and side. This version doesn't use the side-switching variant.",
+  "<b>两位兰斯洛特</b>互不认识。开局时公开 3 张忠诚牌，分别对应第 3、4、5 轮；翻到「转换」的那一轮起，两人互换阵营。属于正义时只能出成功，属于邪恶时只能出失败；湖中仙女查到的是他当前的阵营，结局按最终阵营揭晓。": "<b>The two Lancelots</b> don't know each other. Three loyalty cards are laid face up at the start, one each for rounds 3, 4 and 5; from a round with a Switch card, the two swap sides. On Good's side a Lancelot must play Success, on Evil's side Fail; the Lady of the Lake sees his current side, and the final reveal shows the side he ended on.",
   "<b>牧师</b>知道第一任队长属于正义还是邪恶。": "The <b>Cleric</b> learns whether the first leader is Good or Evil.",
   "<b>忠臣</b>和<b>爪牙</b>之外的线索，都在按住身份卡时显示，只有本人能看到。": "Apart from <b>Loyal Servants</b> and <b>Minions</b>, every role's clues appear when you press and hold your role card, and only you can see them.",
   "湖中仙女（可选）": "Lady of the Lake (optional)",

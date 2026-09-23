@@ -194,7 +194,7 @@ export const ROOM: Record<string, string> = {
   "湖中仙女经典局": "Classic + Lady of the Lake",
   "经典角色，加上湖中仙女查验": "Side checks after quests 2–4",
   "兰斯洛特对决": "Lancelot duel",
-  "两位兰斯洛特彼此认识": "Lancelots know each other",
+  "忠诚牌会让两人互换阵营": "Loyalty cards swap their sides",
   "牧师开局": "Cleric opening",
   "牧师知道首任队长的阵营": "Knows the first leader's side",
   "迷雾揭露": "Mist and reveal",

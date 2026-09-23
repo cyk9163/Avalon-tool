@@ -1,5 +1,13 @@
 // English entries keyed by the Chinese source text (game).
 export const GAME: Record<string, string> = {
+  "兰斯洛特忠诚牌": "Lancelot loyalty cards",
+  "第 {n} 轮": "Round {n}",
+  "转换": "Switch",
+  "不变": "No change",
+  "两位兰斯洛特目前已互换阵营：原正义兰斯洛特只能出失败，原邪恶兰斯洛特只能出成功。": "The Lancelots have swapped sides: Good Lancelot must now play Fail, Evil Lancelot must now play Success.",
+  "两位兰斯洛特目前保持原阵营：正义兰斯洛特只能出成功，邪恶兰斯洛特只能出失败。": "The Lancelots are on their original sides: Good Lancelot must play Success, Evil Lancelot must play Fail.",
+  "（最终属于正义）": " (ended on Good's side)",
+  "（最终属于邪恶）": " (ended on Evil's side)",
   "我的发言准备": "What I'll say",
   "先写好轮到自己时想说的：怎么表水、想推谁上车、为什么这样投票…": "Plan your turn to speak: how you'll show you're Good, who you want on the team, why you voted as you did…",
   "{n} / {max} 字": "{n} / {max} characters",

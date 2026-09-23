@@ -5,13 +5,13 @@ export const ROLES: Record<Role, { name: string; side: "good" | "evil"; descript
   merlin: { name: "梅林", side: "good", description: "引导好人完成任务，同时隐藏自己。三次任务成功后，仍要躲过刺客的刺杀。" },
   percival: { name: "派西维尔", side: "good", description: "你看见梅林的候选人，但莫甘娜也可能混在其中。保护真正的梅林。" },
   loyal: { name: "亚瑟的忠臣", side: "good", description: "你没有额外的身份线索。通过讨论与投票，找到值得信任的同伴。" },
-  goodLancelot: { name: "正义兰斯洛特", side: "good", description: "你知道邪恶兰斯洛特是谁。你仍属于正义阵营，只能提交成功牌。" },
+  goodLancelot: { name: "正义兰斯洛特", side: "good", description: "你开局属于正义阵营。第 3–5 轮若翻到「转换」忠诚牌，你会和邪恶兰斯洛特互换阵营。属于正义时只能出成功，属于邪恶时只能出失败。" },
   cleric: { name: "牧师", side: "good", description: "你知道第一任队长属于正义还是邪恶阵营。用这条线索判断开局风向。" },
   assassin: { name: "刺客", side: "evil", description: "隐藏在队伍中阻挠任务。对局中你可以随时出刀刺杀梅林，但只有一次；如果一直没出刀，好人完成三次任务后还有最后这一次机会。" },
   morgana: { name: "莫甘娜", side: "evil", description: "在派西维尔眼中，你与梅林无法区分。利用这一点隐藏自己。" },
   mordred: { name: "莫德雷德", side: "evil", description: "梅林无法看见你的邪恶身份，但其他邪恶同伴认识你（奥伯伦除外）。" },
   oberon: { name: "奥伯伦", side: "evil", description: "你与其他邪恶同伴互不相识，但梅林能看见你的邪恶身份。" },
-  evilLancelot: { name: "邪恶兰斯洛特", side: "evil", description: "你知道正义兰斯洛特是谁，也认识除奥伯伦外的邪恶同伴。你可以让任务失败。" },
+  evilLancelot: { name: "邪恶兰斯洛特", side: "evil", description: "你开局属于邪恶阵营，认识除奥伯伦外的邪恶同伴。第 3–5 轮若翻到「转换」忠诚牌，你会和正义兰斯洛特互换阵营。属于邪恶时只能出失败，属于正义时只能出成功。" },
   lunatic: { name: "疯子", side: "evil", description: "只要参加任务，你必须提交失败牌。你的冲动可能让身份更容易暴露。" },
   brute: { name: "野蛮人", side: "evil", description: "前三次任务可以提交成功或失败牌；第四、第五次任务只能提交成功牌。" },
   revealer: { name: "揭露者", side: "evil", description: "第二次任务失败后，你的身份会向所有玩家公开。公开前仍可正常提交任务牌。" },
@@ -140,7 +140,11 @@ interface GameState {
     checks: { turnId: string; quest: number; viewerSeat: number; targetSeat: number; side: "good" | "evil" }[];
   };
   publicReveals?: { seat: number; role: Role }[];
+  // Lancelot loyalty cards for rounds 3, 4 and 5 (official variant 2: dealt
+  // face up when the game starts, so everyone knows when the switches come).
+  loyalty?: LoyaltyCard[];
 }
+export type LoyaltyCard = "keep" | "switch";
 export interface GameView {
   quest: number;
   leaderSeat: number;
@@ -159,6 +163,9 @@ export interface GameView {
   result: GameResult | null;
   lake: { holderSeat: number; usedSeats: number[]; pending: boolean; myChecks: { quest: number; targetSeat: number; side: "good" | "evil" }[] } | null;
   publicReveals: { seat: number; role: Role }[];
+  // Public Lancelot loyalty cards for rounds 3–5, and whether the Lancelots are currently swapped.
+  loyalty: LoyaltyCard[] | null;
+  lancelotsSwitched: boolean;
   revealedRoles: { seat: number; role: Role }[] | null;
 }
 export interface Room {
@@ -300,16 +307,13 @@ export function identityFor(room: Room, me: Player): Identity | null {
     known = room.players.filter(player => player.role === "merlin" || player.role === "morgana")
       .map(player => ({ seat: player.seat, name: player.name, label: "梅林候选" }));
     note = "这些人中有梅林；如果本局有莫甘娜，她也会出现在这里。你无法直接区分。";
-  } else if (me.role === "goodLancelot" || me.role === "evilLancelot") {
-    const counterpart = me.role === "goodLancelot" ? "evilLancelot" : "goodLancelot";
-    known = room.players.filter(player => player.role === counterpart)
-      .map(player => ({ seat: player.seat, name: player.name, label: me.role === "goodLancelot" ? "邪恶兰斯洛特" : "正义兰斯洛特" }));
-    if (me.role === "evilLancelot") {
-      known.push(...room.players.filter(player => player.id !== me.id && player.role &&
-        ROLES[player.role].side === "evil" && player.role !== "oberon" && player.role !== "evilLancelot")
-        .map(player => ({ seat: player.seat, name: player.name, label: ROLES[player.role!].name })));
-    }
-    note = me.role === "evilLancelot" ? "两位兰斯洛特互相知道身份与阵营；邪恶同伴之间知道彼此的具体角色，奥伯伦除外。本局不使用阵营转换变体。" : "两位兰斯洛特互相知道身份与阵营；本局不使用阵营转换变体。";
+  } else if (me.role === "goodLancelot") {
+    note = "你不知道邪恶兰斯洛特是谁。忠诚牌翻到「转换」时，你会换到邪恶阵营，那时只能出失败牌。";
+  } else if (me.role === "evilLancelot") {
+    known = room.players.filter(player => player.id !== me.id && player.role &&
+      ROLES[player.role].side === "evil" && player.role !== "oberon")
+      .map(player => ({ seat: player.seat, name: player.name, label: ROLES[player.role!].name }));
+    note = "你认识除奥伯伦外的邪恶同伴，他们也知道你；你不知道正义兰斯洛特是谁。忠诚牌翻到「转换」时，你会换到正义阵营，那时只能出成功牌。";
   } else if (me.role === "cleric") {
     const leader = room.players.find(player => player.seat === room.firstLeader);
     if (leader?.role) known = [{ seat: leader.seat, name: leader.name, label: ROLES[leader.role].side === "good" ? "第一任队长是正义" : "第一任队长是邪恶" }];
@@ -322,14 +326,30 @@ export function identityFor(room: Room, me: Player): Identity | null {
   } else if (me.role === "oberon") {
     note = "你不知道其他邪恶同伴是谁，他们也不认识你。梅林能看见你。";
   }
-  return { role: me.role, side: ROLES[me.role].side, known: known.sort((a, b) => a.seat - b.seat), note };
+  return { role: me.role, side: currentSide(room, me), known: known.sort((a, b) => a.seat - b.seat), note };
 }
 
 export function roomRoles(room: Pick<Room, "capacity" | "preset" | "customRoles">): Role[] {
   return rolePool(room.capacity, room.preset, room.customRoles);
 }
 
-function allowedQuestCards(me: Player, quest: number): QuestCard[] {
+const LANCELOTS: readonly Role[] = ["goodLancelot", "evilLancelot"];
+/** Whether the Lancelots have swapped sides by this round (an odd number of switch cards so far). */
+export function lancelotsSwitched(game: Pick<GameState, "loyalty"> | undefined, round: number): boolean {
+  const flipped = (game?.loyalty ?? []).slice(0, Math.max(0, Math.min(round, 5) - 2));
+  return flipped.filter(card => card === "switch").length % 2 === 1;
+}
+/** A player's side right now: Lancelots follow the loyalty cards, everyone else keeps their card's side. */
+export function currentSide(room: Pick<Room, "game">, player: Pick<Player, "role">): "good" | "evil" {
+  if (!player.role) return "good";
+  const side = ROLES[player.role].side;
+  if (!LANCELOTS.includes(player.role) || !room.game || !lancelotsSwitched(room.game, room.game.quest)) return side;
+  return side === "good" ? "evil" : "good";
+}
+
+function allowedQuestCards(room: Room, me: Player, quest: number): QuestCard[] {
+  // Official Lancelot rule: on Good's side he must succeed, on Evil's side he must fail.
+  if (me.role && LANCELOTS.includes(me.role)) return currentSide(room, me) === "good" ? ["success"] : ["fail"];
   if (!me.role || ROLES[me.role].side === "good") return ["success"];
   if (me.role === "lunatic") return ["fail"];
   if (me.role === "brute" && quest > 3) return ["success"];
@@ -370,7 +390,7 @@ function gameView(room: Room, me: Player): GameView | null {
     myTeamVote: game.teamVotes[me.seat] ?? null,
     submittedQuestCount: Object.keys(game.questVotes).length,
     myQuestVote: room.phase === "quest" ? game.questVotes[me.seat] ?? null : null,
-    allowedQuestCards: allowedQuestCards(me, game.quest),
+    allowedQuestCards: allowedQuestCards(room, me, game.quest),
     proposals: game.proposals.map(proposal => ({
       id: proposal.id,
       quest: proposal.quest,
@@ -397,6 +417,8 @@ function gameView(room: Room, me: Player): GameView | null {
         .map(({ quest, targetSeat, side }) => ({ quest, targetSeat, side })),
     } : null,
     publicReveals: (game.publicReveals ?? []).map(({ seat, role }) => ({ seat, role })),
+    loyalty: game.loyalty ? [...game.loyalty] : null,
+    lancelotsSwitched: lancelotsSwitched(game, game.quest),
     revealedRoles: room.phase === "finished"
       ? room.players.filter((player): player is Player & { role: Role } => !!player.role)
         .map(({ seat, role }) => ({ seat, role })).sort((a, b) => a.seat - b.seat)
@@ -511,6 +533,7 @@ function beginGame(room: Room, me: Player): void {
     questReceipts: [],
     ...(room.ladyOfLake ? { lake: { holderSeat: room.firstLeader % room.capacity + 1, usedSeats: [], pending: false, checks: [] } } : {}),
     publicReveals: [],
+    ...(room.players.some(player => player.role === "goodLancelot") ? { loyalty: shuffle<LoyaltyCard>(["keep", "keep", "keep", "switch", "switch"]).slice(0, 3) } : {}),
   };
   room.phase = "team";
 }
@@ -595,8 +618,8 @@ function submitQuest(room: Room, game: GameState, me: Player, input: Record<stri
   }
   requireCurrentTurn(room, game, turnId, "quest");
   if (!game.team.includes(me.seat)) throw new GameError("只有任务队员可以提交任务牌。", 403);
-  if (!allowedQuestCards(me, game.quest).includes(card)) {
-    throw new GameError(me.role === "lunatic" ? "疯子参加任务时必须提交失败牌。" : me.role === "brute" ? "野蛮人在第四、第五次任务只能提交成功牌。" : "好人阵营只能提交成功牌。", 403);
+  if (!allowedQuestCards(room, me, game.quest).includes(card)) {
+    throw new GameError(me.role && LANCELOTS.includes(me.role) ? (currentSide(room, me) === "good" ? "兰斯洛特现在属于正义阵营，只能提交成功牌。" : "兰斯洛特现在属于邪恶阵营，只能提交失败牌。") : me.role === "lunatic" ? "疯子参加任务时必须提交失败牌。" : me.role === "brute" ? "野蛮人在第四、第五次任务只能提交成功牌。" : "好人阵营只能提交成功牌。", 403);
   }
   if (Object.hasOwn(game.questVotes, me.seat)) {
     if (game.questVotes[me.seat] !== card) throw new GameError("已提交的任务牌不能修改。 ");
@@ -656,7 +679,7 @@ function checkLake(room: Room, game: GameState, me: Player, input: Record<string
   }
   const target = room.players.find(player => player.seat === targetSeat);
   if (!target?.role) throw new GameError("查验目标无效。", 400);
-  lake.checks.push({ turnId, quest: game.quest, viewerSeat: me.seat, targetSeat, side: ROLES[target.role].side });
+  lake.checks.push({ turnId, quest: game.quest, viewerSeat: me.seat, targetSeat, side: currentSide(room, target) });
   lake.usedSeats.push(me.seat);
   lake.holderSeat = targetSeat;
   lake.pending = false;
