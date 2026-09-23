@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {verifyHostKey} from "../lib/host-key.ts";
+import {canonicalHostKey, verifyHostKey} from "../lib/host-key.ts";
 
 // Public fixtures for local development only, never production credentials.
 const localKey = "AVL-TEST-KEYS-2345-6789";
@@ -37,4 +37,52 @@ test("Host-key format, type and size are validated before accepting a matching d
   assert.equal(await verifyHostKey(" ".repeat(105) + localKey, localHash), true);
   assert.equal(await verifyHostKey(" ".repeat(106) + localKey, localHash), false);
   assert.equal(await verifyHostKey("A".repeat(100_000), localHash), false);
+});
+
+test("Host keys are accepted with or without the AVL prefix and hyphens, against the unchanged digest", async () => {
+  // The digest is always taken over the canonical AVL-XXXX-XXXX-XXXX-XXXX form.
+  assert.equal(await digest(canonicalHostKey("test keys 2345 6789".replaceAll(" ", ""))), localHash);
+  for (const typed of ["TESTKEYS23456789", "testkeys23456789", "TEST-KEYS-2345-6789", "AVLTESTKEYS23456789", "avl-test-keys-2345-6789", "  TESTKEYS23456789\n"]) {
+    assert.equal(canonicalHostKey(typed), localKey, typed);
+    assert.equal(await verifyHostKey(typed, localHash), true, typed);
+  }
+  // A key whose own first characters are A-V-L still works without the prefix.
+  const avlKey = "AVL-AVLB-CDEF-GHJK-MNPQ";
+  assert.equal(await verifyHostKey("AVLBCDEFGHJKMNPQ", await digest(avlKey)), true);
+  assert.equal(await verifyHostKey("AVLAVLBCDEFGHJKMNPQ", await digest(avlKey)), true);
+});
+
+test("Loosened formats still reject malformed, ambiguous and look-alike keys", async () => {
+  for (const typed of [
+    "TESTKEYS2345678", "TESTKEYS234567890", // wrong length
+    "TESTKEYS2345678O", "TESTKEYS23456781", "TESTKEYS2345678I", "TESTKEYS23456780", // excluded look-alikes
+    "TEST KEYS 2345 6789", "TEST_KEYS_2345_6789", "TE-STKEYS-2345-6789", "TEST-KEYS23456789", // odd separators
+    "AVL-TESTKEYS23456789", "XYZ-TEST-KEYS-2345-6789", "AVLTEST-KEYS-2345-6789", "TEST--KEYS-2345-6789",
+  ]) {
+    assert.equal(canonicalHostKey(typed), null, typed);
+    assert.equal(await verifyHostKey(typed, localHash), false, typed);
+  }
+});
+
+test("The host-key field keeps only the 16 key characters and shows them in groups of four", async () => {
+  const {hostKeyBody, hostKeyCharacters, formatHostKey, formattedCaret, hostKeyForSubmit, HOST_KEY_LENGTH} = await import("../lib/host-key-input.ts");
+  assert.equal(HOST_KEY_LENGTH, 16);
+  assert.equal(hostKeyBody("test-keys 2345"), "TESTKEYS2345");
+  assert.equal(hostKeyBody("t0e1sItOkeys"), "TESTKEYS", "0/1/I/O and other characters are filtered");
+  assert.equal(hostKeyBody("AVL-TEST-KEYS-2345-6789"), "TESTKEYS23456789", "a pasted full key loses its prefix");
+  assert.equal(hostKeyBody("avl test keys 2345 6789"), "TESTKEYS23456789");
+  assert.equal(hostKeyBody("AVLTESTKEYS23456789"), "TESTKEYS23456789");
+  assert.equal(hostKeyBody("AVLBCDEFGHJKMNPQ"), "AVLBCDEFGHJKMNPQ", "keys that begin with AVL are kept whole");
+  assert.equal(hostKeyBody("TESTKEYS23456789XYZ"), "TESTKEYS23456789", "capped at 16");
+  assert.equal(hostKeyCharacters("TEST-XKEY-S234-5678-9"), "TESTXKEYS23456789", "overflow stays visible so the field can refuse it");
+  assert.equal(hostKeyCharacters("AVL-TEST-KEYS-2345-6789"), "TESTKEYS23456789");
+  assert.equal(formatHostKey(""), "");
+  assert.equal(formatHostKey("TEST"), "TEST");
+  assert.equal(formatHostKey("TESTK"), "TEST-K");
+  assert.equal(formatHostKey("TESTKEYS23456789"), "TEST-KEYS-2345-6789");
+  assert.equal(formatHostKey(hostKeyBody(formatHostKey("TESTKEYS2"))), "TEST-KEYS-2", "re-filtering the display is stable");
+  assert.deepEqual([0, 1, 4, 5, 8, 9, 16].map(formattedCaret), [0, 1, 4, 6, 9, 11, 19]);
+  const submitted = hostKeyForSubmit(hostKeyBody("test keys 2345 6789"));
+  assert.equal(submitted, localKey);
+  assert.equal(await verifyHostKey(submitted, localHash), true);
 });

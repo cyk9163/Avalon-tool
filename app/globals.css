@@ -145,7 +145,11 @@ legend { font-size: 14px; margin-bottom: 11px; color: #354e40; }
 .host-key-field { border-top: 1px solid #cbd2c7; padding-top: 18px; }
 .host-key-label { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .host-key-label > span { display: inline-flex; align-items: center; gap: 6px; }
-.host-key-label small { font-size: 11px; color: #6a7967; }
+.host-key-label small { font-size: 11px; color: #6a7967; font-variant-numeric: tabular-nums; }
+.host-key-input { position: relative; display: block; }
+.host-key-prefix { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); pointer-events: none; color: #89917f; font: 500 15px/1 ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; letter-spacing: .06em; }
+.field .host-key-input input { padding-left: 58px; font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; letter-spacing: .06em; text-transform: uppercase; }
+.field .host-key-input input::placeholder { letter-spacing: .06em; }
 .entry-error { margin: -5px 0; padding: 11px 13px; border: 1px solid #d6b5a8; border-radius: 8px; background: #f0e0d7; color: #803c2c; font-size: 12px; line-height: 1.8; }
 .entry-panel .primary-button { min-height: 52px; position: relative; }
 .entry-panel .primary-button > svg:last-child:not(.spin) { position: absolute; right: 18px; }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ChangeEvent } from "react";
 import Link from "next/link";
 import { ArrowRight, ArrowLeft, Shield, Users, Crown, KeyRound, Check, Copy, QrCode, Eye, EyeOff, RefreshCw, LogOut, LockKeyhole, CircleHelp, Smartphone, LoaderCircle, ChevronDown } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -16,6 +16,7 @@ import { RecoveryCodeCard, SeatRecovery } from "@/components/device-recovery";
 import { TakeoverAlert, TakeoverRequests } from "@/components/takeover-requests";
 import { useRoomLive } from "@/lib/use-room-live";
 import { LIVE_FALLBACK_POLL_MS } from "@/lib/live";
+import { HOST_KEY_LENGTH, formatHostKey, formattedCaret, hostKeyCharacters, hostKeyForSubmit } from "@/lib/host-key-input";
 
 type Mode="create"|"join";
 let sessionBootstrap:Promise<unknown>|null=null;
@@ -195,7 +196,23 @@ export default function Home(){
     const good=[...next].filter(item=>ROLES[item].side==="good").length,evil=[...next].filter(item=>ROLES[item].side==="evil").length;
     return good<=capacity-EVIL_COUNTS[capacity]&&evil<=EVIL_COUNTS[capacity]?next:current;
   });createId.current="";};
-  const create=async()=>{createId.current ||= crypto.randomUUID();const created=await act("create",{name,hostKey,capacity,preset,...(preset==="custom"?{roles:customRoles,ladyOfLake}:{}),requestId:createId.current});if(created)setHostKey("");};
+  // The field holds only the 16 key characters; it displays them in groups of
+  // four and keeps the caret beside the character the host just typed.
+  const onHostKeyChange=(event:ChangeEvent<HTMLInputElement>)=>{
+    const input=event.target,caret=input.selectionStart??input.value.length;
+    const typed=hostKeyCharacters(input.value);
+    let body=typed.slice(0,HOST_KEY_LENGTH),before=Math.min(hostKeyCharacters(input.value.slice(0,caret)).length,body.length);
+    // Once all 16 characters are in, further typing is ignored instead of
+    // pushing characters off the end.
+    if(typed.length>HOST_KEY_LENGTH&&hostKey.length===HOST_KEY_LENGTH){body=hostKey;before=Math.max(0,before-(typed.length-HOST_KEY_LENGTH));}
+    // Backspace over an inserted hyphen removes the key character before it.
+    else if(body===hostKey&&input.value.length<formatHostKey(hostKey).length&&before>0){body=body.slice(0,before-1)+body.slice(before);before--;}
+    setHostKey(body);
+    requestAnimationFrame(()=>{if(document.activeElement===input){const position=formattedCaret(before);input.setSelectionRange(position,position);}});
+  };
+  const create=async()=>{
+    if(hostKey.length!==HOST_KEY_LENGTH){setError(`房主 Key 是 ${HOST_KEY_LENGTH} 位字母和数字，现在输入了 ${hostKey.length} 位。`);return;}
+    createId.current ||= crypto.randomUUID();const created=await act("create",{name,hostKey:hostKeyForSubmit(hostKey),capacity,preset,...(preset==="custom"?{roles:customRoles,ladyOfLake}:{}),requestId:createId.current});if(created)setHostKey("");};
   const me=room?.players.find(p=>p.id===room.meId),isHost=!!me&&room?.hostId===me.id;
   const allReady=!!room&&room.players.length===room.capacity&&room.players.every(p=>p.ready);
   const identity=room?.identity,confirmedCount=room?.players.filter(p=>p.confirmed).length??0;
@@ -239,7 +256,7 @@ export default function Home(){
               <fieldset><legend>这次有几位朋友？</legend><RadioGroup aria-label="游戏人数" className="count-grid" value={String(capacity)} onValueChange={v=>{const next=Number(v);setCapacity(next);setCustomSpecials(new Set(["merlin","assassin"]));setLadyOfLake(false);if(next<PRESETS[preset].minimum)setPreset("classic");createId.current="";}}>{[5,6,7,8,9,10].map(n=><label className={`count-option ${capacity===n?"selected":""}`} key={n}><RadioGroupItem value={String(n)} className="sr-only"/><strong>{n}</strong><span>人</span></label>)}</RadioGroup></fieldset>
               <fieldset><legend>选择角色配置</legend><RadioGroup aria-label="角色配置" value={preset} onValueChange={v=>{setPreset(v as Preset);createId.current="";}} className="preset-grid">{(Object.keys(PRESETS) as Preset[]).map(key=><label className={`preset-choice ${key===preset?"selected":""} ${capacity<PRESETS[key].minimum?"unavailable":""}`} key={key}><RadioGroupItem value={key} disabled={capacity<PRESETS[key].minimum}/><div><strong>{PRESETS[key].name}</strong><span>{PRESETS[key].hint}</span></div></label>)}</RadioGroup></fieldset>
               {preset==="custom"&&<fieldset className="custom-board"><legend>编辑自定义板子</legend><div className="custom-board-summary"><span>正义 {capacity-EVIL_COUNTS[capacity]} 位</span><span>邪恶 {EVIL_COUNTS[capacity]} 位</span><small>空余位置自动补为忠臣或爪牙</small></div><div className="custom-role-columns"><div><strong>正义角色</strong>{CUSTOM_GOOD_ROLES.map(role=><button type="button" key={role} className={customSpecials.has(role)?"selected":""} aria-pressed={customSpecials.has(role)} disabled={role==="merlin"||(capacity<7&&["goodLancelot","cleric"].includes(role))} onClick={()=>toggleCustomRole(role)}><span>{ROLES[role].name}</span><small>{role==="merlin"?"必选":role==="goodLancelot"?"与邪恶兰斯洛特成对":"可选"}</small></button>)}</div><div><strong>邪恶角色</strong>{CUSTOM_EVIL_ROLES.map(role=><button type="button" key={role} className={customSpecials.has(role)?"selected":""} aria-pressed={customSpecials.has(role)} disabled={role==="assassin"||(capacity<7&&["evilLancelot","lunatic","brute","revealer"].includes(role))} onClick={()=>toggleCustomRole(role)}><span>{ROLES[role].name}</span><small>{role==="assassin"?"必选":role==="evilLancelot"?"成对加入":role==="morgana"?"需派西维尔":"可选"}</small></button>)}</div></div><label className={`module-toggle ${capacity<7?"disabled":""}`}><input type="checkbox" checked={ladyOfLake} disabled={capacity<7} onChange={e=>{setLadyOfLake(e.target.checked);createId.current="";}}/><span><strong>启用湖中仙女</strong><small>第 2、3、4 次任务后，持有者私密查验一位玩家的阵营</small></span></label></fieldset>}
-              <label className="field host-key-field"><span className="host-key-label"><span><KeyRound size={14}/>房主 Key</span><small>仅创建房间需要</small></span><input type="password" name="avalon-host-key" autoComplete="off" autoCapitalize="characters" spellCheck={false} placeholder="输入你的房主 Key" maxLength={64} required value={hostKey} onChange={e=>setHostKey(e.target.value)}/></label>
+              <label className="field host-key-field"><span className="host-key-label"><span><KeyRound size={14}/>房主 Key</span><small aria-live="polite">{hostKey?`${hostKey.length} / ${HOST_KEY_LENGTH} 位`:"仅创建房间需要"}</small></span><span className="host-key-input"><span className="host-key-prefix" aria-hidden="true">AVL-</span><input type="text" name="avalon-host-key" inputMode="text" autoComplete="off" autoCorrect="off" autoCapitalize="characters" spellCheck={false} placeholder="XXXX-XXXX-XXXX-XXXX" maxLength={40} required aria-label="房主 Key：16 位字母和数字，不含 0、1、I、O" value={formatHostKey(hostKey)} onChange={onHostKeyChange}/></span></label>
               {error&&<p className="entry-error" role="alert">{error}</p>}
               <div className="entry-submit"><button className="primary-button" disabled={busy||!sessionReady}>{busy?<><LoaderCircle size={18} className="spin"/>正在建立…</>:<>建立圆桌<ArrowRight size={18}/></>}</button><p className="form-note"><LockKeyhole size={13}/>房主凭 Key 建房，朋友扫码即可入座</p></div>
             </form>
