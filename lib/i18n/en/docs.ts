@@ -1,5 +1,8 @@
 // English entries keyed by the Chinese source text (docs).
 export const DOCS: Record<string, string> = {
+  "：你在对局中给其他玩家做的标记和发言备注，只存在这台设备，不上传服务器，其他玩家也看不到；保留最近 5 局，可以随时清空。": ": the marks and notes you make about other players during a game. They stay on this device only, are never uploaded, and no other player can see them. The last 5 games are kept, and you can clear them at any time.",
+  "刺客随时出刀（本站默认）": "Anytime strike (default here)",
+  "：建房时默认开启。对局开始后，刺客可以在任意时刻刺杀一次；刺中梅林邪恶立即获胜，刺错正义立即获胜。如果一直没有出刀，好人三次任务成功后照常进入最后刺杀。房主建房时可以关闭，改用官方规则。": ": on by default when creating a room. Once the game starts, the Assassin may strike once at any moment; hitting Merlin wins for Evil at once, missing wins for Good at once. If the Assassin never strikes, three successful quests still lead to the final assassination. The host can turn it off when creating the room to play the official rule.",
   // Shared by both pages
   "正义": "Good",
   "邪恶": "Evil",

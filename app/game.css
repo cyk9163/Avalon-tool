@@ -222,3 +222,44 @@
 @media (max-width: 760px) { .replay-export-actions { width: 100%; flex-direction: column; } .replay-export-actions .secondary-button { width: 100%; justify-content: center; } }
 /* v1.0: approve/reject tally under each team-vote result */
 .history-tally { display: block; margin-top: 3px; font-size: 11px; color: #9fb0aa; white-space: nowrap; font-variant-numeric: tabular-nums; }
+/* v1.0 anytime assassination (assassin's private identity card only) */
+.early-strike { display: grid; gap: 6px; margin-top: 12px; }
+.early-strike-open { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.early-strike-seats { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; margin: 14px 0; }
+.early-strike-seats button { display: grid; gap: 2px; padding: 10px 8px; border-radius: 10px; border: 1px solid var(--border); background: #ffffff06; color: var(--foreground); text-align: left; min-height: 56px; }
+.early-strike-seats button span { font-size: 12px; color: #9fb0aa; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.early-strike-seats button.selected { border-color: var(--danger); background: #e9a59c14; box-shadow: inset 3px 0 var(--danger); }
+.early-strike-confirm { display: grid; gap: 10px; }
+.early-strike-confirm p { margin: 0; color: var(--danger); font-size: 14px; }
+.rule-toggle { margin-top: 0; }
+/* v1.1 private deduction notes */
+.mark-tag { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 999px; font-size: 11px; font-weight: 500; line-height: 1.6; vertical-align: 1px; white-space: nowrap; }
+.mark-tag.good { background: #9bcab71f; color: var(--success); border: 1px solid #9bcab74d; }
+.mark-tag.evil { background: #e9a59c1f; color: var(--danger); border: 1px solid #e9a59c4d; }
+.player-notes { margin-top: 18px; border: 1px solid var(--border); border-radius: 16px; background: var(--card); }
+.player-notes > summary { display: flex; align-items: center; gap: 10px; padding: 16px 18px; cursor: pointer; list-style: none; }
+.player-notes > summary::-webkit-details-marker { display: none; }
+.player-notes-title { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; font-size: 15px; }
+.player-notes-title svg { color: var(--primary); }
+.player-notes > summary small { margin-left: auto; color: #9fb0aa; font-size: 12px; font-variant-numeric: tabular-nums; }
+.player-notes-chevron { color: #9fb0aa; transition: transform .2s; }
+.player-notes[open] .player-notes-chevron { transform: rotate(180deg); }
+.player-notes-hint { margin: 0 18px 12px; color: #93a59e; font-size: 12px; line-height: 1.6; }
+.player-notes-list { list-style: none; margin: 0; padding: 0 12px 4px; display: grid; gap: 8px; }
+.player-notes-list li { display: grid; gap: 8px; padding: 12px; border-radius: 12px; background: #ffffff05; border: 1px solid #b6c9ba14; border-left: 3px solid #b6c9ba2a; }
+.player-notes-list li.marked.good { border-left-color: var(--success); }
+.player-notes-list li.marked.evil { border-left-color: var(--danger); }
+.player-notes-head { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.player-notes-head strong { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.player-notes-controls { display: flex; flex-wrap: wrap; gap: 8px; }
+.mark-sides { display: inline-flex; border: 1px solid var(--border); border-radius: 9px; overflow: hidden; }
+.mark-sides button { min-height: 36px; padding: 0 12px; border: 0; background: transparent; color: #c9d4cc; font-size: 13px; }
+.mark-sides button + button { border-left: 1px solid var(--border); }
+.mark-sides button.on { background: #ffffff12; color: var(--foreground); font-weight: 600; }
+.mark-sides button.on.good { background: #9bcab726; color: var(--success); }
+.mark-sides button.on.evil { background: #e9a59c26; color: var(--danger); }
+.player-notes-controls select { flex: 1 1 140px; min-width: 0; min-height: 36px; padding: 0 10px; border-radius: 9px; border: 1px solid var(--border); background: #0c171a; color: var(--foreground); font-size: 14px; }
+.player-notes-list textarea { width: 100%; min-height: 38px; padding: 8px 10px; border-radius: 9px; border: 1px solid var(--border); background: #0c171a; color: var(--foreground); font: 16px/1.5 inherit; resize: vertical; }
+.player-notes-list textarea::placeholder { color: #7f928b; }
+.player-notes-footer { display: flex; justify-content: flex-end; padding: 6px 14px 14px; font-size: 13px; color: #c9d4cc; }
+.player-notes-footer span { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }

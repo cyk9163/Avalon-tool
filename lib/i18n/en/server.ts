@@ -1,5 +1,7 @@
 // English entries keyed by the Chinese source text (server).
 export const SERVER: Record<string, string> = {
+  "现在还不能刺杀。": "You can't strike right now.",
+  "刺杀规则配置无效。": "Invalid assassination rule setting.",
   // Sides (inserted into UI and server patterns)
   "正义": "Good",
   "邪恶": "Evil",

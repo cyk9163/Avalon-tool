@@ -116,6 +116,8 @@ export interface GameResult {
   winner: "good" | "evil";
   reason: "three-failures" | "five-rejections" | "merlin-assassinated" | "assassin-missed";
   targetSeat?: number;
+  // The assassin struck before three quests succeeded (anytime-assassin rule).
+  early?: boolean;
 }
 interface GameState {
   quest: number;
@@ -167,6 +169,8 @@ export interface Room {
   preset: Preset;
   customRoles?: Role[];
   ladyOfLake?: boolean;
+  // House rule (v1.0): the assassin may strike once at any point of the game.
+  anytimeAssassin?: boolean;
   phase: RoomPhase;
   hostId: string;
   hostRevision?: number;
@@ -207,6 +211,7 @@ export interface RoomView {
   preset: Preset;
   roles: Role[];
   ladyOfLake: boolean;
+  anytimeAssassin: boolean;
   phase: RoomPhase;
   hostId: string;
   hostRevision: number;
@@ -385,6 +390,7 @@ function gameView(room: Room, me: Player): GameView | null {
       winner: game.result.winner,
       reason: game.result.reason,
       ...(game.result.targetSeat !== undefined ? { targetSeat: game.result.targetSeat } : {}),
+      ...(game.result.early ? { early: true } : {}),
     } : null,
     lake: game.lake ? {
       holderSeat: game.lake.holderSeat,
@@ -416,6 +422,7 @@ export function roomView(room: Room, key: string, version: number, invite?: stri
     preset: room.preset,
     roles: roomRoles(room),
     ladyOfLake: room.ladyOfLake === true,
+    anytimeAssassin: room.anytimeAssassin === true,
     phase: room.phase,
     hostId: room.hostId,
     hostRevision: room.hostRevision ?? 0,
@@ -661,6 +668,8 @@ function checkLake(room: Room, game: GameState, me: Player, input: Record<string
   newTeamTurn(room, game);
 }
 
+const EARLY_STRIKE_PHASES: readonly RoomPhase[] = ["team", "vote", "quest", "lake"];
+
 function assassinate(room: Room, game: GameState, me: Player, input: Record<string, unknown>): void {
   if (me.role !== "assassin") throw new GameError("只有刺客可以作出最终选择。", 403);
   const turnId = requireTurnId(input.turnId);
@@ -673,13 +682,23 @@ function assassinate(room: Room, game: GameState, me: Player, input: Record<stri
     if (game.result.targetSeat !== targetSeat) throw new GameError("刺杀已结束，不能更换目标。 ");
     return;
   }
-  requireCurrentTurn(room, game, turnId, "assassination");
+  // With the anytime rule the assassin may strike during any step of play, on
+  // the current turn only; the strike ends the game either way, so it can only
+  // ever happen once. Otherwise only the final assassination step accepts it.
+  const early = room.phase !== "assassination";
+  if (early) {
+    if (!room.anytimeAssassin || !EARLY_STRIKE_PHASES.includes(room.phase)) throw new GameError("现在还不能刺杀。");
+    if (turnId !== game.turnId) throw new GameError("这一步已结束，请查看最新进度。 ");
+  } else {
+    requireCurrentTurn(room, game, turnId, "assassination");
+  }
   // Resolve the one allowed choice without revealing hidden factions through errors.
   const foundMerlin = room.players.find(player => player.seat === targetSeat)?.role === "merlin";
   finishGame(room, game, {
     winner: foundMerlin ? "evil" : "good",
     reason: foundMerlin ? "merlin-assassinated" : "assassin-missed",
     targetSeat,
+    ...(early ? { early: true } : {}),
   });
 }
 

@@ -1,5 +1,6 @@
 // English entries keyed by the Chinese source text (room).
 export const ROOM: Record<string, string> = {
+  "提前出刀": "early strike",
   // components/room-progress.tsx
   "入座": "Seats",
   "身份": "Roles",

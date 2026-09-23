@@ -6,6 +6,8 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/compone
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { ROLES, type RoomView } from "@/lib/game";
 import { ReplayExport } from "@/components/replay-export";
+import { MarkTag } from "@/components/player-notes";
+import { usePlayerNotes } from "@/lib/player-notes";
 import { msg } from "@/lib/i18n/core";
 import { useI18n } from "@/lib/i18n/react";
 
@@ -28,6 +30,7 @@ const reasonCopy = {
 
 export function GamePanel({ room, busy, connected, error, act, onNewGame }: Props) {
   const { t, ts } = useI18n();
+  const { notes } = usePlayerNotes(room.code, room.round, room.roles);
   const [selection, setSelection] = useState<number[]>([]);
   const [target, setTarget] = useState<number | null>(null);
   const [pending, setPending] = useState<Pending | null>(null);
@@ -124,7 +127,7 @@ export function GamePanel({ room, busy, connected, error, act, onNewGame }: Prop
       <div className="game-action-heading"><span className="step-icon"><Users size={25} aria-hidden="true" /></span><div><span className="action-kicker">{leader ? t("轮到你了") : t("现在可以线下讨论")}</span><h2>{leader ? t("选出你的任务队伍") : t("等待队长提议队伍")}</h2><p>{game.rejections === 4 ? t("这是最后一次组队机会。再次否决，邪恶阵营将直接获胜。") : t("面对面讨论后，由队长选出 {n} 位执行任务的玩家。", { n: game.teamSize })}</p></div></div>
       {leader ? <>
         <div className="team-selector" aria-label={t("选择任务队员")}>{room.players.map(player => <button key={player.id} className={`player-option ${selection.includes(player.seat) ? "selected" : ""}`} aria-pressed={selection.includes(player.seat)} disabled={blocked || (!selection.includes(player.seat) && selection.length === game.teamSize)} onClick={() => toggleSeat(player.seat)}>
-          <span className="player-number">{player.seat}</span><span>{player.name}{player.id === me?.id && <small>{t("我")}</small>}</span><span className="selection-check">{selection.includes(player.seat) && <Check size={15} />}</span>
+          <span className="player-number">{player.seat}</span><span>{player.name}{player.id === me?.id ? <small>{t("我")}</small> : <MarkTag mark={notes.marks[player.seat]} />}</span><span className="selection-check">{selection.includes(player.seat) && <Check size={15} />}</span>
         </button>)}</div>
         <div className="game-action-footer"><p><strong>{t("已选 {n} / {size} 人", { n: selection.length, size: game.teamSize })}</strong><span>{t("可以不选自己")}</span></p><button className="primary-button" disabled={blocked || selection.length !== game.teamSize} onClick={() => setPending({ action: "propose", input: { turnId: game.turnId, team: selection }, title: t("提交这支队伍？"), description: t("队员：{seats}。提交后由全员表决，本次队伍不能再更改。", { seats: seatsLabel(selection) }), label: t("提交队伍") })}>{t("提交队伍")}<ArrowRight size={17} /></button></div>
       </> : <p className="waiting-note" role="status">{me ? t("现在可以线下讨论，队长提交后所有人将同时投票。") : t("你正在查看房间的公开对局状态。")}</p>}
@@ -151,7 +154,7 @@ export function GamePanel({ room, busy, connected, error, act, onNewGame }: Prop
 
     {room.phase === "lake" && game.lake && <div className="game-action lake-action">
       <div className="game-action-heading"><span className="step-icon"><Waves size={25} aria-hidden="true" /></span><div><span className="action-kicker">{t("任务 {n} 结束后的私密查验", { n: game.quest })}</span><h2>{t("湖中仙女正在辨认忠诚。")}</h2><p>{t("查验只会显示阵营，不会显示具体角色。查验后，令牌交给被查验者。")}</p></div></div>
-      {me?.seat===game.lake.holderSeat?<><p className="muted-copy">{t("选择一位尚未使用过湖中仙女的玩家。结果仅在你的设备上显示。")}</p><div className="team-selector">{room.players.filter(player=>player.seat!==me.seat&&!game.lake!.usedSeats.includes(player.seat)).map(player=><button key={player.id} className={`player-option ${target===player.seat?"selected":""}`} aria-pressed={target===player.seat} disabled={blocked} onClick={()=>setTarget(player.seat)}><span className="player-number">{player.seat}</span><span>{player.name}</span><span className="selection-check">{target===player.seat&&<Check size={15}/>}</span></button>)}</div><button className="primary-button" disabled={blocked||target===null} onClick={()=>setPending({action:"lake-check",input:{turnId:game.turnId,targetSeat:target},title:t("查验 {n} 号 · {name}？",{n:target??"",name:playerName(target!)}),description:t("确认后你会私密看到其阵营，湖中仙女令牌同时交给对方。目标不能更换。"),label:t("确认查验")})}><Waves size={18}/>{t("确认查验")}</button></>:<p className="waiting-note" role="status">{t("湖中仙女由 {n} 号 · {name} 持有，等待其完成私密查验。",{n:game.lake.holderSeat,name:playerName(game.lake.holderSeat)})}</p>}
+      {me?.seat===game.lake.holderSeat?<><p className="muted-copy">{t("选择一位尚未使用过湖中仙女的玩家。结果仅在你的设备上显示。")}</p><div className="team-selector">{room.players.filter(player=>player.seat!==me.seat&&!game.lake!.usedSeats.includes(player.seat)).map(player=><button key={player.id} className={`player-option ${target===player.seat?"selected":""}`} aria-pressed={target===player.seat} disabled={blocked} onClick={()=>setTarget(player.seat)}><span className="player-number">{player.seat}</span><span>{player.name}<MarkTag mark={notes.marks[player.seat]}/></span><span className="selection-check">{target===player.seat&&<Check size={15}/>}</span></button>)}</div><button className="primary-button" disabled={blocked||target===null} onClick={()=>setPending({action:"lake-check",input:{turnId:game.turnId,targetSeat:target},title:t("查验 {n} 号 · {name}？",{n:target??"",name:playerName(target!)}),description:t("确认后你会私密看到其阵营，湖中仙女令牌同时交给对方。目标不能更换。"),label:t("确认查验")})}><Waves size={18}/>{t("确认查验")}</button></>:<p className="waiting-note" role="status">{t("湖中仙女由 {n} 号 · {name} 持有，等待其完成私密查验。",{n:game.lake.holderSeat,name:playerName(game.lake.holderSeat)})}</p>}
     </div>}
 
     {game.publicReveals.map(item=><div className="public-reveal" key={item.seat}><Flag size={18}/><span><strong>{seatName(item.seat)}</strong> {t("已公开为 {role}。",{role:t(ROLES[item.role].name)})}</span></div>)}
@@ -160,13 +163,13 @@ export function GamePanel({ room, busy, connected, error, act, onNewGame }: Prop
       <div className="game-action-heading"><span className="step-icon"><Swords size={27} aria-hidden="true" /></span><div><span className="action-kicker">{t("最后一次机会")}</span><h2>{t("找到梅林，逆转结局。")}</h2><p>{t("三次任务成功。邪恶阵营可以公开讨论，由刺客做出最终选择。")}</p></div></div>
       {room.identity?.role === "assassin" ? <>
         <p className="muted-copy">{t("选择你怀疑的梅林。确认后立即结算，不能更改。")}</p>
-        <div className="team-selector">{room.players.filter(player => player.id !== me?.id).map(player => <button key={player.id} className={`player-option ${target === player.seat ? "selected" : ""}`} aria-pressed={target === player.seat} disabled={blocked} onClick={() => setTarget(player.seat)}><span className="player-number">{player.seat}</span><span>{player.name}</span><span className="selection-check">{target === player.seat && <Check size={15} />}</span></button>)}</div>
+        <div className="team-selector">{room.players.filter(player => player.id !== me?.id).map(player => <button key={player.id} className={`player-option ${target === player.seat ? "selected" : ""}`} aria-pressed={target === player.seat} disabled={blocked} onClick={() => setTarget(player.seat)}><span className="player-number">{player.seat}</span><span>{player.name}<MarkTag mark={notes.marks[player.seat]} /></span><span className="selection-check">{target === player.seat && <Check size={15} />}</span></button>)}</div>
         <button className="primary-button assassination-button" disabled={blocked || target === null} onClick={() => setPending({ action: "assassinate", input: { turnId: game.turnId, targetSeat: target }, title: t("刺杀 {n} 号 · {name}？", { n: target ?? "", name: playerName(target!) }), description: t("这是一局中唯一的刺杀机会。确认后立即揭晓结局，无法撤销或重新选择。"), label: t("确认刺杀") })}><Swords size={18} />{t("确认刺杀目标")}</button>
       </> : <p className="waiting-note" role="status">{t("等待刺客选择目标。请继续保护梅林的身份。")}</p>}
     </div>}
 
     {room.phase === "finished" && game.result && <div className={`game-result ${game.result.winner}`}>
-      <span className="result-emblem"><Trophy size={38} strokeWidth={1.3} aria-hidden="true" /></span><span className="game-kicker">THE STORY IS TOLD</span><h2>{game.result.winner === "good" ? t("正义守住了圆桌。") : t("暗影笼罩了圆桌。")}</h2><p>{t(reasonCopy[game.result.reason])}</p>
+      <span className="result-emblem"><Trophy size={38} strokeWidth={1.3} aria-hidden="true" /></span><span className="game-kicker">THE STORY IS TOLD</span><h2>{game.result.winner === "good" ? t("正义守住了圆桌。") : t("暗影笼罩了圆桌。")}</h2><p>{t(reasonCopy[game.result.reason])}</p>{game.result.early && <p className="assassination-result">{t("刺客在对局中提前出刀，本局就此结束。")}</p>}
       {game.result.targetSeat != null && <p className="assassination-result">{t("刺杀目标：{n} 号 · {name}", { n: game.result.targetSeat, name: playerName(game.result.targetSeat) })}</p>}
       {game.revealedRoles && <div className="result-identity-list"><h3>{t("此刻，身份揭晓。")}</h3><div className="revealed-roles">{game.revealedRoles.map(player => <div key={player.seat}><span className="member-seat">{player.seat}</span><span>{playerName(player.seat)}</span><strong className={ROLES[player.role].side}>{t(ROLES[player.role].name)}</strong></div>)}</div></div>}
       {!me && <p className="action-note">{t("完整身份仅向本局成员揭晓。")}</p>}

@@ -42,7 +42,7 @@ export function replayText(room: RoomView, date = new Date(), lang: Lang = "zh")
   for (const role of room.roles) counts.set(t(ROLES[role].name), (counts.get(t(ROLES[role].name)) ?? 0) + 1);
   lines.push(t("角色：{roles}", { roles: [...counts].map(([role, count]) => count > 1 ? `${role} ×${count}` : role).join(t("、")) }));
   const winner = game.result.winner === "good" ? t("正义获胜") : t("邪恶获胜");
-  lines.push(t("结果：{winner}（{reason}）", { winner, reason: t(REASONS[game.result.reason]) }) + (game.result.targetSeat != null ? ` · ${t("刺杀目标：{target}", { target: name(game.result.targetSeat) })}` : ""));
+  lines.push(t("结果：{winner}（{reason}）", { winner, reason: t(REASONS[game.result.reason]) }) + (game.result.targetSeat != null ? ` · ${t("刺杀目标：{target}", { target: name(game.result.targetSeat) })}` : "") + (game.result.early ? ` · ${t("提前出刀")}` : ""));
 
   lines.push("", t("【身份】"));
   if (game.revealedRoles) {
