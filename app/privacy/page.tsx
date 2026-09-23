@@ -67,6 +67,7 @@ export default function PrivacyPage() {
       <section id="processor">
         <h2><Server size={20} />服务由谁提供</h2>
         <p>圆桌运行在 Cloudflare Workers 上，数据存放在 Cloudflare D1 数据库。Cloudflare 作为基础设施提供方处理网络请求，其做法见 <a href="https://www.cloudflare.com/privacypolicy/" rel="noreferrer" target="_blank">Cloudflare 隐私政策</a>。圆桌不把数据出售或提供给任何其他第三方，也不调用 AI 服务。</p>
+        <p>站点运营者有一个需要单独管理员 Key 的统计页面，只能看到汇总数字（房间数量、所处阶段、人数、板子、胜负分布和限流次数），看不到房间码、昵称、身份、投票或任务牌。</p>
       </section>
 
       <section id="choices">

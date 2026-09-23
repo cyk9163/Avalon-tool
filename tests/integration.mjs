@@ -63,4 +63,5 @@ await import("./stage3-integration.mjs");
 await import("./management-integration.mjs");
 await import("./v08-integration.mjs");
 await import("./v09-integration.mjs");
+await import("./v012-integration.mjs");
 console.log("All integration checks passed (test rooms expire automatically).");

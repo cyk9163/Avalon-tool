@@ -1,6 +1,6 @@
 # 圆桌 · 阿瓦隆助手
 
-面对面玩阿瓦隆的手机网页工具。当前为 v0.11：房主 Key 验证、5–10 人建房、官方预设与自定义板子、扩展角色、湖中仙女、扫码入座、私密身份、完整投票与任务、刺杀、复盘、同房再开、房主移交、移出玩家、中途作废、换设备恢复（恢复码或房主批准）、带口令的邀请链接，以及添加到手机主屏幕。v0.7 起具备安全响应头、结构化日志、健康检查、定时清理和完整 CI；v0.9 起房间变化实时推送到每台手机，并有独立的 staging 环境；v0.10 起有规则教学页（`/rules`）和隐私说明页（`/privacy`）；v0.11 起自定义板子可以套用或保存模板，结局后可以导出复盘文字。
+面对面玩阿瓦隆的手机网页工具。当前为 v0.12：房主 Key 验证、5–10 人建房、官方预设与自定义板子、扩展角色、湖中仙女、扫码入座、私密身份、完整投票与任务、刺杀、复盘、同房再开、房主移交、移出玩家、中途作废、换设备恢复（恢复码或房主批准）、带口令的邀请链接，以及添加到手机主屏幕。v0.7 起具备安全响应头、结构化日志、健康检查、定时清理和完整 CI；v0.9 起房间变化实时推送到每台手机，并有独立的 staging 环境；v0.10 起有规则教学页（`/rules`）和隐私说明页（`/privacy`）；v0.11 起自定义板子可以套用或保存模板，结局后可以导出复盘文字；v0.12 起运营者可以用单独的管理员 Key 在 `/admin` 查看汇总统计。
 
 本项目包含完整前后端源码、数据库结构、迁移、测试和部署配置。独立部署到 Cloudflare Workers + D1，不依赖 ChatGPT、Codex 或 Sites 账号；使用时不调用 AI API。
 
@@ -74,6 +74,18 @@ npm run build
 `npm start` 在本地预览构建产物；它使用与开发服务器相同的本地数据库。
 
 GitHub Actions 包含两个任务：①lint、类型检查、单元测试、生产依赖审计（阻断）、全量依赖审计（仅报告）、构建；②在本地 D1 上启动开发服务器并运行全部集成测试。未配置自动上线。集成测试还覆盖安全响应头、健康检查、request ID、邀请口令、恢复码和房主批准换设备。
+
+## 管理后台
+
+`/admin` 只给站点运营者用，显示汇总统计（房间数、阶段、人数、板子、胜负、限流、服务状态），不显示房间码、昵称或身份。需要单独的管理员 Key，它和房主 Key 互不通用：
+
+```sh
+node scripts/admin-keys.mjs generate work/admin-key.txt
+node scripts/admin-keys.mjs publish work/admin-key.txt            # 正式环境
+node scripts/admin-keys.mjs publish work/admin-key-staging.txt --env staging
+```
+
+`publish` 会替换整个 `ADMIN_KEY_HASHES` 允许列表。本地开发使用 `.dev.vars.example` 里的公开测试 Key `ADM-TEST-ADMN-KEYS-2345-6789`。
 
 ## 房主 Key
 
@@ -179,6 +191,7 @@ git push origin main
 - `lib/live.ts`、`lib/live-gateway.ts`、`lib/room-hub.ts`、`lib/room-signal.ts`、`lib/use-room-live.ts`：实时信号（协议、握手校验、Durable Object、提交后通知、前端连接）。
 - `app/rules/page.tsx`、`app/privacy/page.tsx`、`components/doc-page.tsx`、`app/docs.css`：规则教学与隐私说明页（规则表格取自 `lib/game.ts`）。
 - `lib/board-templates.ts`：推荐板子与本机保存的板子模板；`lib/replay.ts`、`components/replay-export.tsx`：结局复盘文字导出。
+- `app/admin/`、`app/api/admin/route.ts`、`lib/admin-key.ts`、`lib/admin-stats.ts`、`scripts/admin-keys.mjs`：管理后台（管理员 Key 与汇总统计）。
 - `lib/request-context.ts`：接口与实时网关共用的设备身份和网络限流。
 - `scripts/smoke.mjs`：部署后只读检查；`scripts/environments.mjs`：正式与 staging 地址；`scripts/staging-check.mjs`：staging 端到端实时检查。
 - `lib/host-key.ts`、`scripts/host-keys.mjs`：房主 Key 验证、生成与发布。

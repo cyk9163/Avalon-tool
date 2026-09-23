@@ -7,7 +7,7 @@
 - 仓库：[cyk9163/Avalon-tool](https://github.com/cyk9163/Avalon-tool)，主分支 `main`。
 - 正式地址：[圆桌 · 阿瓦隆助手](https://avalon-roundtable.yunkangchen2017.workers.dev)。个人 Cloudflare Workers + D1 + Durable Objects（SQLite 版），保持免费方案，不再部署到 GPT Sites。
 - staging：[avalon-roundtable-staging](https://avalon-roundtable-staging.yunkangchen2017.workers.dev)，独立 Worker、独立 D1（`avalon-roundtable-staging-db`）和独立房主 Key 白名单；明文 Key 在原机器被 Git 忽略的 `work/staging-host-keys.txt`。
-- 当前为 v0.11.0：v0.6 的自定义板子与扩展角色之上，v0.7 完成企业级基础治理（lint 清零、安全头、结构化日志、健康检查、Cron 清理、依赖漏洞清零、CI 扩充、部署后 smoke test），v0.8 加入换设备恢复（恢复码／房主批准）与带口令的邀请链接，v0.9 加入 Durable Object + WebSocket 实时同步与 staging 环境，v0.9.1 轮换房主 Key 并简化 Key 输入，v0.10 加入规则教学页与隐私说明页，v0.11 加入板子模板与复盘导出。
+- 当前为 v0.12.0：v0.6 的自定义板子与扩展角色之上，v0.7 完成企业级基础治理（lint 清零、安全头、结构化日志、健康检查、Cron 清理、依赖漏洞清零、CI 扩充、部署后 smoke test），v0.8 加入换设备恢复（恢复码／房主批准）与带口令的邀请链接，v0.9 加入 Durable Object + WebSocket 实时同步与 staging 环境，v0.9.1 轮换房主 Key 并简化 Key 输入，v0.10 加入规则教学页与隐私说明页，v0.11 加入板子模板与复盘导出，v0.12 加入管理后台。
 - 交接日期：2026-09-23。规则测试覆盖自定义阵容、扩展身份线索、强制任务牌、揭露者和湖中仙女隐私；每次发布的最终验证结果以 `CHANGELOG.md`、GitHub CI 与交付消息为准。
 - 发布证据入口：[main 最新提交](https://github.com/cyk9163/Avalon-tool/commits/main)、[自动检查](https://github.com/cyk9163/Avalon-tool/actions)、上述正式站点。不能仅凭版本号认定上线；每次交付消息还应给出具体提交与线上验证结果。
 
@@ -60,6 +60,7 @@ Windows 上若系统的 npm 启动脚本解析出错，可用 `node scripts/run-
 | `app/rules/page.tsx`、`app/privacy/page.tsx`、`components/doc-page.tsx`、`app/docs.css` | 规则教学与隐私说明（静态页，表格与角色取自 `lib/game.ts`）；修改数据保存方式时要同步更新隐私说明 |
 | `lib/board-templates.ts` | 推荐板子模板与本机保存的模板（localStorage），可用性用服务端的 `validateCustomRoles` 判断 |
 | `lib/replay.ts`、`components/replay-export.tsx` | 结局复盘文字导出：只用本人的 RoomView，不含任务牌归属、房间码或湖中仙女私密结果 |
+| `app/admin/`、`app/api/admin/route.ts`、`lib/admin-key.ts`、`lib/admin-stats.ts`、`scripts/admin-keys.mjs` | 管理后台：管理员 Key（Secret `ADMIN_KEY_HASHES`，与房主 Key 分开）、只含汇总数字的统计查询。新增统计时只能返回计数，不能返回房间码、昵称、设备凭据、身份、投票或任务牌 |
 | `lib/request-context.ts` | 接口与实时网关共用的设备身份、网络限流、房间码查找预算 |
 | `scripts/environments.mjs`、`scripts/deploy.mjs`、`scripts/staging-check.mjs` | 正式／staging 部署（核对 Worker 名称）与 staging 端到端实时检查 |
 | `db/schema.ts`、`drizzle/` | 数据库结构、迁移和迁移记录 |
@@ -79,6 +80,7 @@ Windows 上若系统的 npm 启动脚本解析出错，可用 `node scripts/run-
 - `turnId` 隔离提案／任务，`round` 隔离新局，`hostRevision` 隔离房主权限变更。不要为了兼容界面跳过这些服务端校验。
 - Service Worker 只缓存公开断网提示页，不缓存房间页面、API、身份或投票，不自动补发离线操作。
 - 实时信号只能包含版本号。不要把房间状态、昵称、身份、投票或任务牌放进 WebSocket 消息；需要新数据时让客户端走授权的 GET。握手必须校验同源 Origin，并与读取接口共用限流。
+- 管理后台只返回汇总计数；管理员 Key 只通过自定义请求头发送，并按网络限流错误次数。正式和 staging 的管理员 Key 在原机器被 Git 忽略的 `work/admin-key.txt`、`work/admin-key-staging.txt`。
 - 恢复码只投影给本人，换设备请求的设备凭据摘要不进入任何响应；房主座位不能经批准流程接管；批准前有 60 秒等待，原设备可拒绝；核对码用于当面配对；每次换设备写入公开记录。没有邀请口令的局外人看不到昵称，移出玩家会更换口令。本地（回环地址）不计网络限流，集成测试用 `CF-Connecting-IP` 模拟网络。
 
 ## 仓库包含什么

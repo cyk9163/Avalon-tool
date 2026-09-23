@@ -1,3 +1,6 @@
 # 仅供本地开发和集成测试；不要把正式房主 Key 或摘要提交到 Git。
 # 此公开摘要对应本地测试 Key：AVL-TEST-KEYS-2345-6789，请勿用于正式环境。
 HOST_KEY_HASHES=a05617900e7b3165bfe3a81942dab6339dd50e8924b6a372407c219d61b63f08
+
+# 本地管理后台测试 Key：ADM-TEST-ADMN-KEYS-2345-6789（公开值，勿用于正式环境）。
+ADMIN_KEY_HASHES=80e08849f7ac5d9313b88cf1d785b3d250248c38e07efb0ecc6e4dd6e67c612c

@@ -44,6 +44,9 @@ for (const path of ["/rules", "/privacy"]) {
   if (!doc.ok) fail(`${path} returned ${doc.status}`);
   if (!(doc.headers.get("content-security-policy") ?? "").includes("frame-ancestors 'none'")) fail(`${path} is missing the CSP`);
 }
+// The admin API must refuse a request without a key (and never serve stats).
+const adminProbe = await fetch(`${target}/api/admin`, { cache: "no-store" });
+if (adminProbe.status !== 401) fail(`admin API without a key returned ${adminProbe.status}, expected 401`);
 const live = await fetch(`${target}/api/room/live?code=000000`, { cache: "no-store" });
 if (live.status !== 426) fail(`live endpoint returned ${live.status}, expected 426`);
-console.log(`SMOKE OK ${target}: version ${health.version}, database ${health.checks?.database}, security headers present, rules/privacy pages up, live gateway answering`);
+console.log(`SMOKE OK ${target}: version ${health.version}, database ${health.checks?.database}, security headers present, rules/privacy pages up, admin API locked, live gateway answering`);
