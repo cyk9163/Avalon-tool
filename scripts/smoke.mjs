@@ -39,6 +39,11 @@ for (const directive of ["frame-ancestors 'none'", "object-src 'none'", "default
 if (target.startsWith("https:") && !page.headers.get("strict-transport-security")) fail("HSTS header missing");
 // The live endpoint must be answered by the Worker gateway (not the app's 404
 // page). A plain GET is refused before any room lookup, so this reads nothing.
+for (const path of ["/rules", "/privacy"]) {
+  const doc = await fetch(`${target}${path}`, { cache: "no-store" });
+  if (!doc.ok) fail(`${path} returned ${doc.status}`);
+  if (!(doc.headers.get("content-security-policy") ?? "").includes("frame-ancestors 'none'")) fail(`${path} is missing the CSP`);
+}
 const live = await fetch(`${target}/api/room/live?code=000000`, { cache: "no-store" });
 if (live.status !== 426) fail(`live endpoint returned ${live.status}, expected 426`);
-console.log(`SMOKE OK ${target}: version ${health.version}, database ${health.checks?.database}, security headers present, live gateway answering`);
+console.log(`SMOKE OK ${target}: version ${health.version}, database ${health.checks?.database}, security headers present, rules/privacy pages up, live gateway answering`);

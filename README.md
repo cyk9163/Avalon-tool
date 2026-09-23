@@ -1,6 +1,6 @@
 # 圆桌 · 阿瓦隆助手
 
-面对面玩阿瓦隆的手机网页工具。当前为 v0.9.1：房主 Key 验证、5–10 人建房、官方预设与自定义板子、扩展角色、湖中仙女、扫码入座、私密身份、完整投票与任务、刺杀、复盘、同房再开、房主移交、移出玩家、中途作废、换设备恢复（恢复码或房主批准）、带口令的邀请链接，以及添加到手机主屏幕。v0.7 起具备安全响应头、结构化日志、健康检查、定时清理和完整 CI；v0.9 起房间变化实时推送到每台手机，并有独立的 staging 环境。
+面对面玩阿瓦隆的手机网页工具。当前为 v0.10：房主 Key 验证、5–10 人建房、官方预设与自定义板子、扩展角色、湖中仙女、扫码入座、私密身份、完整投票与任务、刺杀、复盘、同房再开、房主移交、移出玩家、中途作废、换设备恢复（恢复码或房主批准）、带口令的邀请链接，以及添加到手机主屏幕。v0.7 起具备安全响应头、结构化日志、健康检查、定时清理和完整 CI；v0.9 起房间变化实时推送到每台手机，并有独立的 staging 环境；v0.10 起有规则教学页（`/rules`）和隐私说明页（`/privacy`）。
 
 本项目包含完整前后端源码、数据库结构、迁移、测试和部署配置。独立部署到 Cloudflare Workers + D1，不依赖 ChatGPT、Codex 或 Sites 账号；使用时不调用 AI API。
 
@@ -177,6 +177,7 @@ git push origin main
 - `worker/index.ts`：Worker 入口，添加安全头并运行定时清理；`lib/security-headers.ts`、`public/_headers`、`lib/maintenance.ts`、`lib/log.ts`。
 - `components/device-recovery.tsx`、`components/takeover-requests.tsx`、`app/recovery.css`：恢复码、换设备与房主批准界面。
 - `lib/live.ts`、`lib/live-gateway.ts`、`lib/room-hub.ts`、`lib/room-signal.ts`、`lib/use-room-live.ts`：实时信号（协议、握手校验、Durable Object、提交后通知、前端连接）。
+- `app/rules/page.tsx`、`app/privacy/page.tsx`、`components/doc-page.tsx`、`app/docs.css`：规则教学与隐私说明页（规则表格取自 `lib/game.ts`）。
 - `lib/request-context.ts`：接口与实时网关共用的设备身份和网络限流。
 - `scripts/smoke.mjs`：部署后只读检查；`scripts/environments.mjs`：正式与 staging 地址；`scripts/staging-check.mjs`：staging 端到端实时检查。
 - `lib/host-key.ts`、`scripts/host-keys.mjs`：房主 Key 验证、生成与发布。

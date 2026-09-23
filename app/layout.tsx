@@ -5,6 +5,7 @@ import "./pwa.css";
 import "./management.css";
 import "./progress.css";
 import "./recovery.css";
+import "./docs.css";
 
 export const metadata: Metadata = {
   title: "圆桌 · 阿瓦隆助手",

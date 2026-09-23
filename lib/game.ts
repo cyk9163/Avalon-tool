@@ -333,7 +333,7 @@ function allowedQuestCards(me: Player, quest: number): QuestCard[] {
   if (me.role === "brute" && quest > 3) return ["success"];
   return ["success", "fail"];
 }
-const TEAM_SIZES: Record<number, readonly number[]> = {
+export const TEAM_SIZES: Record<number, readonly number[]> = {
   5: [2, 3, 2, 3, 3],
   6: [2, 3, 4, 3, 4],
   7: [2, 3, 3, 4, 4],

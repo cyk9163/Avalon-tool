@@ -1,0 +1,57 @@
+/* Reading pages: /rules and /privacy. Same palette as the room UI. */
+.doc-shell { padding-bottom: 8px; }
+.doc-back { display: inline-flex; align-items: center; gap: 8px; color: #c9d4cc; font-size: 14px; border: 1px solid #b6c9ba2a; border-radius: 999px; padding: 9px 16px; }
+.doc-back:hover { border-color: #dbc18a66; color: var(--primary); }
+.doc { max-width: 760px; margin: 0 auto; padding: 48px 0 56px; line-height: 1.8; color: #dfe6e0; }
+.doc-head { padding-bottom: 28px; border-bottom: 1px solid #b6c9ba18; margin-bottom: 8px; }
+.doc-eyebrow { color: var(--primary); font-size: 11px; letter-spacing: .22em; text-transform: uppercase; }
+.doc h1 { font-size: clamp(30px, 6vw, 44px); line-height: 1.2; margin: 10px 0 14px; color: var(--foreground); letter-spacing: .02em; text-wrap: balance; }
+.doc-lead { color: #b6c4bd; font-size: 16px; margin: 0; }
+.doc .doc-toc { display: flex; flex-wrap: wrap; gap: 8px; margin: 22px 0 0; padding: 0; list-style: none; }
+.doc-toc a { display: inline-block; font-size: 13px; color: #c9d4cc; background: #ffffff08; border: 1px solid #b6c9ba22; border-radius: 999px; padding: 5px 12px; }
+.doc-toc a:hover { border-color: #dbc18a66; color: var(--primary); }
+.doc section { padding-top: 36px; scroll-margin-top: 16px; }
+.doc h2 { font-size: 22px; color: var(--foreground); margin: 0 0 12px; display: flex; align-items: center; gap: 10px; }
+.doc h2 svg { color: var(--primary); }
+.doc h3 { font-size: 16px; color: var(--foreground); margin: 20px 0 6px; }
+.doc p { margin: 10px 0; }
+.doc ul, .doc ol { margin: 10px 0; padding-left: 1.3em; }
+.doc li { margin: 6px 0; }
+.doc strong { color: var(--foreground); }
+.doc a:not(.doc-toc a) { color: var(--primary); text-decoration: underline; text-underline-offset: 3px; }
+.doc code { font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; font-size: .9em; background: #ffffff0d; border-radius: 5px; padding: 1px 6px; }
+.doc-steps { list-style: none; padding: 0 !important; counter-reset: step; display: grid; gap: 12px; }
+.doc-steps li { counter-increment: step; position: relative; padding: 14px 16px 14px 56px; background: var(--card); border: 1px solid var(--border); border-radius: 14px; margin: 0; }
+.doc-steps li::before { content: counter(step); position: absolute; left: 16px; top: 14px; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: 13px; font-weight: 600; color: var(--primary-foreground); background: var(--primary); }
+.doc-steps strong { display: block; }
+.doc-table-wrap { overflow-x: auto; margin: 14px 0; border: 1px solid var(--border); border-radius: 12px; }
+.doc-table { border-collapse: collapse; width: 100%; font-size: 14px; font-variant-numeric: tabular-nums; }
+.doc-table caption { text-align: left; font-size: 12px; color: #9fb0aa; padding: 10px 14px 0; }
+.doc-table th, .doc-table td { padding: 9px 14px; text-align: left; border-bottom: 1px solid #b6c9ba14; white-space: nowrap; }
+.doc-table thead th { color: #9fb0aa; font-weight: 500; font-size: 12px; }
+.doc-table tbody tr:last-child td, .doc-table tbody tr:last-child th { border-bottom: 0; }
+.doc-table .double { color: var(--danger); font-weight: 600; }
+.role-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 12px; margin-top: 14px; }
+.role-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; border-left: 3px solid var(--success); }
+.role-card.evil { border-left-color: var(--danger); }
+.role-card h3 { margin: 0 0 2px; display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+.role-card h3 small { font-size: 11px; font-weight: 500; color: var(--success); letter-spacing: .08em; }
+.role-card.evil h3 small { color: var(--danger); }
+.role-card p { margin: 6px 0 0; font-size: 14px; color: #c3cfc8; }
+.role-card .role-where { font-size: 12px; color: #9fb0aa; }
+.doc-callout { background: #dbc18a10; border: 1px solid #dbc18a33; border-radius: 12px; padding: 12px 16px; margin: 14px 0; font-size: 15px; }
+.doc-callout strong { color: var(--primary); }
+.doc-footer { flex-wrap: wrap; }
+.footer-links { display: inline-flex; gap: 16px; }
+.footer-links a { color: #a6b39b; text-decoration: underline; text-underline-offset: 3px; }
+.footer-links a:hover { color: var(--primary); }
+.page-footer > .footer-meta { white-space: normal; }
+.footer-meta { display: inline-flex; align-items: center; gap: 16px; flex-wrap: wrap; justify-content: flex-end; }
+.help-links { display: flex; flex-wrap: wrap; gap: 8px 18px; }
+.help-links a { color: var(--primary); text-decoration: underline; text-underline-offset: 3px; }
+@media (max-width: 760px) { .footer-meta { justify-content: flex-start; } }
+@media (max-width: 760px) {
+  .doc { padding: 32px 0 40px; }
+  .doc-back { padding: 8px 12px; font-size: 13px; }
+  .doc-steps li { padding-left: 50px; }
+}
