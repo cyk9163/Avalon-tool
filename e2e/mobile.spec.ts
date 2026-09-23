@@ -180,7 +180,7 @@ test("big-screen mode shows the public table live, with no roles and no buttons"
     await screen.goto(`/screen?room=${game.code}&invite=${invite}`);
     await expect(screen.locator(".big-screen-phase")).toContainText("组建队伍");
     await expect(screen).toHaveURL(new RegExp(`/screen[?]room=${game.code}$`), { timeout: 5_000 });
-    await expect(screen.locator(".big-screen button")).toHaveCount(0);
+    await expect(screen.locator(".big-screen button:not(.theme-toggle)")).toHaveCount(0);   // only the theme switch
     const { turnId } = (await game.leader.get(game.code)).game!;
     await game.leader.call({ action: "propose", code: game.code, turnId, team: [game.leader.seat, game.other.seat] });
     await expect(screen.locator(".big-screen-phase")).toContainText("全员表决", { timeout: 5_000 });
@@ -193,6 +193,22 @@ test("big-screen mode shows the public table live, with no roles and no buttons"
     await expect(bare.locator(".big-screen-waiting")).toContainText("大屏模式");
   } finally {
     await tablet.close();
+    await game.close();
+  }
+});
+
+test("the beginner hint says what to do now and stays off once closed", async ({ browser }) => {
+  const game = await startedGame(browser);
+  try {
+    const page = await game.other.open(game.code);
+    const hint = page.locator(".guide-hint");
+    await expect(hint).toContainText("等队长亮车");
+    await hint.getByRole("button", { name: "关闭新手提示" }).click();
+    await expect(hint).toHaveCount(0);
+    await page.reload();
+    await expect(page.locator(".room-section-status")).toBeVisible();
+    await expect(hint).toHaveCount(0);
+  } finally {
     await game.close();
   }
 });

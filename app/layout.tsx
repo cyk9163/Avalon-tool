@@ -1,6 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import { I18nProvider } from "@/lib/i18n/react";
 import { serverLang, serverT } from "@/lib/i18n/server";
+import { ThemeProvider } from "@/components/theme-toggle";
+import { serverTheme } from "@/lib/theme-server";
+import { THEME_COLORS } from "@/lib/theme";
 import "./globals.css";
 import "./game.css";
 import "./pwa.css";
@@ -9,6 +12,9 @@ import "./progress.css";
 import "./recovery.css";
 import "./docs.css";
 import "./mobile.css";
+// v1.11: generated light theme (scripts/theme-light.mjs), then hand-tuned exceptions.
+import "./theme-light.css";
+import "./theme-light-tweaks.css";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = serverT(await serverLang());
@@ -35,7 +41,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   // Lets the page use the full screen on notched phones; CSS pads the safe areas.
   viewportFit: "cover",
-  themeColor: "#0c171a",
+  themeColor: THEME_COLORS.dark,
 };
 
 export default async function RootLayout({
@@ -43,10 +49,10 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const lang = await serverLang();
+  const [lang, theme] = await Promise.all([serverLang(), serverTheme()]);
   return (
-    <html lang={lang === "en" ? "en" : "zh-CN"}>
-      <body className="antialiased"><I18nProvider initial={lang}>{children}</I18nProvider></body>
+    <html lang={lang === "en" ? "en" : "zh-CN"} data-theme={theme === "light" ? "light" : undefined}>
+      <body className="antialiased"><I18nProvider initial={lang}><ThemeProvider initial={theme}>{children}</ThemeProvider></I18nProvider></body>
     </html>
   );
 }

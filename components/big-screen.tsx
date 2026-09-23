@@ -10,6 +10,7 @@ import { GameTable } from "@/components/game-table";
 import { SpeechBar } from "@/components/speech-bar";
 import { VoteMatrix } from "@/components/vote-matrix";
 import { RevealOverlay } from "@/components/reveal-overlay";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const REASONS = {
   "three-failures": msg("三次任务失败，邪恶阵营获胜。"),
@@ -76,6 +77,7 @@ export function BigScreen() {
         <h1 className="big-screen-title">{t("圆桌 · 大屏")}</h1>
         <span>{t("{n} 人", { n: table.capacity })} · {t(PRESETS[table.preset].name)} · {t("第 {n} 局", { n: table.round })}</span>
         <span className="big-screen-code">{t("房间码")} <b>{table.code}</b></span>
+        <ThemeToggle />
         <span className={`room-section-status${live ? " live" : ""}`} role="img" aria-label={live ? t("实时") : t("已同步")}><i aria-hidden="true" /></span>
       </header>
       {!game ? (

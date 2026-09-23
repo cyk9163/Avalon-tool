@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowLeft, Crown } from "lucide-react";
 import type { ReactNode } from "react";
 import { LangToggle } from "@/components/lang-toggle";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { serverLang, serverT } from "@/lib/i18n/server";
 
 /** Shared frame for the server-rendered reading pages (rules, privacy). */
@@ -15,7 +16,7 @@ export async function DocPage({ eyebrow, title, lead, children }: { eyebrow: str
           <span>{t("圆桌")}<span className="brand-sub">AVALON</span></span>
         </Link>
         <div className="doc-actions">
-          <LangToggle reload />
+          <ThemeToggle /><LangToggle reload />
           <Link className="doc-back" href="/"><ArrowLeft size={16} />{t("返回圆桌")}</Link>
         </div>
       </header>

@@ -8,6 +8,7 @@ import { PRESETS, type Preset } from "@/lib/game";
 import { msg } from "@/lib/i18n/core";
 import { useI18n } from "@/lib/i18n/react";
 import { LangToggle } from "@/components/lang-toggle";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 type Stats = AdminStats & { service: { version: string; databaseMs: number; liveHub: boolean; hostKeys: number; adminKeys: number } };
 
@@ -106,7 +107,7 @@ export default function AdminPage() {
     <main className="app-shell admin-shell">
       <header className="topbar">
         <Link className="brand" href="/" aria-label={t("圆桌首页")}><span className="brand-icon"><Crown size={22} /></span><span>{t("圆桌")}<span className="brand-sub">ADMIN</span></span></Link>
-        <div className="doc-actions"><LangToggle />
+        <div className="doc-actions"><ThemeToggle /><LangToggle />
         {stats ? <button type="button" className="doc-back" onClick={signOut}><LogOut size={16} />{t("退出")}</button> : <Link className="doc-back" href="/"><ArrowLeft size={16} />{t("返回圆桌")}</Link>}</div>
       </header>
 

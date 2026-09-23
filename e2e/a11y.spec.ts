@@ -38,3 +38,21 @@ test("the game screens pass the accessibility audit", async ({ browser }) => {
     await game.close();
   }
 });
+
+test("the light theme passes the same audit, contrast included, and the choice sticks", async ({ browser }) => {
+  const game = await startedGame(browser);
+  try {
+    await game.leader.context.addCookies([{ name: "avalon_theme", value: "light", url: process.env.E2E_BASE_URL ?? "http://localhost:5173" }]);
+    const page = await game.leader.open(game.code);
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+    await audit(page, "light: leader during team building");
+    for (const path of ["/rules", "/privacy"]) { await page.goto(path); await audit(page, `light: ${path}`); }
+    // Switching back to dark takes effect at once and survives a reload.
+    await page.getByRole("button", { name: "切换到深色主题" }).click();
+    await expect(page.locator("html")).not.toHaveAttribute("data-theme", "light");
+    await page.reload();
+    await expect(page.locator("html")).not.toHaveAttribute("data-theme", "light");
+  } finally {
+    await game.close();
+  }
+});

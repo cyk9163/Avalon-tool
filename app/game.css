@@ -512,3 +512,11 @@ button.role-chip { display: inline-flex; align-items: center; gap: 3px; }
   .vote-matrix td.on-team::before, .reveal-ballot, .speech-order li.current { border-color: CanvasText; forced-color-adjust: none; }
   .speech-order li.current { background: Highlight; color: HighlightText; }
 }
+
+/* v1.11 beginner hints */
+.guide-hint { display: flex; align-items: flex-start; gap: 10px; margin: 0 0 14px; padding: 10px 8px 10px 14px; border: 1px solid #dbc18a44; border-radius: 12px; background: #dbc18a0d; color: #e8e2cf; font-size: 13px; line-height: 1.6; }
+.guide-hint > svg { flex-shrink: 0; margin-top: 3px; color: var(--primary); }
+.guide-hint p { flex: 1; margin: 0; }
+.guide-hint-close { flex-shrink: 0; display: grid; place-items: center; width: 32px; height: 32px; margin: -4px 0; border: 0; border-radius: 8px; background: none; color: #9fb4ac; }
+.guide-switch { display: flex; align-items: center; gap: 10px; margin: 12px 0 4px; font-size: 13px; }
+.guide-switch input { width: 18px; height: 18px; accent-color: var(--primary); }
