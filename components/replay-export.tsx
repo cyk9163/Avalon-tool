@@ -42,7 +42,7 @@ export function ReplayExport({ room }: { room: RoomView }) {
         <button type="button" className="secondary-button" onClick={() => void copy()}>{status === "copied" ? <Check size={16} /> : <Copy size={16} />}{status === "copied" ? t("已复制复盘") : t("复制复盘文字")}</button>
         <button type="button" className="secondary-button" onClick={download}><Download size={16} />{t("下载 .txt")}</button>
       </div>
-      <p className="action-note" role="status">{status === "saved" ? t("复盘文件已生成，请在下载中查看。") : t("包含身份、每次任务和全部表决；不包含谁出了哪张任务牌。房间过期后记录会删除，想留存请现在导出。")}</p>
+      <p className="action-note" role="status">{status === "saved" ? t("复盘文件已生成，请在下载中查看。") : t("包含身份、每次任务谁出了哪张牌和全部表决。房间过期后记录会删除，想留存请现在导出。")}</p>
       {fallback && <textarea className="replay-fallback" readOnly value={fallback} rows={8} aria-label={t("复盘文字，可手动全选复制")} onFocus={event => event.currentTarget.select()} />}
     </div>
   );

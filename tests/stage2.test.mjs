@@ -323,3 +323,28 @@ test("Outsiders never receive in-progress or final game details", () => {
     assert.equal(outsider.game, null);
   }
 });
+
+test("Quest cards stay secret during play and are revealed to the game's members once it ends", () => {
+  const room = begin();
+  const evil = room.players.filter(p => ROLES[p.role].side === "evil").map(p => p.seat);
+  const played = [];
+  for (let mission = 0; mission < 3; mission++) {
+    const {team} = playMission(room, 1);
+    played.push({team, failing: evil.filter(seat => team.includes(seat)).slice(0, 1)});
+    if (room.phase !== "finished") {
+      for (const p of room.players) assert.equal(game(room, p.seat).questCards, null, "no card authors while the game is running");
+      assert.ok(!JSON.stringify(view(room, 1)).includes('"card"'));
+    }
+  }
+  assert.equal(room.phase, "finished");
+  for (const p of room.players) {
+    const cards = game(room, p.seat).questCards;
+    assert.equal(cards.length, 3);
+    cards.forEach((quest, index) => {
+      assert.equal(quest.quest, index + 1);
+      assert.deepEqual(quest.cards.map(item => item.seat), [...played[index].team].sort((a, b) => a - b));
+      for (const {seat, card} of quest.cards) assert.equal(card, played[index].failing.includes(seat) ? "fail" : "success");
+    });
+  }
+  assert.equal(roomView(room, "outsider", 1).game, null, "people outside the game see no cards");
+});

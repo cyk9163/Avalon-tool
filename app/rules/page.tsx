@@ -61,7 +61,7 @@ export default async function RulesPage() {
           <li><strong>{t("秘密执行任务")}</strong>{t("队伍通过后，队员秘密提交任务牌。好人只能出成功；邪恶可以选择成功或失败。只公布失败牌的数量，不公布谁出了什么。")}</li>
           <li><strong>{t("五次任务，三胜为止")}</strong>{t("任务结果记在任务轨道上。任意一方先拿到三次，就进入结算；好人三次成功后，邪恶还有一次刺杀机会。")}</li>
         </ol>
-        <p className="doc-callout"><strong>{t("圆桌替你记住一切：")}</strong>{t("谁当过队长、每次表决谁投了什么、每个任务的失败牌数量，都会记在复盘里。任务牌是谁出的，直到游戏结束也不会公开。")}</p>
+        <p className="doc-callout"><strong>{t("圆桌替你记住一切：")}</strong>{t("谁当过队长、每次表决谁投了什么、每个任务的失败牌数量，都会记在复盘里。任务牌是谁出的在对局中保密，游戏结束后才公开，方便复盘。")}</p>
       </section>
 
       <section id="table">

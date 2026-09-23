@@ -1,5 +1,7 @@
 // English entries keyed by the Chinese source text (room).
 export const ROOM: Record<string, string> = {
+  "  出牌：{cards}": "  Cards: {cards}",
+  "{player} {card}": "{player} {card}",
   "提前出刀": "early strike",
   // components/room-progress.tsx
   "入座": "Seats",
@@ -153,7 +155,7 @@ export const ROOM: Record<string, string> = {
   "复制复盘文字": "Copy recap text",
   "下载 .txt": "Download .txt",
   "复盘文件已生成，请在下载中查看。": "Recap file created. Check your downloads.",
-  "包含身份、每次任务和全部表决；不包含谁出了哪张任务牌。房间过期后记录会删除，想留存请现在导出。": "Includes roles, every quest and all votes, but not who played which quest card. The log is deleted when the room expires, so export it now to keep it.",
+  "包含身份、每次任务谁出了哪张牌和全部表决。房间过期后记录会删除，想留存请现在导出。": "Includes roles, who played which card on each quest, and every team vote. Records are deleted when the room expires, so export now to keep them.",
   "复盘文字，可手动全选复制": "Recap text, select all to copy by hand",
 
   // lib/replay.ts (plain-text recap)
@@ -184,7 +186,7 @@ export const ROOM: Record<string, string> = {
   "【组队表决】": "[Team votes]",
   "没有组队记录。": "No team proposals.",
   "任务 {quest} 第 {attempt} 次 · 队长 {leader} · 队员 {team} → {outcome}（赞成 {yes}：{yesSeats}；反对 {no}：{noSeats}）": "Quest {quest}, attempt {attempt} · Leader {leader} · Team {team} → {outcome} (Approve {yes}: {yesSeats}; Reject {no}: {noSeats})",
-  "任务牌只记录成功和失败的张数，不包含谁出了哪张牌。": "Quest cards are recorded only as totals, never who played which card.",
+  "对局中任务牌只公布张数；以上出牌记录在结局后公开，仅本局成员可见。": "During the game only card totals were shown; the cards above were revealed after the game, to this game's players only.",
 
   // lib/board-templates.ts (built-in templates)
   "暗影莫德雷德": "Mordred in shadow",

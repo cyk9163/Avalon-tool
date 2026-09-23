@@ -156,7 +156,7 @@ export function GamePanel({ room, busy, connected, error, act, onNewGame }: Prop
       <div className="sealed-progress"><LockKeyhole size={28} strokeWidth={1.4} aria-hidden="true" /><p className="ballot-count" role="status"><b>{game.submittedQuestCount}</b> / {game.teamSize}<span>{t("任务票已密封")}</span></p></div>
       {onTeam && game.myQuestVote === null ? <button className="primary-button" disabled={blocked} onClick={() => { setCard(null); setBallotOpen(true); }}><LockKeyhole size={18} />{t("私密提交任务票")}</button>
         : <p className="waiting-note" role="status">{onTeam ? t("你的任务票已密封，等待其他队员。") : t("本次无需你投任务票，等待队员完成。")}</p>}
-      <p className="action-note">{t("只公布失败牌总数，不显示谁投了哪张牌。")}</p>
+      <p className="action-note">{t("对局中只公布失败牌总数，结局后才公开谁出了哪张牌。")}</p>
     </div>}
 
     {room.phase === "lake" && game.lake && <div className="game-action lake-action">
@@ -196,8 +196,8 @@ export function GamePanel({ room, busy, connected, error, act, onNewGame }: Prop
         const vote = proposal.votes.find(item => item.seat === player.seat);
         return <td key={player.id} className={vote?.approve ? "vote-yes" : "vote-no"} aria-label={vote?.approve ? t("{n} 号赞成", { n: player.seat }) : t("{n} 号反对", { n: player.seat })}>{vote?.approve ? t("赞成") : t("反对")}</td>;
       })}<td><span className={`history-result ${proposal.approved ? "passed" : "rejected"}`}>{proposal.approved ? t("通过") : t("否决")}</span><small className="history-tally">{t("{yes} 赞成 · {no} 反对", { yes: proposal.votes.filter(vote => vote.approve).length, no: proposal.votes.filter(vote => !vote.approve).length })}</small></td></tr>)}</tbody></table></div></>}
-      {game.quests.length > 0 && <div className="quest-history">{game.quests.map(quest => <div key={quest.quest}><span>{t("任务 {n}", { n: quest.quest })}</span><span>{seatsLabel(quest.team)}</span><strong className={quest.success ? "vote-yes" : "vote-no"}>{quest.success ? t("成功") : t("失败")} · {t("{s} 张成功 · {f} 张失败", { s: quest.team.length - quest.failCount, f: quest.failCount })}</strong></div>)}</div>}
-      <p className="action-note">{t("组队表决公开记录；任务牌仅记录总数，结束后也不会公开个人任务票。")}</p>
+      {game.quests.length > 0 && <div className="quest-history">{game.quests.map(quest => { const cards = game.questCards?.find(item => item.quest === quest.quest)?.cards; return <div key={quest.quest}><span>{t("任务 {n}", { n: quest.quest })}</span><span>{seatsLabel(quest.team)}</span><strong className={quest.success ? "vote-yes" : "vote-no"}>{quest.success ? t("成功") : t("失败")} · {t("{s} 张成功 · {f} 张失败", { s: quest.team.length - quest.failCount, f: quest.failCount })}</strong>{cards && cards.length > 0 && <span className="quest-cards">{cards.map(({ seat, card }) => <span key={seat} className={card === "fail" ? "vote-no" : "vote-yes"}>{t("{n} 号 · {name}：{card}", { n: seat, name: playerName(seat), card: card === "fail" ? t("失败") : t("成功") })}</span>)}</span>}</div>; })}</div>}
+      <p className="action-note">{t("组队表决公开记录；任务牌在对局中只公布总数，结局后公开每个人出的牌。")}</p>
     </details>
 
     <AlertDialog open={!!pending} onOpenChange={open => { if (!open && !busy) setPending(null); }}>

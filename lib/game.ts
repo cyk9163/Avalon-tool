@@ -167,6 +167,9 @@ export interface GameView {
   loyalty: LoyaltyCard[] | null;
   lancelotsSwitched: boolean;
   revealedRoles: { seat: number; role: Role }[] | null;
+  // Who played which quest card. Secret during play; after the game ends it is
+  // shown to this game's members only, alongside the full role reveal (v1.5).
+  questCards: { quest: number; cards: { seat: number; card: QuestCard }[] }[] | null;
 }
 export interface Room {
   code: string;
@@ -422,6 +425,14 @@ function gameView(room: Room, me: Player): GameView | null {
     revealedRoles: room.phase === "finished"
       ? room.players.filter((player): player is Player & { role: Role } => !!player.role)
         .map(({ seat, role }) => ({ seat, role })).sort((a, b) => a.seat - b.seat)
+      : null,
+    // Receipts and results are appended together when a quest resolves, so
+    // they line up one to one.
+    questCards: room.phase === "finished"
+      ? game.quests.map((quest, index) => ({
+        quest: quest.quest,
+        cards: (game.questReceipts[index]?.votes ?? []).map(({ seat, card }) => ({ seat, card })).sort((a, b) => a.seat - b.seat),
+      }))
       : null,
   };
 }

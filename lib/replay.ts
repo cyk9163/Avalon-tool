@@ -56,6 +56,8 @@ export function replayText(room: RoomView, date = new Date(), lang: Lang = "zh")
   if (!game.quests.length) lines.push(t("没有完成的任务。"));
   for (const quest of game.quests) {
     lines.push(t("任务 {quest}：{outcome} · 队员 {team} · {successes} 张成功牌、{fails} 张失败牌", { quest: quest.quest, outcome: quest.success ? t("成功") : t("失败"), team: seats(quest.team), successes: quest.team.length - quest.failCount, fails: quest.failCount }));
+    const cards = game.questCards?.find(item => item.quest === quest.quest)?.cards ?? [];
+    if (cards.length) lines.push(t("  出牌：{cards}", { cards: cards.map(({ seat, card }) => t("{player} {card}", { player: name(seat), card: card === "fail" ? t("失败") : t("成功") })).join(t("、")) }));
   }
 
   lines.push("", t("【组队表决】"));
@@ -69,6 +71,6 @@ export function replayText(room: RoomView, date = new Date(), lang: Lang = "zh")
     }));
   }
 
-  lines.push("", t("任务牌只记录成功和失败的张数，不包含谁出了哪张牌。"));
+  lines.push("", t("对局中任务牌只公布张数；以上出牌记录在结局后公开，仅本局成员可见。"));
   return lines.join("\n") + "\n";
 }

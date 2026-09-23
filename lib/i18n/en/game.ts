@@ -1,5 +1,6 @@
 // English entries keyed by the Chinese source text (game).
 export const GAME: Record<string, string> = {
+  "{n} 号 · {name}：{card}": "#{n} {name}: {card}",
   "对局": "Game",
   "我的身份": "My role",
   "笔记": "Notes",
@@ -124,7 +125,7 @@ export const GAME: Record<string, string> = {
   "私密提交任务票": "Play your card privately",
   "你的任务票已密封，等待其他队员。": "Your card is sealed. Waiting for the rest of the team.",
   "本次无需你投任务票，等待队员完成。": "You're not on this quest. Waiting for the team to finish.",
-  "只公布失败牌总数，不显示谁投了哪张牌。": "Only the number of fail cards is revealed, never who played which card.",
+  "对局中只公布失败牌总数，结局后才公开谁出了哪张牌。": "During the game only the number of fail cards is shown; who played which card is revealed after the game.",
   "任务 {n} 结束后的私密查验": "Private check after quest {n}",
   "湖中仙女正在辨认忠诚。": "The Lady of the Lake is testing loyalty.",
   "查验只会显示阵营，不会显示具体角色。查验后，令牌交给被查验者。": "A check shows only the side, not the exact role. Afterwards the token passes to the player you checked.",
@@ -173,7 +174,7 @@ export const GAME: Record<string, string> = {
   "{n} 号反对": "#{n} rejected",
   "通过": "Approved",
   "否决": "Rejected",
-  "组队表决公开记录；任务牌仅记录总数，结束后也不会公开个人任务票。": "Team votes are public. For quest cards only the total is kept, and individual cards stay secret even after the game.",
+  "组队表决公开记录；任务牌在对局中只公布总数，结局后公开每个人出的牌。": "Team votes are public. During the game only quest card totals are shown; after the game, everyone's cards are revealed.",
   "再想一下": "Go back",
   "正在提交…": "Submitting…",
   "仅你可见": "Only you can see this",

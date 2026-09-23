@@ -69,6 +69,7 @@ function finishedRoom(overrides = {}) {
       lake: {holderSeat: 2, usedSeats: [2], pending: false, myChecks: [{quest: 2, targetSeat: 5, side: "evil"}]},
       publicReveals: [],
       revealedRoles: [{seat: 1, role: "merlin"}, {seat: 2, role: "percival"}, {seat: 3, role: "loyal"}, {seat: 4, role: "assassin"}, {seat: 5, role: "morgana"}],
+      questCards: [{quest: 1, cards: [{seat: 1, card: "success"}, {seat: 2, card: "success"}]}, {quest: 2, cards: [{seat: 2, card: "success"}, {seat: 3, card: "success"}, {seat: 4, card: "fail"}]}],
     },
     ...overrides,
   };
@@ -84,6 +85,7 @@ test("the replay lists result, identities, quests and every vote", () => {
   assert.match(text, /1 号 小明 — 梅林（正义）/);
   assert.match(text, /5 号 大雄 — 莫甘娜（邪恶）/);
   assert.match(text, /任务 2：失败 · 队员 2、3、4 号 · 2 张成功牌、1 张失败牌/);
+  assert.ok(text.includes("任务 2：失败 · 队员 2、3、4 号 · 2 张成功牌、1 张失败牌\n  出牌：2 号 阿花 成功、3 号 老王 成功、4 号 Kiki 失败\n"), "after the game the recap lists who played which card");
   assert.match(text, /任务 1 第 1 次 · 队长 1 号 小明 · 队员 1、2 号 → 通过（赞成 3：1、2、4 号；反对 2：3、5 号）/);
   assert.match(text, /任务 2 第 1 次 .* → 否决（赞成 2：2、5 号；反对 3：1、3、4 号）/);
   assert.ok(!text.includes("123456"), "the room code is not exported");

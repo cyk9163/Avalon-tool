@@ -278,3 +278,6 @@
 .loyalty-card.switch.active { background: #dbc18a1f; }
 .loyalty-track small { font-size: 12px; color: #9fb0aa; line-height: 1.6; }
 .revealed-roles strong small { font-weight: 400; font-size: 11px; margin-left: 4px; }
+/* v1.5: after the game, who played which quest card */
+.quest-cards { display: flex; flex-wrap: wrap; gap: 4px 10px; grid-column: 1 / -1; font-size: 12px; }
+.quest-cards span { white-space: nowrap; }
