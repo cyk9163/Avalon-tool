@@ -120,7 +120,8 @@ export function buildLightTheme() {
 if (process.argv[1]?.endsWith("theme-light.mjs")) {
   const css = buildLightTheme();
   if (process.argv.includes("--check")) {
-    if (readFileSync(OUTPUT, "utf8") !== css) { console.error(`${OUTPUT} is out of date: run npm run theme:build`); process.exit(1); }
+    // Windows checkouts may turn line endings into CRLF.
+    if (readFileSync(OUTPUT, "utf8").replace(/\r\n/g, "\n") !== css) { console.error(`${OUTPUT} is out of date: run npm run theme:build`); process.exit(1); }
     console.log(`${OUTPUT} is up to date`);
   } else {
     writeFileSync(OUTPUT, css);

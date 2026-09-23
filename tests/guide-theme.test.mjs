@@ -51,6 +51,6 @@ test("the light theme flips lightness but keeps hue, alpha and dark shadows", ()
 });
 
 test("app/theme-light.css is generated from the current stylesheets", () => {
-  assert.equal(readFileSync("app/theme-light.css", "utf8"), buildLightTheme(), "run npm run theme:build");
+  assert.equal(readFileSync("app/theme-light.css", "utf8").replace(/\r\n/g, "\n"), buildLightTheme(), "run npm run theme:build");
   assert.ok(!readFileSync("app/theme-light.css", "utf8").includes(".entry-panel"), "the create-room card keeps its own light colours");
 });
