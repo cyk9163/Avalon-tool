@@ -1,6 +1,6 @@
 # 圆桌 · 阿瓦隆助手
 
-面对面玩阿瓦隆的手机网页工具。当前为 v0.6：房主 Key 验证、5–10 人建房、官方预设与自定义板子、扩展角色、湖中仙女、扫码入座、私密身份、完整投票与任务、刺杀、复盘、同房再开、房主移交、移出玩家、中途作废，以及添加到手机主屏幕。
+面对面玩阿瓦隆的手机网页工具。当前为 v0.8：房主 Key 验证、5–10 人建房、官方预设与自定义板子、扩展角色、湖中仙女、扫码入座、私密身份、完整投票与任务、刺杀、复盘、同房再开、房主移交、移出玩家、中途作废、换设备恢复（恢复码或房主批准）、带口令的邀请链接，以及添加到手机主屏幕。v0.7 起具备安全响应头、结构化日志、健康检查、定时清理和完整 CI。
 
 本项目包含完整前后端源码、数据库结构、迁移、测试和部署配置。独立部署到 Cloudflare Workers + D1，不依赖 ChatGPT、Codex 或 Sites 账号；使用时不调用 AI API。
 
@@ -19,6 +19,20 @@
 扩展角色限定 7 人及以上。兰斯洛特采用官方基础玩法：两人互相知道身份与阵营，本版不启用阵营转换变体。疯子必须出失败牌；野蛮人在第四、第五次任务只能出成功牌；揭露者在第二次任务失败后公开；牧师私密得知第一任队长的阵营。自定义板子还可启用湖中仙女，在第 2、3、4 次任务后由当前持有者私密查验一位玩家的阵营，再把令牌交给对方；查验结果只返回给查验者。
 
 信使、游侠、术士与不可信任的仆人属于带专用任务牌或独立结算的高级模块，v0.6 尚未加入。界面不会把未实现的模块列为可用角色。
+
+## 换设备与邀请（v0.8）
+
+- **恢复码**：入座后在「我的身份与圆桌座位」里有「换设备恢复码」，仅本人可见。换手机或浏览器时，在新设备打开房间，点「我本来就在这桌，换了设备」，选原座位并输入恢复码。原设备立即失效，恢复码自动更换。
+- **房主批准**：没记下恢复码时，选择「请房主批准」，新设备会显示 4 位核对码。房主页面顶部出现「换设备请求」和同一核对码，当面核对后批准。为防冒用，原设备会收到提醒并可拒绝，请求发出 60 秒后才能批准。房主自己的座位只能用恢复码恢复。
+- 每次换设备都会在全桌留下公开记录（座位与方式），被替换的设备会看到提示。
+- **邀请口令**：房主分享的二维码／链接带有不可猜的口令，扫码进入可看到昵称；只输入六位房间码也能入座，但看不到昵称。房主移出玩家后口令自动更换。未知房间码的查找按网络限流防止枚举，已入座玩家不受影响。
+
+## 运维与安全基线（v0.7）
+
+- 所有响应带 CSP、HSTS、Referrer-Policy、Permissions-Policy、X-Frame-Options 等安全头：Worker 响应见 `lib/security-headers.ts`，静态文件见 `public/_headers`（测试保证一致）。
+- 接口响应带 `X-Request-Id`，服务端写 JSON 结构化日志（不含 Cookie、Key、恢复码、身份或原始房间码）。玩家报错时的「错误编号」是 request ID 的前 8 位，可在 Cloudflare Workers Logs 中搜索；实时查看用 `npm run cf:tail`。
+- `GET /api/health` 返回版本与数据库状态，可接入免费的外部可用性监控。
+- `wrangler.jsonc` 配置每小时一次的 Cron（`17 * * * *`），分批清理过期房间和限流记录；本地可访问 `http://localhost:5173/cdn-cgi/handler/scheduled` 触发。
 
 ## 换机继续开发
 
@@ -40,16 +54,19 @@ npm run dev
 ## 验证
 
 ```sh
-npm test
+npm run lint        # 0 错误、0 警告
 npm run typecheck
+npm test
+npm run audit:prod  # 生产依赖漏洞审计
 npm run build
+# 或一次执行：npm run verify
 ```
 
 启动本地开发服务器后，另一个终端执行 `npm run test:integration`，覆盖 5/7/10 人并发入房、身份权限、会话恢复、缺失与错误 Key 拦截、完整五人对局、刺杀命中/失手、连续五次否决、重复末票、任务票隐私、并发重开、同房第二局、房主移交、中途作废和移出／发牌冲突。单元测试另外覆盖自定义板子、扩展角色、任务牌限制、揭露者与湖中仙女的隐私边界。集成测试会创建房间，仅允许本地地址；可用环境变量 `AVALON_TEST_URL` 指定地址，默认 http://localhost:5173 。
 
 `npm start` 在本地预览构建产物；它使用与开发服务器相同的本地数据库。
 
-GitHub Actions 已包含单元测试、类型检查和构建，未配置自动上线。
+GitHub Actions 包含两个任务：①lint、类型检查、单元测试、生产依赖审计（阻断）、全量依赖审计（仅报告）、构建；②在本地 D1 上启动开发服务器并运行全部集成测试。未配置自动上线。集成测试还覆盖安全响应头、健康检查、request ID、邀请口令、恢复码和房主批准换设备。
 
 ## 房主 Key
 
@@ -70,7 +87,7 @@ node scripts/host-keys.mjs publish work/my-host-keys.txt
 
 房主展开「房间管理」后，可以选择玩家并移交房主，当前座位、身份和进度均保留，原房主随即失去管理权限。发身份前还可以移出其他玩家，空出座位；这不是封禁，对方可以再次加入。发身份后不能直接移出玩家。
 
-有人离场、无法继续对局时，房主可以选择「中止本局」，确认后作废当前对局，不判胜负、不揭晓身份，清除本局身份和记录。所有人回到未准备的大厅，保留房间码、座位和配置，再移出离场玩家、邀请补位并重新准备。中止不延长房间有效期；旧投票、旧管理请求及重复中止不会影响新局。房主失去设备会话时，其他人不能擅自接管，需要另建房间。
+有人离场、无法继续对局时，房主可以选择「中止本局」，确认后作废当前对局，不判胜负、不揭晓身份，清除本局身份和记录。所有人回到未准备的大厅，保留房间码、座位和配置，再移出离场玩家、邀请补位并重新准备。中止不延长房间有效期；旧投票、旧管理请求及重复中止不会影响新局。房主换设备时使用自己的恢复码回到座位；其他玩家换设备可用恢复码，或由房主当面核实后批准。
 
 点击页面右上角「添加到主屏幕」查看安装步骤。Android 支持的浏览器会提供安装入口，iPhone 可在 Safari 的分享菜单中添加。建议入房前安装；主屏幕应用与浏览器可能不共享玩家会话，已经入房时请继续使用原入口。
 
@@ -87,7 +104,9 @@ npm run db:migrate:remote
 npm run deploy
 ```
 
-`deploy` 会先构建再发布，终端会输出正式的 workers.dev 地址。克隆到新电脑后重新登录同一个 Cloudflare 账号即可继续部署，线上 D1 数据仍保存在 Cloudflare。
+`deploy` 会先构建再发布，然后自动对正式地址运行只读 smoke test（等待 `/api/health` 报告新版本并检查安全头）。也可以单独运行 `npm run smoke`。
+
+出问题时回滚：`npm run cf:deployments` 查看历史版本，`npm run cf:rollback -- <version-id>` 回到指定版本（仅回滚代码，不回滚 D1 数据）。v0.7 起部署会同时注册每小时 Cron 清理任务，免费方案可用。克隆到新电脑后重新登录同一个 Cloudflare 账号即可继续部署，线上 D1 数据仍保存在 Cloudflare。
 
 根目录 `wrangler.jsonc` 保存 Worker 名、账户 ID 和 D1 数据库 ID。这些是资源标识，不是密码，可随源码提交；具有对应账户权限的登录凭据才允许部署或读写线上数据库。
 
@@ -112,7 +131,7 @@ GitHub 保存代码和数据库结构，不保存线上房间记录。房间 24 
 node scripts/wrangler.mjs d1 export DB --remote --config wrangler.jsonc --output backups/avalon.sql
 ```
 
-备份可能包含玩家昵称、身份等数据，`backups/` 已被 Git 忽略。不要上传到公开仓库。玩家身份由浏览器 HttpOnly Cookie 绑定；克隆代码不复制玩家会话，清除 Cookie 后不能仅凭昵称恢复原座位。
+备份可能包含玩家昵称、身份和恢复码等数据，`backups/` 已被 Git 忽略。不要上传到公开仓库。玩家身份由浏览器 HttpOnly Cookie 绑定；克隆代码不复制玩家会话。清除 Cookie 后不能仅凭昵称恢复座位，需要恢复码或房主批准。
 
 ## 放到 GitHub
 
@@ -134,7 +153,11 @@ git push origin main
 - `components/game-panel.tsx`、`app/game.css`：选队、表决、私密任务牌、结局与对局记录。
 - `components/room-management.tsx`、`app/management.css`：房主移交、移出玩家及中途作废。
 - `components/install-app.tsx`、`app/pwa.css`、`public/manifest.webmanifest`、`public/sw.js`：主屏幕安装与断网提示。
-- `app/api/room/route.ts`：房间接口、Cookie 会话、输入校验及访问限制。
+- `app/api/room/route.ts`：房间接口、Cookie 会话、输入校验、访问限制、request ID 与结构化日志。
+- `app/api/health/route.ts`：健康检查。
+- `worker/index.ts`：Worker 入口，添加安全头并运行定时清理；`lib/security-headers.ts`、`public/_headers`、`lib/maintenance.ts`、`lib/log.ts`。
+- `components/device-recovery.tsx`、`components/takeover-requests.tsx`、`app/recovery.css`：恢复码、换设备与房主批准界面。
+- `scripts/smoke.mjs`：部署后只读检查。
 - `lib/host-key.ts`、`scripts/host-keys.mjs`：房主 Key 验证、生成与发布。
 - `HANDOFF.md`：架构、部署凭据边界与新会话交接。
 - `lib/game.ts`：角色配置、发牌、线索投影、游戏操作。

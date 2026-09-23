@@ -6,11 +6,11 @@
 
 - 仓库：[cyk9163/Avalon-tool](https://github.com/cyk9163/Avalon-tool)，主分支 `main`。
 - 正式地址：[圆桌 · 阿瓦隆助手](https://avalon-roundtable.yunkangchen2017.workers.dev)。个人 Cloudflare Workers + D1，保持免费方案，不再部署到 GPT Sites。
-- 当前工作区为 v0.6.0：在 v0.5 界面与房主 Key 基础上，新增自定义板子、六种扩展角色与湖中仙女完整流程。
+- 当前为 v0.8.0：v0.6 的自定义板子与扩展角色之上，v0.7 完成企业级基础治理（lint 清零、安全头、结构化日志、健康检查、Cron 清理、依赖漏洞清零、CI 扩充、部署后 smoke test），v0.8 加入换设备恢复（恢复码／房主批准）与带口令的邀请链接。
 - 交接日期：2026-09-23。规则测试覆盖自定义阵容、扩展身份线索、强制任务牌、揭露者和湖中仙女隐私；每次发布的最终验证结果以 `CHANGELOG.md`、GitHub CI 与交付消息为准。
 - 发布证据入口：[main 最新提交](https://github.com/cyk9163/Avalon-tool/commits/main)、[自动检查](https://github.com/cyk9163/Avalon-tool/actions)、上述正式站点。不能仅凭版本号认定上线；每次交付消息还应给出具体提交与线上验证结果。
 
-现有功能：5–10 人建房、官方预设与自定义板子、扩展角色、湖中仙女、房间码和二维码入座、准备、私密身份及角色线索、选队表决、秘密任务牌、刺杀与结算、公开复盘、同房重开、房主移交、大厅移出玩家、中途作废、主屏幕安装和断网提示。
+现有功能：5–10 人建房、官方预设与自定义板子、扩展角色、湖中仙女、房间码和二维码入座、准备、私密身份及角色线索、选队表决、秘密任务牌、刺杀与结算、公开复盘、同房重开、房主移交、大厅移出玩家、中途作废、换设备恢复（恢复码或房主批准）、邀请口令、主屏幕安装和断网提示。
 
 ## 换机启动
 
@@ -47,7 +47,11 @@ Windows 上若系统的 npm 启动脚本解析出错，可用 `node scripts/run-
 | `components/room-progress.tsx`、`app/progress.css` | 公开阶段轨道与同步状态 |
 | `components/game-panel.tsx`、`app/game.css` | 选队、表决、私密任务牌、刺杀、结果与复盘 |
 | `components/room-management.tsx`、`app/management.css` | 移交、移出和中止确认流程 |
-| `app/api/room/route.ts` | JSON API、Cookie、来源校验、频率限制和建房 Key 验证 |
+| `app/api/room/route.ts` | JSON API、Cookie、来源校验、频率限制、建房 Key 验证、request ID 与结构化日志 |
+| `app/api/health/route.ts` | 健康检查（版本、数据库） |
+| `worker/index.ts`、`lib/security-headers.ts`、`public/_headers` | Worker 入口：安全响应头与 Cron 定时任务 |
+| `lib/maintenance.ts`、`lib/log.ts` | 过期数据分批清理、JSON 日志 |
+| `components/device-recovery.tsx`、`components/takeover-requests.tsx` | 恢复码、换设备请求与房主批准界面 |
 | `lib/host-key.ts`、`scripts/host-keys.mjs` | Key 格式／摘要验证、生成和发布允许列表 |
 | `lib/game.ts` | 规则状态机、权限、幂等重试、面向当前玩家的响应投影 |
 | `lib/room-store.ts` | D1 查询、房间持久化与并发条件更新 |
@@ -67,6 +71,7 @@ Windows 上若系统的 npm 启动脚本解析出错，可用 `node scripts/run-
 - 组队票收齐后才逐人公开；任务牌只公开汇总结果，**结局后仍不能返回任务牌与玩家的关联**。服务端重试回执不可加入客户端响应。
 - `turnId` 隔离提案／任务，`round` 隔离新局，`hostRevision` 隔离房主权限变更。不要为了兼容界面跳过这些服务端校验。
 - Service Worker 只缓存公开断网提示页，不缓存房间页面、API、身份或投票，不自动补发离线操作。
+- 恢复码只投影给本人，换设备请求的设备凭据摘要不进入任何响应；房主座位不能经批准流程接管；批准前有 60 秒等待，原设备可拒绝；核对码用于当面配对；每次换设备写入公开记录。没有邀请口令的局外人看不到昵称，移出玩家会更换口令。本地（回环地址）不计网络限流，集成测试用 `CF-Connecting-IP` 模拟网络。
 
 ## 仓库包含什么
 
@@ -122,7 +127,7 @@ npm run build
 
 本地开发服务器运行时，另开终端执行 `npm run test:integration`。测试只允许本地地址，会创建独立测试房间；默认 http://localhost:5173，可通过 `AVALON_TEST_URL` 覆盖。Key 默认使用上述公开本地测试值，也支持 `AVALON_TEST_HOST_KEY`。不要让集成测试写入正式站点。
 
-GitHub Actions 当前配置单元测试、类型检查和构建，未配置自动上线。此前定向 ESLint 检查记录有 **7 个 error、2 个 warning**，属于原有问题，本次未新增；不要把其他检查通过表述为全仓 lint 已通过。
+GitHub Actions 分两个任务：lint（0 警告）、类型检查、单元测试、生产依赖审计（阻断）、全量审计（仅报告）、构建；以及在本地 D1 上运行全部集成测试。未配置自动上线。v0.7 起全仓 `npm run lint` 为 0 错误 0 警告，`npm audit` 为 0。
 
 后续按 `AGENTS.md` 的既有授权推进，每个可用阶段都完成以下流程：
 
@@ -134,6 +139,8 @@ GitHub Actions 当前配置单元测试、类型检查和构建，未配置自�
 
 普通阶段的推送和上线已获授权，不必重复询问；不要自动开通收费服务或升级套餐。
 
-当前明确限制：房间自创建起 24 小时过期，重开／中止不延长；无永久战绩、导出或换设备恢复。清除 Cookie 或改用另一个浏览器／主屏幕入口可能失去原玩家会话，房主 Key 也不能恢复座位；房主失去会话时需另建房间。
+当前明确限制：房间自创建起 24 小时过期，重开／中止不延长；无永久战绩或导出。清除 Cookie 或改用另一个浏览器／主屏幕入口会失去原会话，需用本人恢复码或由房主批准回到座位；房主座位只接受恢复码。v0.8 之前建立的房间没有恢复码和邀请口令，按旧行为运行至过期。
+
+运维：`/api/health` 为健康检查；错误编号＝request ID 前 8 位，可在 Workers Logs 检索或 `npm run cf:tail` 实时查看；回滚用 `npm run cf:deployments` 与 `npm run cf:rollback -- <version-id>`；每小时 Cron `17 * * * *` 清理过期数据。
 
 下一项实际验收是 iPhone 与 Android 真机聚会测试：先安装再入房，完成身份、表决、任务、锁屏恢复、刷新和同房重开。现有自动化和手机尺寸浏览器检查不能代替这一步。不要把尚未做过的真机验证记为已完成。

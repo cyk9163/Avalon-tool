@@ -4,9 +4,14 @@ on:
   pull_request:
 permissions:
   contents: read
+concurrency:
+  group: verify-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   verify:
+    name: Lint, types, unit tests, audit, build
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -14,6 +19,40 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - run: npm test
+      - run: npm run lint
       - run: npm run typecheck
+      - run: npm test
+      - name: Audit production dependencies (blocking)
+        run: npm audit --omit=dev --audit-level=moderate
+      - name: Audit all dependencies (report only)
+        run: npm audit --audit-level=high
+        continue-on-error: true
       - run: npm run build
+
+  integration:
+    name: Multi-player API integration (local D1)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Prepare public local test configuration
+        run: cp .dev.vars.example .dev.vars
+      - run: npm run db:migrate:local
+      - name: Start local server
+        run: |
+          nohup npm run dev > dev-server.log 2>&1 &
+          for attempt in $(seq 1 60); do
+            if curl -sf http://localhost:5173/api/health > /dev/null; then exit 0; fi
+            sleep 2
+          done
+          cat dev-server.log
+          exit 1
+      - run: npm run test:integration
+      - name: Server log
+        if: failure()
+        run: cat dev-server.log

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Check, ChevronDown, Crown, Settings2, Square, UserMinus } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import type { RoomView } from "@/lib/game";
@@ -41,14 +41,10 @@ export function RoomManagement({ room, busy, connected, error, act }: Props) {
     && pending.input.round === room.round && pending.input.hostRevision === room.hostRevision
     && (!pending.input.targetPlayerId || candidates.some(player => player.id === pending.input.targetPlayerId));
 
-  useEffect(() => {
-    if (targetId && !target) setTargetId(null);
-  }, [targetId, target]);
-
-  // Close stale confirmations immediately when seats, authority or game phase change.
-  useEffect(() => {
-    if (pending && !pendingIsCurrent) setPending(null);
-  }, [pending, pendingIsCurrent]);
+  // Adjust derived UI state during render (not in an effect) so a stale
+  // selection or confirmation never survives a seat, authority or phase change.
+  if (targetId && !target) setTargetId(null);
+  if (pending && !pendingIsCurrent) setPending(null);
 
   function prepare(action: ManagementAction, button: HTMLButtonElement) {
     if (blocked || !isHost || room.phase === "closed") return;

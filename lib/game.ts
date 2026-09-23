@@ -73,6 +73,27 @@ export interface Player {
   ready: boolean;
   confirmed: boolean;
   role?: Role;
+  // Server-only one-time code that moves this seat to a new device. Rooms
+  // created before v0.8 have none. Rotated after every successful recovery.
+  recovery?: string;
+}
+export interface TakeoverRequest {
+  id: string;
+  seat: number;
+  playerId: string;
+  // SHA-256 of the requesting device credential, like Player.key.
+  key: string;
+  createdAt: number;
+  // Four digits shown on the requesting device, the host's list and the seat
+  // owner's device, so the host can match the right phone face to face.
+  verifyCode: string;
+}
+export interface RecoveryRecord {
+  seat: number;
+  method: "code" | "host";
+  at: number;
+  // Server-only receipt so a retried approval is idempotent.
+  requestId?: string;
 }
 export type RoomPhase = "lobby" | "identity" | "ready" | "team" | "vote" | "quest" | "lake" | "assassination" | "finished" | "closed";
 export type QuestCard = "success" | "fail";
@@ -158,7 +179,21 @@ export interface Room {
   requestId: string;
   firstLeader?: number;
   game?: GameState;
+  // v2 rooms (v0.8+) carry an unguessable invite token and recovery codes.
+  schemaVersion?: number;
+  inviteToken?: string;
+  takeovers?: TakeoverRequest[];
+  recoveries?: RecoveryRecord[];
 }
+export const ROOM_SCHEMA_VERSION = 2;
+export const TAKEOVER_TTL_MS = 15 * 60 * 1000;
+// The seat owner's current device is warned and can object during this window;
+// the host cannot approve before it ends. It prevents a host from silently
+// moving another player's seat (and hidden role) to a device of their own.
+export const TAKEOVER_WAIT_MS = 60 * 1000;
+const MAX_TAKEOVERS = 8;
+const MAX_TAKEOVERS_PER_SEAT = 3;
+const MAX_RECOVERY_RECORDS = 20;
 export interface Identity {
   role: Role;
   side: "good" | "evil";
@@ -183,6 +218,16 @@ export interface RoomView {
   expiresAt: number;
   firstLeader: number | null;
   game: GameView | null;
+  // True when an outsider opened the room without the invite link: nicknames
+  // are withheld so a guessed six-digit code reveals nothing personal.
+  namesHidden: boolean;
+  inviteToken: string | null;
+  recoveryCode: string | null;
+  takeoverRequests: { id: string; seat: number; name: string; createdAt: number; approvableAt: number; verifyCode: string }[];
+  myTakeover: { id: string; seat: number; createdAt: number; approvableAt: number; verifyCode: string } | null;
+  // Requests to move *my* seat to another device: shown so I can object.
+  takeoversOfMySeat: { id: string; createdAt: number; approvableAt: number; verifyCode: string }[];
+  recoveries: { seat: number; method: "code" | "host"; at: number }[];
 }
 
 export function randomInt(max: number): number {
@@ -190,6 +235,36 @@ export function randomInt(max: number): number {
   const data = new Uint32Array(1);
   do { crypto.getRandomValues(data); } while (data[0] >= boundary);
   return data[0] % max;
+}
+
+const CODE_ALPHABET = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
+/** Ten characters from a 32-symbol alphabet (50 bits), formatted XXXXX-XXXXX. */
+export function newRecoveryCode(): string {
+  const chars = Array.from({ length: 10 }, () => CODE_ALPHABET[randomInt(CODE_ALPHABET.length)]);
+  return `${chars.slice(0, 5).join("")}-${chars.slice(5).join("")}`;
+}
+export function normalizeRecoveryCode(value: unknown): string | null {
+  if (typeof value !== "string" || value.length > 32) return null;
+  const compact = value.toUpperCase().replace(/[\s-]/g, "");
+  if (!/^[2-9A-HJ-NP-Z]{10}$/.test(compact)) return null;
+  return `${compact.slice(0, 5)}-${compact.slice(5)}`;
+}
+export function newInviteToken(): string {
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
+  return btoa(String.fromCharCode(...bytes)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+/** Compares two secrets without an early exit on the first differing character. */
+export function sameSecret(left: string, right: string): boolean {
+  let difference = left.length ^ right.length;
+  for (let index = 0; index < Math.max(left.length, right.length); index++) {
+    difference |= (left.charCodeAt(index) || 0) ^ (right.charCodeAt(index) || 0);
+  }
+  return difference === 0;
+}
+function activeTakeovers(room: Room, now = Date.now()): TakeoverRequest[] {
+  // A request lapses when it expires, or when that player left or changed seat.
+  return (room.takeovers ?? []).filter(request => now - request.createdAt < TAKEOVER_TTL_MS &&
+    room.players.some(player => player.id === request.playerId && player.seat === request.seat));
 }
 
 export function shuffle<T>(input: T[]): T[] {
@@ -326,8 +401,14 @@ function gameView(room: Room, me: Player): GameView | null {
   };
 }
 
-export function roomView(room: Room, key: string, version: number): RoomView {
+export function roomView(room: Room, key: string, version: number, invite?: string | null): RoomView {
   const me = room.players.find(player => player.key === key);
+  const isHost = !!me && me.id === room.hostId;
+  // Legacy rooms (no token) keep their previous behaviour for their last hours.
+  const invited = !room.inviteToken || (typeof invite === "string" && sameSecret(invite, room.inviteToken));
+  const namesHidden = !me && !invited;
+  const takeovers = activeTakeovers(room);
+  const mine = me ? undefined : takeovers.find(request => request.key === key);
   return {
     code: room.code,
     round: room.round ?? 1,
@@ -341,13 +422,24 @@ export function roomView(room: Room, key: string, version: number): RoomView {
     resetReason: room.resetReason ?? null,
     version,
     players: room.players.map(({ id, name, seat, ready, confirmed }) => ({
-      id, name, seat, ready, confirmed,
+      id, name: namesHidden ? "" : name, seat, ready, confirmed,
     })).sort((a, b) => a.seat - b.seat),
     meId: me?.id ?? null,
     identity: me ? identityFor(room, me) : null,
     expiresAt: room.expiresAt,
     firstLeader: room.firstLeader ?? null,
     game: me ? gameView(room, me) : null,
+    namesHidden,
+    inviteToken: me ? room.inviteToken ?? null : null,
+    recoveryCode: me?.recovery ?? null,
+    takeoverRequests: isHost ? takeovers.map(({ id, seat, createdAt, verifyCode }) => ({
+      id, seat, createdAt, approvableAt: createdAt + TAKEOVER_WAIT_MS, verifyCode,
+      name: room.players.find(player => player.seat === seat)?.name ?? "",
+    })).sort((a, b) => a.createdAt - b.createdAt) : [],
+    myTakeover: mine ? { id: mine.id, seat: mine.seat, createdAt: mine.createdAt, approvableAt: mine.createdAt + TAKEOVER_WAIT_MS, verifyCode: mine.verifyCode } : null,
+    takeoversOfMySeat: me ? takeovers.filter(request => request.playerId === me.id)
+      .map(({ id, createdAt, verifyCode }) => ({ id, createdAt, approvableAt: createdAt + TAKEOVER_WAIT_MS, verifyCode })) : [],
+    recoveries: (room.recoveries ?? []).map(({ seat, method, at }) => ({ seat, method, at })),
   };
 }
 
@@ -713,7 +805,11 @@ function manageRoom(room: Room, me: Player, action: string, input: Record<string
   if (action === "kick") {
     // IDs survive seat changes but are replaced on rejoining, so retrying a kick
     // cannot remove a new occupant who took the same seat.
-    if (target) room.players = room.players.filter(player => player.id !== targetId);
+    if (target) {
+      room.players = room.players.filter(player => player.id !== targetId);
+      // A removed stranger keeps no access: issue a fresh invite link.
+      if (room.inviteToken) room.inviteToken = newInviteToken();
+    }
     return;
   }
   if (!target) throw new GameError("这位玩家已离开房间，请刷新后重试。 ");
@@ -723,8 +819,92 @@ function manageRoom(room: Room, me: Player, action: string, input: Record<string
   room.hostRevision = revision;
 }
 
+function readSeat(room: Room, value: unknown): number {
+  const seat = Number(value);
+  if (!Number.isInteger(seat) || seat < 1 || seat > room.capacity) throw new GameError("请选择有效的座位。", 400);
+  return seat;
+}
+
+function recordRecovery(room: Room, player: Player, key: string, method: "code" | "host", requestId?: string): void {
+  player.key = key;
+  player.recovery = newRecoveryCode();
+  room.takeovers = (room.takeovers ?? []).filter(request => request.seat !== player.seat && request.key !== key);
+  room.recoveries = [...(room.recoveries ?? []), { seat: player.seat, method, at: Date.now(), ...(requestId ? { requestId } : {}) }]
+    .slice(-MAX_RECOVERY_RECORDS);
+}
+
+// Moves an existing seat to a new device. Nobody else's hidden information is
+// touched, and the previous device loses access immediately.
+function deviceRecovery(room: Room, me: Player | undefined, key: string, action: string, input: Record<string, unknown>): void {
+  if (room.phase === "closed") throw new GameError("房间已关闭。", 410);
+  if (action === "takeover-cancel") {
+    room.takeovers = (room.takeovers ?? []).filter(request => request.key !== key);
+    return;
+  }
+  if (action === "takeover-reject") {
+    // The seat's current device objects to a request for its own seat.
+    if (!me) throw new GameError("请先加入房间。", 403);
+    const requestId = requireTargetPlayerId(input.requestId);
+    room.takeovers = (room.takeovers ?? []).filter(request => !(request.id === requestId && request.playerId === me.id));
+    return;
+  }
+  if (action === "recover" || action === "takeover-request") {
+    const seat = readSeat(room, input.seat);
+    if (me) {
+      if (me.seat === seat) return; // A retry after a successful recovery.
+      throw new GameError(`这台设备已在 ${me.seat} 号座位，无需恢复。`);
+    }
+    const target = room.players.find(player => player.seat === seat);
+    if (!target) throw new GameError("这个座位目前没有玩家，可以直接入座。 ");
+    if (action === "recover") {
+      const code = normalizeRecoveryCode(input.recoveryCode);
+      if (!code) throw new GameError("恢复码格式不正确，应为 10 位字母和数字。", 400);
+      if (!target.recovery || !sameSecret(code, target.recovery)) throw new GameError("恢复码不正确，或已经使用过。", 403);
+      recordRecovery(room, target, key, "code");
+      return;
+    }
+    if (target.id === room.hostId) throw new GameError("房主的座位只能使用恢复码恢复；也可以先由其他设备上的房主移交权限。", 403);
+    const pending = activeTakeovers(room);
+    const existing = pending.find(request => request.key === key);
+    if (existing?.seat === seat) return;
+    const others = pending.filter(request => request.key !== key);
+    if (others.length >= MAX_TAKEOVERS || others.filter(request => request.seat === seat).length >= MAX_TAKEOVERS_PER_SEAT) {
+      throw new GameError("待处理的换设备请求过多，请稍后再试。", 429);
+    }
+    const verifyCode = String(1000 + randomInt(9000));
+    room.takeovers = [...others, { id: crypto.randomUUID(), seat, playerId: target.id, key, createdAt: Date.now(), verifyCode }];
+    return;
+  }
+  // takeover-approve / takeover-deny: host only, bound to the current authority.
+  if (!me || room.hostId !== me.id) throw new GameError("只有房主可以处理换设备请求。", 403);
+  if (requireHostRevision(input.hostRevision) !== (room.hostRevision ?? 0)) {
+    throw new GameError("房主权限已发生变化，请刷新后重试。 ");
+  }
+  const requestId = requireTargetPlayerId(input.requestId);
+  const request = activeTakeovers(room).find(item => item.id === requestId);
+  if (action === "takeover-deny") {
+    room.takeovers = (room.takeovers ?? []).filter(item => item.id !== requestId);
+    return;
+  }
+  if (!request) {
+    if ((room.recoveries ?? []).some(record => record.requestId === requestId)) return;
+    throw new GameError("这个请求已过期或已处理，请刷新后重试。 ");
+  }
+  const target = room.players.find(player => player.id === request.playerId && player.seat === request.seat);
+  if (!target) throw new GameError("这个座位已经变化，请让对方重新发起请求。 ");
+  if (target.id === room.hostId) throw new GameError("房主的座位只能使用恢复码恢复。", 403);
+  if (room.players.some(player => player.key === request.key)) throw new GameError("这台设备已经在圆桌上。 ");
+  const wait = request.createdAt + TAKEOVER_WAIT_MS - Date.now();
+  if (wait > 0) throw new GameError(`为了让原设备有机会拒绝，请在 ${Math.ceil(wait / 1000)} 秒后再批准。`);
+  recordRecovery(room, target, request.key, "host", request.id);
+}
+
 export function mutateRoom(room: Room, key: string, action: string, input: Record<string, unknown>): void {
   const me = room.players.find(player => player.key === key);
+  if (["recover", "takeover-request", "takeover-cancel", "takeover-reject", "takeover-approve", "takeover-deny"].includes(action)) {
+    deviceRecovery(room, me, key, action, input);
+    return;
+  }
   if (["kick", "transfer-host", "abort"].includes(action)) {
     if (!me) throw new GameError("请先加入房间。", 403);
     manageRoom(room, me, action, input);
@@ -745,7 +925,9 @@ export function mutateRoom(room: Room, key: string, action: string, input: Recor
     }
     if (room.players.some(player => player.seat === seat)) throw new GameError("这个座位刚被占用，请换一个。 ");
     if (room.players.length >= room.capacity) throw new GameError("房间已满。 ");
-    room.players.push({ id: crypto.randomUUID(), key, name, seat, ready: false, confirmed: false });
+    room.players.push({ id: crypto.randomUUID(), key, name, seat, ready: false, confirmed: false,
+      ...(room.schemaVersion ? { recovery: newRecoveryCode() } : {}) });
+    room.takeovers = (room.takeovers ?? []).filter(request => request.key !== key);
     return;
   }
   if (!me) throw new GameError("请先加入房间。", 403);

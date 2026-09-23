@@ -1,0 +1,91 @@
+/* v0.8 device recovery, invite and takeover UI. */
+.membership-notice.dismissible { display: flex; align-items: flex-start; gap: 12px; }
+.membership-notice.dismissible p { flex: 1; }
+.membership-notice.dismissible button {
+  flex-shrink: 0; width: 28px; height: 28px; border: 0; border-radius: 7px;
+  background: transparent; color: var(--muted-foreground); font-size: 18px; line-height: 1;
+}
+.membership-notice.dismissible button:hover { background: #ffffff10; color: var(--foreground); }
+
+.recovery-card h3 { display: inline-flex; align-items: center; gap: 7px; }
+.recovery-code-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 14px 0 4px; }
+.recovery-code {
+  flex: 1 1 150px; min-width: 0; padding: 10px 12px; border: 1px dashed #4a655e; border-radius: 9px;
+  background: #102125; color: var(--primary); font: 600 16px/1.4 ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  letter-spacing: 2px; text-align: center; user-select: all;
+}
+.recovery-code.masked { color: var(--muted-foreground); letter-spacing: 3px; user-select: none; }
+.icon-text-button {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 8px 12px;
+  border: 1px solid var(--border); border-radius: 9px; background: var(--surface-raised);
+  color: #d5ddd3; font-size: 13px;
+}
+.icon-text-button:hover { border-color: #6e8476; color: var(--foreground); }
+.icon-text-button:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+.seat-recovery-toggle { margin-top: 16px; }
+.seat-recovery {
+  display: grid; gap: 16px; margin-top: 18px; padding: 18px; border: 1px solid var(--border);
+  border-radius: 12px; background: #102125;
+}
+.seat-recovery-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--foreground); }
+.seat-recovery .icon-button.small { min-width: 36px; min-height: 36px; }
+.seat-recovery fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
+.seat-recovery legend { margin-bottom: 10px; color: #d5ddd3; font-size: 13px; }
+.seat-recovery-seats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+.seat-recovery-seats button {
+  display: grid; gap: 2px; justify-items: center; min-height: 48px; padding: 6px 4px; border: 1px solid var(--border);
+  border-radius: 9px; background: var(--surface-raised); color: #e0e9dd; font-weight: 600; font-size: 15px;
+}
+.seat-recovery-seats button small { max-width: 100%; overflow: hidden; color: var(--muted-foreground); font-size: 10px; font-weight: 400; text-overflow: ellipsis; white-space: nowrap; }
+.seat-recovery-seats button.selected, .seat-recovery-methods button.selected { border-color: var(--primary); background: #dbc18a1c; color: var(--primary); }
+.seat-recovery-methods { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.seat-recovery-methods button {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 44px; padding: 8px;
+  border: 1px solid var(--border); border-radius: 9px; background: var(--surface-raised); color: #d5ddd3; font-size: 13px;
+}
+.seat-recovery-seats button:focus-visible, .seat-recovery-methods button:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.recovery-input { font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; letter-spacing: 2px; text-transform: uppercase; }
+.seat-recovery.waiting { display: flex; gap: 14px; align-items: flex-start; }
+.seat-recovery.waiting strong { color: var(--foreground); }
+.seat-recovery.waiting p { margin: 6px 0 4px; color: var(--muted-foreground); font-size: 13px; line-height: 1.8; }
+.seat-recovery-icon { display: grid; place-items: center; width: 36px; height: 36px; flex-shrink: 0; border-radius: 9px; background: #dbc18a1c; color: var(--primary); }
+
+.takeover-requests {
+  margin: 0 0 20px; padding: 18px 20px; border: 1px solid #8b7447; border-radius: 14px;
+  background: linear-gradient(180deg, #dbc18a14, #dbc18a08);
+}
+.takeover-heading { display: flex; align-items: center; gap: 9px; color: var(--primary); }
+.takeover-heading small { margin-left: auto; color: var(--muted-foreground); font-size: 11px; }
+.takeover-item { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; padding-top: 14px; border-top: 1px solid #8b744755; }
+.takeover-item p { flex: 1 1 240px; margin: 0; color: #d5ddd3; font-size: 14px; line-height: 1.8; }
+.takeover-item strong { color: var(--foreground); }
+.takeover-actions { display: flex; gap: 8px; }
+.takeover-actions .primary-button, .takeover-actions .secondary-button { width: auto; min-height: 44px; padding: 9px 15px; }
+
+@media (max-width: 520px) {
+  .seat-recovery { padding: 14px; }
+  .takeover-heading small { display: none; }
+  .takeover-actions { width: 100%; }
+  .takeover-actions > * { flex: 1; }
+}
+
+/* On phones .room-side uses display: contents with explicit grid rows;
+   the recovery card takes its own row after the line-up card. */
+@media (max-width: 720px) {
+  .config-card.recovery-card { grid-row: 4; }
+}
+
+/* Keep the host tools visually separate from the seat details above them. */
+.room-details + .room-management, .room-page > .room-management { margin-top: 20px; }
+
+.takeover-code { display: inline-flex; align-items: baseline; gap: 6px; margin-left: 8px; color: var(--muted-foreground); font-size: 12px; }
+.takeover-code b { color: var(--primary); font: 700 17px/1 ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; letter-spacing: 3px; }
+.takeover-code.large { display: flex; margin: 10px 0 2px; font-size: 13px; }
+.takeover-code.large b { font-size: 26px; letter-spacing: 6px; }
+.takeover-hint { display: block; margin-top: 4px; color: var(--muted-foreground); font-size: 12px; line-height: 1.7; }
+.takeover-alert { border-color: #a0564c; background: linear-gradient(180deg, #e9a59c1c, #e9a59c0a); }
+.takeover-alert .takeover-heading { color: var(--danger); }
+.takeover-alert .takeover-item { border-top-color: #a0564c55; }
+.takeover-alert b { color: var(--foreground); letter-spacing: 2px; }
+.primary-button.danger { border-color: var(--destructive); background: var(--destructive); color: #fff4f1; }

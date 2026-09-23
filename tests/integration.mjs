@@ -61,4 +61,5 @@ for(const capacity of [5,7,10]){
 await import("./stage2-integration.mjs");
 await import("./stage3-integration.mjs");
 await import("./management-integration.mjs");
+await import("./v08-integration.mjs");
 console.log("All integration checks passed (test rooms expire automatically).");

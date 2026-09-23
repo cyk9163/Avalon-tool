@@ -2,12 +2,14 @@
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "avalon-roundtable",
   "account_id": "cb9ca21c5a9391eeb983369d4cd70db7",
-  "main": "vinext/server/fetch-handler",
+  "main": "./worker/index.ts",
   "compatibility_date": "2026-05-15",
   "compatibility_flags": ["nodejs_compat"],
   "workers_dev": true,
   "preview_urls": false,
   "observability": { "enabled": true },
+  // Hourly cleanup of expired rooms and rate-limit buckets (free plan allows cron triggers).
+  "triggers": { "crons": ["17 * * * *"] },
   "d1_databases": [
     {
       "binding": "DB",

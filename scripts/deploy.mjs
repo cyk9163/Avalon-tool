@@ -4,6 +4,8 @@ import { projectRoot } from "./cloudflare-env.mjs";
 for (const args of [
   ["scripts/run-framework.mjs", "build"],
   ["scripts/wrangler.mjs", "deploy", "--config", "dist/server/wrangler.json"],
+  // Post-deploy smoke test against the production URL (read-only).
+  ["scripts/smoke.mjs"],
 ]) {
   const result = spawnSync(process.execPath, args, { cwd: projectRoot, stdio: "inherit" });
   if (result.error) throw result.error;

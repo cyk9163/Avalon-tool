@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { Download, Smartphone } from "lucide-react";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
@@ -9,29 +9,41 @@ type InstallPrompt = Event & {
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 };
 
+const STANDALONE_QUERY = "(display-mode: standalone)";
+function subscribeDisplayMode(onChange: () => void) {
+  const query = window.matchMedia(STANDALONE_QUERY);
+  query.addEventListener("change", onChange);
+  return () => query.removeEventListener("change", onChange);
+}
+function isStandalone() {
+  return window.matchMedia(STANDALONE_QUERY).matches || !!(navigator as Navigator & { standalone?: boolean }).standalone;
+}
+function isIos() {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+}
+const noopSubscribe = () => () => {};
+const serverFalse = () => false;
+
 export function InstallApp() {
   const [open, setOpen] = useState(false);
-  const [installed, setInstalled] = useState(false);
-  const [ios, setIos] = useState(false);
+  // Browser-only facts are read through external stores: the server renders
+  // the neutral state and the client updates without a cascading effect.
+  const standalone = useSyncExternalStore(subscribeDisplayMode, isStandalone, serverFalse);
+  const ios = useSyncExternalStore(noopSubscribe, isIos, serverFalse);
+  const [justInstalled, setJustInstalled] = useState(false);
+  const installed = standalone || justInstalled;
   const [prompt, setPrompt] = useState<InstallPrompt | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    const displayMode = window.matchMedia("(display-mode: standalone)");
-    const standalone = () => displayMode.matches || !!(navigator as Navigator & { standalone?: boolean }).standalone;
-    const detectDisplay = () => setInstalled(standalone());
-    detectDisplay();
-    setIos(/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1));
-
     const capture = (event: Event) => {
       event.preventDefault();
       setPrompt(event as InstallPrompt);
     };
-    const complete = () => { setInstalled(true); setPrompt(null); setOpen(false); };
+    const complete = () => { setJustInstalled(true); setPrompt(null); setOpen(false); };
     window.addEventListener("beforeinstallprompt", capture);
     window.addEventListener("appinstalled", complete);
-    displayMode.addEventListener("change", detectDisplay);
 
     // Development uses HMR. Keep it outside service-worker control.
     if (process.env.NODE_ENV === "production" && "serviceWorker" in navigator) {
@@ -43,7 +55,6 @@ export function InstallApp() {
     return () => {
       window.removeEventListener("beforeinstallprompt", capture);
       window.removeEventListener("appinstalled", complete);
-      displayMode.removeEventListener("change", detectDisplay);
     };
   }, []);
 

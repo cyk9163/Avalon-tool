@@ -197,7 +197,11 @@ test("Abort is permitted only during an active game and increments the round wit
     for (const field of ["code", "capacity", "preset", "hostId", "createdAt", "expiresAt", "requestId"]) {
       assert.equal(room[field], before[field]);
     }
-    assert.deepEqual(room.players, before.players.map(({role, ...player}) => ({...player, ready: false, confirmed: false})));
+    assert.deepEqual(room.players, before.players.map(player => {
+    const withoutRole = {...player};
+    delete withoutRole.role;
+    return {...withoutRole, ready: false, confirmed: false};
+  }));
     assert.equal(room.game, undefined);
     assert.equal(room.firstLeader, undefined);
     for (const player of room.players) {
