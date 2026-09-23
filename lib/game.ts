@@ -1,13 +1,20 @@
-export type Role = "merlin" | "percival" | "loyal" | "assassin" | "morgana" | "mordred" | "oberon" | "minion";
-export type Preset = "classic" | "basic" | "mist" | "full";
+export type Role = "merlin" | "percival" | "loyal" | "goodLancelot" | "cleric" |
+  "assassin" | "morgana" | "mordred" | "oberon" | "evilLancelot" | "lunatic" | "brute" | "revealer" | "minion";
+export type Preset = "classic" | "basic" | "mist" | "full" | "custom";
 export const ROLES: Record<Role, { name: string; side: "good" | "evil"; description: string }> = {
   merlin: { name: "梅林", side: "good", description: "引导好人完成任务，同时隐藏自己。三次任务成功后，仍要躲过刺客的刺杀。" },
   percival: { name: "派西维尔", side: "good", description: "你看见梅林的候选人，但莫甘娜也可能混在其中。保护真正的梅林。" },
   loyal: { name: "亚瑟的忠臣", side: "good", description: "你没有额外的身份线索。通过讨论与投票，找到值得信任的同伴。" },
+  goodLancelot: { name: "正义兰斯洛特", side: "good", description: "你知道邪恶兰斯洛特是谁。你仍属于正义阵营，只能提交成功牌。" },
+  cleric: { name: "牧师", side: "good", description: "你知道第一任队长属于正义还是邪恶阵营。用这条线索判断开局风向。" },
   assassin: { name: "刺客", side: "evil", description: "隐藏在队伍中阻挠任务。好人完成三次任务后，你有一次刺杀梅林的机会。" },
   morgana: { name: "莫甘娜", side: "evil", description: "在派西维尔眼中，你与梅林无法区分。利用这一点隐藏自己。" },
   mordred: { name: "莫德雷德", side: "evil", description: "梅林无法看见你的邪恶身份，但其他邪恶同伴认识你（奥伯伦除外）。" },
   oberon: { name: "奥伯伦", side: "evil", description: "你与其他邪恶同伴互不相识，但梅林能看见你的邪恶身份。" },
+  evilLancelot: { name: "邪恶兰斯洛特", side: "evil", description: "你知道正义兰斯洛特是谁，也认识除奥伯伦外的邪恶同伴。你可以让任务失败。" },
+  lunatic: { name: "疯子", side: "evil", description: "只要参加任务，你必须提交失败牌。你的冲动可能让身份更容易暴露。" },
+  brute: { name: "野蛮人", side: "evil", description: "前三次任务可以提交成功或失败牌；第四、第五次任务只能提交成功牌。" },
+  revealer: { name: "揭露者", side: "evil", description: "第二次任务失败后，你的身份会向所有玩家公开。公开前仍可正常提交任务牌。" },
   minion: { name: "莫德雷德的爪牙", side: "evil", description: "与邪恶同伴合作，让任务失败，并保护刺客找到梅林。" },
 };
 export const PRESETS: Record<Preset, { name: string; hint: string; minimum: number }> = {
@@ -15,13 +22,35 @@ export const PRESETS: Record<Preset, { name: string; hint: string; minimum: numb
   basic: { name: "基础局", hint: "梅林、刺客，适合初次入局", minimum: 5 },
   mist: { name: "迷雾局", hint: "经典局加入莫德雷德 · 7 人起", minimum: 7 },
   full: { name: "全角色局", hint: "加入莫德雷德与奥伯伦 · 10 人", minimum: 10 },
+  custom: { name: "自定义板子", hint: "自由选择官方角色与湖中仙女", minimum: 5 },
 };
 export const EVIL_COUNTS: Record<number, number> = { 5: 2, 6: 2, 7: 3, 8: 3, 9: 3, 10: 4 };
-export function rolePool(capacity: number, preset: Preset): Role[] {
+export const CUSTOM_GOOD_ROLES: readonly Role[] = ["merlin", "percival", "goodLancelot", "cleric"];
+export const CUSTOM_EVIL_ROLES: readonly Role[] = ["assassin", "morgana", "mordred", "oberon", "evilLancelot", "lunatic", "brute", "revealer"];
+export function validateCustomRoles(capacity: number, input: unknown): Role[] {
+  if (!Number.isInteger(capacity) || !(capacity in EVIL_COUNTS) || !Array.isArray(input) || input.length !== capacity ||
+      input.some(role => typeof role !== "string" || !Object.hasOwn(ROLES, role))) {
+    throw new GameError("自定义板子的角色数量或角色名称无效。", 400);
+  }
+  const roles = [...input] as Role[];
+  const evilCount = roles.filter(role => ROLES[role].side === "evil").length;
+  if (evilCount !== EVIL_COUNTS[capacity]) throw new GameError(`本局需要 ${capacity - EVIL_COUNTS[capacity]} 位正义与 ${EVIL_COUNTS[capacity]} 位邪恶角色。`, 400);
+  for (const role of [...CUSTOM_GOOD_ROLES, ...CUSTOM_EVIL_ROLES]) {
+    if (roles.filter(item => item === role).length > 1) throw new GameError(`${ROLES[role].name}只能加入一位。`, 400);
+  }
+  if (!roles.includes("merlin") || !roles.includes("assassin")) throw new GameError("当前对局流程需要保留梅林与刺客。", 400);
+  if (roles.includes("morgana") && !roles.includes("percival")) throw new GameError("莫甘娜需要与派西维尔同时加入。", 400);
+  if (roles.includes("goodLancelot") !== roles.includes("evilLancelot")) throw new GameError("正义与邪恶兰斯洛特必须成对加入。", 400);
+  const expanded = roles.some(role => ["goodLancelot", "evilLancelot", "cleric", "lunatic", "brute", "revealer"].includes(role));
+  if (expanded && capacity < 7) throw new GameError("扩展角色限定在 7 人及以上的自定义板子中。", 400);
+  return roles;
+}
+export function rolePool(capacity: number, preset: Preset, customRoles?: unknown): Role[] {
   if (!Number.isInteger(capacity) || !(capacity in EVIL_COUNTS) ||
       !Object.hasOwn(PRESETS, preset) || capacity < PRESETS[preset].minimum) {
     throw new GameError("人数或角色配置无效。", 400);
   }
+  if (preset === "custom") return validateCustomRoles(capacity, customRoles);
   const good: Role[] = ["merlin"], evil: Role[] = ["assassin"];
   if (preset !== "basic") {
     good.push("percival");
@@ -45,7 +74,7 @@ export interface Player {
   confirmed: boolean;
   role?: Role;
 }
-export type RoomPhase = "lobby" | "identity" | "ready" | "team" | "vote" | "quest" | "assassination" | "finished" | "closed";
+export type RoomPhase = "lobby" | "identity" | "ready" | "team" | "vote" | "quest" | "lake" | "assassination" | "finished" | "closed";
 export type QuestCard = "success" | "fail";
 export interface TeamProposal {
   id: string;
@@ -81,6 +110,13 @@ interface GameState {
   // These receipts are server-only. At most five missions can finish in a game.
   // Keeping them makes the last submitted card safe to retry after a transition.
   questReceipts: { turnId: string; votes: { seat: number; card: QuestCard }[] }[];
+  lake?: {
+    holderSeat: number;
+    usedSeats: number[];
+    pending: boolean;
+    checks: { turnId: string; quest: number; viewerSeat: number; targetSeat: number; side: "good" | "evil" }[];
+  };
+  publicReveals?: { seat: number; role: Role }[];
 }
 export interface GameView {
   quest: number;
@@ -94,9 +130,12 @@ export interface GameView {
   myTeamVote: boolean | null;
   submittedQuestCount: number;
   myQuestVote: QuestCard | null;
+  allowedQuestCards: QuestCard[];
   proposals: TeamProposal[];
   quests: QuestResult[];
   result: GameResult | null;
+  lake: { holderSeat: number; usedSeats: number[]; pending: boolean; myChecks: { quest: number; targetSeat: number; side: "good" | "evil" }[] } | null;
+  publicReveals: { seat: number; role: Role }[];
   revealedRoles: { seat: number; role: Role }[] | null;
 }
 export interface Room {
@@ -105,6 +144,8 @@ export interface Room {
   round?: number;
   capacity: number;
   preset: Preset;
+  customRoles?: Role[];
+  ladyOfLake?: boolean;
   phase: RoomPhase;
   hostId: string;
   hostRevision?: number;
@@ -129,6 +170,8 @@ export interface RoomView {
   round: number;
   capacity: number;
   preset: Preset;
+  roles: Role[];
+  ladyOfLake: boolean;
   phase: RoomPhase;
   hostId: string;
   hostRevision: number;
@@ -180,6 +223,20 @@ export function identityFor(room: Room, me: Player): Identity | null {
     known = room.players.filter(player => player.role === "merlin" || player.role === "morgana")
       .map(player => ({ seat: player.seat, name: player.name, label: "梅林候选" }));
     note = "这些人中有梅林；如果本局有莫甘娜，她也会出现在这里。你无法直接区分。";
+  } else if (me.role === "goodLancelot" || me.role === "evilLancelot") {
+    const counterpart = me.role === "goodLancelot" ? "evilLancelot" : "goodLancelot";
+    known = room.players.filter(player => player.role === counterpart)
+      .map(player => ({ seat: player.seat, name: player.name, label: me.role === "goodLancelot" ? "邪恶兰斯洛特" : "正义兰斯洛特" }));
+    if (me.role === "evilLancelot") {
+      known.push(...room.players.filter(player => player.id !== me.id && player.role &&
+        ROLES[player.role].side === "evil" && player.role !== "oberon" && player.role !== "evilLancelot")
+        .map(player => ({ seat: player.seat, name: player.name, label: "邪恶同伴" })));
+    }
+    note = "两位兰斯洛特互相知道身份与阵营；本局不使用阵营转换变体。";
+  } else if (me.role === "cleric") {
+    const leader = room.players.find(player => player.seat === room.firstLeader);
+    if (leader?.role) known = [{ seat: leader.seat, name: leader.name, label: ROLES[leader.role].side === "good" ? "第一任队长是正义" : "第一任队长是邪恶" }];
+    note = "你只知道第一任队长的阵营，不知道其具体角色。";
   } else if (ROLES[me.role].side === "evil" && me.role !== "oberon") {
     known = room.players.filter(player => player.id !== me.id && player.role &&
       ROLES[player.role].side === "evil" && player.role !== "oberon")
@@ -189,6 +246,17 @@ export function identityFor(room: Room, me: Player): Identity | null {
     note = "你不知道其他邪恶同伴是谁，他们也不认识你。梅林能看见你。";
   }
   return { role: me.role, side: ROLES[me.role].side, known: known.sort((a, b) => a.seat - b.seat), note };
+}
+
+export function roomRoles(room: Pick<Room, "capacity" | "preset" | "customRoles">): Role[] {
+  return rolePool(room.capacity, room.preset, room.customRoles);
+}
+
+function allowedQuestCards(me: Player, quest: number): QuestCard[] {
+  if (!me.role || ROLES[me.role].side === "good") return ["success"];
+  if (me.role === "lunatic") return ["fail"];
+  if (me.role === "brute" && quest > 3) return ["success"];
+  return ["success", "fail"];
 }
 const TEAM_SIZES: Record<number, readonly number[]> = {
   5: [2, 3, 2, 3, 3],
@@ -225,6 +293,7 @@ function gameView(room: Room, me: Player): GameView | null {
     myTeamVote: game.teamVotes[me.seat] ?? null,
     submittedQuestCount: Object.keys(game.questVotes).length,
     myQuestVote: room.phase === "quest" ? game.questVotes[me.seat] ?? null : null,
+    allowedQuestCards: allowedQuestCards(me, game.quest),
     proposals: game.proposals.map(proposal => ({
       id: proposal.id,
       quest: proposal.quest,
@@ -242,6 +311,14 @@ function gameView(room: Room, me: Player): GameView | null {
       reason: game.result.reason,
       ...(game.result.targetSeat !== undefined ? { targetSeat: game.result.targetSeat } : {}),
     } : null,
+    lake: game.lake ? {
+      holderSeat: game.lake.holderSeat,
+      usedSeats: [...game.lake.usedSeats],
+      pending: game.lake.pending,
+      myChecks: game.lake.checks.filter(check => check.viewerSeat === me.seat)
+        .map(({ quest, targetSeat, side }) => ({ quest, targetSeat, side })),
+    } : null,
+    publicReveals: (game.publicReveals ?? []).map(({ seat, role }) => ({ seat, role })),
     revealedRoles: room.phase === "finished"
       ? room.players.filter((player): player is Player & { role: Role } => !!player.role)
         .map(({ seat, role }) => ({ seat, role })).sort((a, b) => a.seat - b.seat)
@@ -256,6 +333,8 @@ export function roomView(room: Room, key: string, version: number): RoomView {
     round: room.round ?? 1,
     capacity: room.capacity,
     preset: room.preset,
+    roles: roomRoles(room),
+    ladyOfLake: room.ladyOfLake === true,
     phase: room.phase,
     hostId: room.hostId,
     hostRevision: room.hostRevision ?? 0,
@@ -335,6 +414,8 @@ function beginGame(room: Room, me: Player): void {
     quests: [],
     result: null,
     questReceipts: [],
+    ...(room.ladyOfLake ? { lake: { holderSeat: room.firstLeader % room.capacity + 1, usedSeats: [], pending: false, checks: [] } } : {}),
+    publicReveals: [],
   };
   room.phase = "team";
 }
@@ -419,8 +500,8 @@ function submitQuest(room: Room, game: GameState, me: Player, input: Record<stri
   }
   requireCurrentTurn(room, game, turnId, "quest");
   if (!game.team.includes(me.seat)) throw new GameError("只有任务队员可以提交任务牌。", 403);
-  if (!me.role || (ROLES[me.role].side === "good" && card === "fail")) {
-    throw new GameError("好人阵营只能提交成功牌。", 403);
+  if (!allowedQuestCards(me, game.quest).includes(card)) {
+    throw new GameError(me.role === "lunatic" ? "疯子参加任务时必须提交失败牌。" : me.role === "brute" ? "野蛮人在第四、第五次任务只能提交成功牌。" : "好人阵营只能提交成功牌。", 403);
   }
   if (Object.hasOwn(game.questVotes, me.seat)) {
     if (game.questVotes[me.seat] !== card) throw new GameError("已提交的任务牌不能修改。 ");
@@ -442,6 +523,12 @@ function submitQuest(room: Room, game: GameState, me: Player, input: Record<stri
   });
   game.questVotes = {};
   game.rejections = 0;
+  if (game.quests.filter(quest => !quest.success).length === 2) {
+    const revealer = room.players.find(player => player.role === "revealer");
+    if (revealer && !(game.publicReveals ?? []).some(item => item.seat === revealer.seat)) {
+      (game.publicReveals ??= []).push({ seat: revealer.seat, role: "revealer" });
+    }
+  }
   if (game.quests.filter(quest => !quest.success).length === 3) {
     finishGame(room, game, { winner: "evil", reason: "three-failures" });
   } else if (game.quests.filter(quest => quest.success).length === 3) {
@@ -449,10 +536,37 @@ function submitQuest(room: Room, game: GameState, me: Player, input: Record<stri
     game.team = [];
     game.teamVotes = {};
     room.phase = "assassination";
+  } else if (game.lake && game.quest >= 2 && game.quest <= 4) {
+    game.lake.pending = true;
+    room.phase = "lake";
   } else {
     game.quest += 1;
     newTeamTurn(room, game);
   }
+}
+
+function checkLake(room: Room, game: GameState, me: Player, input: Record<string, unknown>): void {
+  const turnId = requireTurnId(input.turnId);
+  const targetSeat = Number(input.targetSeat);
+  const prior = game.lake?.checks.find(check => check.turnId === turnId && check.viewerSeat === me.seat);
+  if (prior) {
+    if (prior.targetSeat !== targetSeat) throw new GameError("本次查验已经完成，不能更换目标。 ");
+    return;
+  }
+  requireCurrentTurn(room, game, turnId, "lake");
+  const lake = game.lake;
+  if (!lake?.pending || lake.holderSeat !== me.seat) throw new GameError("只有当前湖中仙女持有者可以查验。", 403);
+  if (!Number.isInteger(targetSeat) || targetSeat === me.seat || lake.usedSeats.includes(targetSeat)) {
+    throw new GameError("请选择一位尚未使用过湖中仙女的其他玩家。", 400);
+  }
+  const target = room.players.find(player => player.seat === targetSeat);
+  if (!target?.role) throw new GameError("查验目标无效。", 400);
+  lake.checks.push({ turnId, quest: game.quest, viewerSeat: me.seat, targetSeat, side: ROLES[target.role].side });
+  lake.usedSeats.push(me.seat);
+  lake.holderSeat = targetSeat;
+  lake.pending = false;
+  game.quest += 1;
+  newTeamTurn(room, game);
 }
 
 function assassinate(room: Room, game: GameState, me: Player, input: Record<string, unknown>): void {
@@ -487,6 +601,7 @@ function gameAction(room: Room, me: Player, action: string, input: Record<string
   if (action === "propose") proposeTeam(room, game, me, input);
   else if (action === "vote") voteOnTeam(room, game, me, input);
   else if (action === "quest") submitQuest(room, game, me, input);
+  else if (action === "lake-check") checkLake(room, game, me, input);
   else if (action === "assassinate") assassinate(room, game, me, input);
 }
 
@@ -582,7 +697,7 @@ function manageRoom(room: Room, me: Player, action: string, input: Record<string
     throw new GameError("房间已进入新的对局，请刷新后重试。 ");
   }
   if (action === "abort") {
-    if (!["identity", "ready", "team", "vote", "quest", "assassination"].includes(room.phase)) {
+    if (!["identity", "ready", "team", "vote", "quest", "lake", "assassination"].includes(room.phase)) {
       throw new GameError("只有进行中的对局可以作废；本局结束后请使用再来一局。 ");
     }
     resetGame(room, "abort");
@@ -634,7 +749,7 @@ export function mutateRoom(room: Room, key: string, action: string, input: Recor
     return;
   }
   if (!me) throw new GameError("请先加入房间。", 403);
-  if (["begin", "propose", "vote", "quest", "assassinate"].includes(action)) {
+  if (["begin", "propose", "vote", "quest", "lake-check", "assassinate"].includes(action)) {
     gameAction(room, me, action, input);
     return;
   }
@@ -688,12 +803,12 @@ export function mutateRoom(room: Room, key: string, action: string, input: Recor
     if (room.players.length !== room.capacity || !room.players.every(player => player.ready)) {
       throw new GameError("请等待所有座位坐满，并且全员准备。 ");
     }
-    const roles = shuffle(rolePool(room.capacity, room.preset));
+    const roles = shuffle(roomRoles(room));
+    room.firstLeader = randomInt(room.capacity) + 1;
     room.players.forEach((player, index) => {
       player.role = roles[index];
       player.confirmed = false;
     });
-    room.firstLeader = randomInt(room.capacity) + 1;
     room.phase = "identity";
     return;
   }

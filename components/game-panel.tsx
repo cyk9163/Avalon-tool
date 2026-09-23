@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ArrowLeftRight, ArrowRight, Check, ChevronDown, CircleDashed, Crown, Flag, History, LockKeyhole, RotateCcw, Shield, Swords, ThumbsDown, ThumbsUp, Trophy, Users, X } from "lucide-react";
+import { ArrowLeftRight, ArrowRight, Check, ChevronDown, CircleDashed, Crown, Flag, History, LockKeyhole, RotateCcw, Shield, Swords, ThumbsDown, ThumbsUp, Trophy, Users, Waves, X } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { ROLES, type RoomView } from "@/lib/game";
@@ -72,11 +72,13 @@ export function GamePanel({ room, busy, connected, error, act, onNewGame }: Prop
   const stage = room.phase === "team" ? { label: "组建队伍", Icon: Users }
     : room.phase === "vote" ? { label: "全员表决", Icon: ThumbsUp }
     : room.phase === "quest" ? { label: "秘密任务", Icon: LockKeyhole }
+    : room.phase === "lake" ? { label: "湖中仙女", Icon: Waves }
     : room.phase === "assassination" ? { label: "最后刺杀", Icon: Swords }
     : { label: "本局结束", Icon: Trophy };
   const toggleSeat = (seat: number) => setSelection(current => current.includes(seat)
     ? current.filter(value => value !== seat)
     : current.length < game.teamSize ? [...current, seat].sort((a, b) => a - b) : current);
+  const latestLakeCheck = game.lake?.myChecks.at(-1);
 
   async function confirmPending() {
     if (!pending) return;
@@ -142,6 +144,13 @@ export function GamePanel({ room, busy, connected, error, act, onNewGame }: Prop
       <p className="action-note">只公布失败牌总数，不显示谁投了哪张牌。</p>
     </div>}
 
+    {room.phase === "lake" && game.lake && <div className="game-action lake-action">
+      <div className="game-action-heading"><span className="step-icon"><Waves size={25} aria-hidden="true" /></span><div><span className="action-kicker">任务 {game.quest} 结束后的私密查验</span><h2>湖中仙女正在辨认忠诚。</h2><p>查验只会显示阵营，不会显示具体角色。查验后，令牌交给被查验者。</p></div></div>
+      {me?.seat===game.lake.holderSeat?<><p className="muted-copy">选择一位尚未使用过湖中仙女的玩家。结果仅在你的设备上显示。</p><div className="team-selector">{room.players.filter(player=>player.seat!==me.seat&&!game.lake!.usedSeats.includes(player.seat)).map(player=><button key={player.id} className={`player-option ${target===player.seat?"selected":""}`} aria-pressed={target===player.seat} disabled={blocked} onClick={()=>setTarget(player.seat)}><span className="player-number">{player.seat}</span><span>{player.name}</span><span className="selection-check">{target===player.seat&&<Check size={15}/>}</span></button>)}</div><button className="primary-button" disabled={blocked||target===null} onClick={()=>setPending({action:"lake-check",input:{turnId:game.turnId,targetSeat:target},title:`查验 ${target} 号 · ${playerName(target!)}？`,description:"确认后你会私密看到其阵营，湖中仙女令牌同时交给对方。目标不能更换。",label:"确认查验"})}><Waves size={18}/>确认查验</button></>:<p className="waiting-note" role="status">湖中仙女由 {game.lake.holderSeat} 号 · {playerName(game.lake.holderSeat)} 持有，等待其完成私密查验。</p>}
+    </div>}
+
+    {game.publicReveals.map(item=><div className="public-reveal" key={item.seat}><Flag size={18}/><span><strong>{item.seat} 号 · {playerName(item.seat)}</strong> 已公开为 {ROLES[item.role].name}。</span></div>)}
+
     {room.phase === "assassination" && <div className="game-action assassination">
       <div className="game-action-heading"><span className="step-icon"><Swords size={27} aria-hidden="true" /></span><div><span className="action-kicker">最后一次机会</span><h2>找到梅林，逆转结局。</h2><p>三次任务成功。邪恶阵营可以公开讨论，由刺客做出最终选择。</p></div></div>
       {room.identity?.role === "assassin" ? <>
@@ -163,6 +172,8 @@ export function GamePanel({ room, busy, connected, error, act, onNewGame }: Prop
 
     {lastProposal && !lastProposal.approved && room.phase === "team" && <div className="last-proposal"><Flag size={17} /><span>上一支队伍未通过：{lastProposal.votes.filter(vote => vote.approve).length} 赞成 / {lastProposal.votes.filter(vote => !vote.approve).length} 反对。已轮到下一位队长。</span></div>}
 
+    {latestLakeCheck&&<div className="lake-private-result"><LockKeyhole size={17}/><div><small>仅你可见 · 湖中仙女查验</small><strong>{latestLakeCheck.targetSeat} 号 · {playerName(latestLakeCheck.targetSeat)} 属于{latestLakeCheck.side==="good"?"正义":"邪恶"}阵营</strong></div></div>}
+
     <details className="game-history" open={room.phase === "finished" ? true : undefined}>
       <summary><span className="history-title"><History size={18} aria-hidden="true" /><span>对局记录</span></span><small>{game.proposals.length} 次表决 · {game.quests.length} 次任务</small><ChevronDown className="history-chevron" size={17} aria-hidden="true" /></summary>
       {!game.proposals.length ? <p className="history-empty">完成第一次组队表决后，记录会显示在这里。</p> : <><p className="history-hint"><ArrowLeftRight size={15} aria-hidden="true" />左右滑动，查看每位玩家的表决。</p><div className="history-scroll" tabIndex={0} role="region" aria-label="组队投票历史，可左右滚动"><table><caption className="sr-only">每次组队的队长、队员及逐人表决结果</caption><thead><tr><th>任务 / 提议</th><th>队长</th><th>队员</th>{room.players.map(player => <th key={player.id} title={player.name}>{player.seat} 号</th>)}<th>结果</th></tr></thead><tbody>{game.proposals.map(proposal => <tr key={proposal.id}><th>{proposal.quest} / {proposal.attempt}</th><td>{proposal.leaderSeat} 号</td><td>{proposal.team.join("、")}</td>{room.players.map(player => {
@@ -178,8 +189,8 @@ export function GamePanel({ room, busy, connected, error, act, onNewGame }: Prop
     </AlertDialog>
     <Dialog open={ballotOpen && room.phase === "quest"} onOpenChange={open => { setBallotOpen(open); if (!open) setCard(null); }}>
       <DialogContent className="private-ballot-dialog"><span className="private-ballot-label"><LockKeyhole size={15} aria-hidden="true" />仅你可见</span><DialogTitle>你的秘密任务票</DialogTitle><DialogDescription>先确认周围没有人在看屏幕。选好后点击提交，无法改票。</DialogDescription>
-        <div className="vote-actions">{(["success", "fail"] as const).map(value => <button key={value} className={`ballot-choice ${value === "success" ? "approve" : "reject"} ${card === value ? "selected" : ""}`} aria-pressed={card === value} disabled={blocked || (value === "fail" && room.identity?.side !== "evil")} onClick={() => setCard(value)}>{value === "success" ? <Shield size={24} /> : <Swords size={24} />}<strong>{value === "success" ? "成功" : "失败"}</strong>{card === value && <Check size={17} />}</button>)}</div>
-        <p className="action-note">{room.identity?.side === "evil" ? "你可以选择成功或失败。" : "正义阵营只能提交成功牌。"}任务票不会关联到你的座位公开。</p>
+        <div className="vote-actions">{(["success", "fail"] as const).map(value => <button key={value} className={`ballot-choice ${value === "success" ? "approve" : "reject"} ${card === value ? "selected" : ""}`} aria-pressed={card === value} disabled={blocked || !game.allowedQuestCards.includes(value)} onClick={() => setCard(value)}>{value === "success" ? <Shield size={24} /> : <Swords size={24} />}<strong>{value === "success" ? "成功" : "失败"}</strong>{card === value && <Check size={17} />}</button>)}</div>
+        <p className="action-note">{game.allowedQuestCards.length===2?"你可以选择成功或失败。":game.allowedQuestCards[0]==="fail"?"疯子参加任务时必须提交失败牌。":room.identity?.role==="brute"?"野蛮人在第四、第五次任务只能提交成功牌。":"正义阵营只能提交成功牌。"}任务票不会关联到你的座位公开。</p>
         {feedback && <p className="ballot-error" role="alert">{feedback}</p>}
         <button className="primary-button" disabled={blocked || card === null} onClick={async () => { const result = await act("quest", { turnId: game.turnId, card }); if (result) { setBallotOpen(false); setCard(null); } }}>{busy ? "正在密封…" : card ? `密封提交「${card === "success" ? "成功" : "失败"}」` : "请先选择任务牌"}<LockKeyhole size={17} /></button>
       </DialogContent>

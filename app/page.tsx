@@ -6,7 +6,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogContent, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
-import { ROLES, PRESETS, rolePool, EVIL_COUNTS, type Preset, type RoomView } from "@/lib/game";
+import { ROLES, PRESETS, rolePool, EVIL_COUNTS, CUSTOM_GOOD_ROLES, CUSTOM_EVIL_ROLES, type Preset, type Role, type RoomView } from "@/lib/game";
 import { GamePanel } from "@/components/game-panel";
 import { InstallApp } from "@/components/install-app";
 import { RoomManagement } from "@/components/room-management";
@@ -28,9 +28,14 @@ async function request<T=RoomView>(path:string,body?:Record<string,unknown>):Pro
   return result as T;
 }
 function Brand({onHome}:{onHome:()=>void}){return <a className="brand" href="/" onClick={e=>{e.preventDefault();onHome();}} aria-label="圆桌首页"><span className="brand-icon"><Crown size={22}/></span><span>圆桌<span className="brand-sub">AVALON</span></span></a>;}
-function RoleChips({count,preset}:{count:number;preset:Preset}){
-  const pool=rolePool(count,preset);
+function RoleChips({roles}:{roles:Role[]}){
+  const pool=roles;
   return <div className="role-chips">{[...new Set(pool)].map(role=><span className={`role-chip ${ROLES[role].side}`} key={role}>{ROLES[role].name}{pool.filter(r=>r===role).length>1?` ×${pool.filter(r=>r===role).length}`:""}</span>)}</div>;
+}
+
+function fillCustomRoles(capacity:number,specials:Set<Role>):Role[]{
+  const good=[...specials].filter(role=>ROLES[role].side==="good"),evil=[...specials].filter(role=>ROLES[role].side==="evil");
+  return [...good,...Array(capacity-EVIL_COUNTS[capacity]-good.length).fill("loyal"),...evil,...Array(EVIL_COUNTS[capacity]-evil.length).fill("minion")] as Role[];
 }
 function Table({count,room,onSeat,disabled}:{count:number;room?:RoomView|null;onSeat?:(seat:number)=>void;disabled?:boolean}){
   return <div className={`roundtable ${room?"live-table":""}`}><div className="table-center"><Crown size={32} strokeWidth={1.3}/><span>AVALON</span><p>{room?`${room.players.length} / ${count} 位已入座`:"每个人，都有自己的秘密。"}</p></div>{Array.from({length:count},(_,i)=>{
@@ -41,6 +46,7 @@ function Table({count,room,onSeat,disabled}:{count:number;room?:RoomView|null;on
 
 export default function Home(){
   const [mode,setMode]=useState<Mode>("create"),[name,setName]=useState(""),[hostKey,setHostKey]=useState(""),[capacity,setCapacity]=useState(7),[preset,setPreset]=useState<Preset>("classic"),[code,setCode]=useState("");
+  const [customSpecials,setCustomSpecials]=useState<Set<Role>>(()=>new Set(["merlin","assassin"])),[ladyOfLake,setLadyOfLake]=useState(false);
   const [room,setRoom]=useState<RoomView|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState(""),[sessionReady,setSessionReady]=useState(false),[connected,setConnected]=useState(true);
   const [membershipNotice,setMembershipNotice]=useState("");
   const [booting,setBooting]=useState(true);
@@ -115,7 +121,17 @@ export default function Home(){
     try{await load(code);history.replaceState(null,"",`/?room=${code}`);}catch(e){setError((e as Error).message);}finally{setBusy(false);}
   };
   const back=()=>{currentCode.current="";latest.current=null;setRoom(null);setError("");setReveal(false);setMembershipNotice("");history.replaceState(null,"","/");try{localStorage.removeItem("avalon:last-room");}catch{}};
-  const create=async()=>{createId.current ||= crypto.randomUUID();const created=await act("create",{name,hostKey,capacity,preset,requestId:createId.current});if(created)setHostKey("");};
+  const customRoles=fillCustomRoles(capacity,customSpecials);
+  const previewRoles=preset==="custom"?customRoles:rolePool(capacity,preset);
+  const toggleCustomRole=(role:Role)=>{if(role==="merlin"||role==="assassin")return;setCustomSpecials(current=>{
+    const next=new Set(current),adding=!next.has(role),paired:Role[]=[];
+    if(role==="goodLancelot"||role==="evilLancelot")paired.push("goodLancelot","evilLancelot");else paired.push(role);
+    if(adding){for(const item of paired)next.add(item);if(role==="morgana")next.add("percival");}
+    else{for(const item of paired)next.delete(item);if(role==="percival")next.delete("morgana");}
+    const good=[...next].filter(item=>ROLES[item].side==="good").length,evil=[...next].filter(item=>ROLES[item].side==="evil").length;
+    return good<=capacity-EVIL_COUNTS[capacity]&&evil<=EVIL_COUNTS[capacity]?next:current;
+  });createId.current="";};
+  const create=async()=>{createId.current ||= crypto.randomUUID();const created=await act("create",{name,hostKey,capacity,preset,...(preset==="custom"?{roles:customRoles,ladyOfLake}:{}),requestId:createId.current});if(created)setHostKey("");};
   const me=room?.players.find(p=>p.id===room.meId),isHost=!!me&&room?.hostId===me.id;
   const allReady=!!room&&room.players.length===room.capacity&&room.players.every(p=>p.ready);
   const identity=room?.identity,confirmedCount=room?.players.filter(p=>p.confirmed).length??0;
@@ -156,8 +172,9 @@ export default function Home(){
           <TabsContent value="create">
             <form className="form-stack" onSubmit={e=>{e.preventDefault();void create();}}>
               <label className="field"><span className="field-label">你的昵称</span><input autoComplete="nickname" placeholder="大家怎么称呼你" maxLength={12} required value={name} onChange={e=>setName(e.target.value)}/></label>
-              <fieldset><legend>这次有几位朋友？</legend><RadioGroup aria-label="游戏人数" className="count-grid" value={String(capacity)} onValueChange={v=>{setCapacity(Number(v));if(Number(v)<PRESETS[preset].minimum)setPreset("classic");createId.current="";}}>{[5,6,7,8,9,10].map(n=><label className={`count-option ${capacity===n?"selected":""}`} key={n}><RadioGroupItem value={String(n)} className="sr-only"/><strong>{n}</strong><span>人</span></label>)}</RadioGroup></fieldset>
+              <fieldset><legend>这次有几位朋友？</legend><RadioGroup aria-label="游戏人数" className="count-grid" value={String(capacity)} onValueChange={v=>{const next=Number(v);setCapacity(next);setCustomSpecials(new Set(["merlin","assassin"]));setLadyOfLake(false);if(next<PRESETS[preset].minimum)setPreset("classic");createId.current="";}}>{[5,6,7,8,9,10].map(n=><label className={`count-option ${capacity===n?"selected":""}`} key={n}><RadioGroupItem value={String(n)} className="sr-only"/><strong>{n}</strong><span>人</span></label>)}</RadioGroup></fieldset>
               <fieldset><legend>选择角色配置</legend><RadioGroup aria-label="角色配置" value={preset} onValueChange={v=>{setPreset(v as Preset);createId.current="";}} className="preset-grid">{(Object.keys(PRESETS) as Preset[]).map(key=><label className={`preset-choice ${key===preset?"selected":""} ${capacity<PRESETS[key].minimum?"unavailable":""}`} key={key}><RadioGroupItem value={key} disabled={capacity<PRESETS[key].minimum}/><div><strong>{PRESETS[key].name}</strong><span>{PRESETS[key].hint}</span></div></label>)}</RadioGroup></fieldset>
+              {preset==="custom"&&<fieldset className="custom-board"><legend>编辑自定义板子</legend><div className="custom-board-summary"><span>正义 {capacity-EVIL_COUNTS[capacity]} 位</span><span>邪恶 {EVIL_COUNTS[capacity]} 位</span><small>空余位置自动补为忠臣或爪牙</small></div><div className="custom-role-columns"><div><strong>正义角色</strong>{CUSTOM_GOOD_ROLES.map(role=><button type="button" key={role} className={customSpecials.has(role)?"selected":""} aria-pressed={customSpecials.has(role)} disabled={role==="merlin"||(capacity<7&&["goodLancelot","cleric"].includes(role))} onClick={()=>toggleCustomRole(role)}><span>{ROLES[role].name}</span><small>{role==="merlin"?"必选":role==="goodLancelot"?"与邪恶兰斯洛特成对":"可选"}</small></button>)}</div><div><strong>邪恶角色</strong>{CUSTOM_EVIL_ROLES.map(role=><button type="button" key={role} className={customSpecials.has(role)?"selected":""} aria-pressed={customSpecials.has(role)} disabled={role==="assassin"||(capacity<7&&["evilLancelot","lunatic","brute","revealer"].includes(role))} onClick={()=>toggleCustomRole(role)}><span>{ROLES[role].name}</span><small>{role==="assassin"?"必选":role==="evilLancelot"?"成对加入":role==="morgana"?"需派西维尔":"可选"}</small></button>)}</div></div><label className={`module-toggle ${capacity<7?"disabled":""}`}><input type="checkbox" checked={ladyOfLake} disabled={capacity<7} onChange={e=>{setLadyOfLake(e.target.checked);createId.current="";}}/><span><strong>启用湖中仙女</strong><small>第 2、3、4 次任务后，持有者私密查验一位玩家的阵营</small></span></label></fieldset>}
               <label className="field host-key-field"><span className="host-key-label"><span><KeyRound size={14}/>房主 Key</span><small>仅创建房间需要</small></span><input type="password" name="avalon-host-key" autoComplete="off" autoCapitalize="characters" spellCheck={false} placeholder="输入你的房主 Key" maxLength={64} required value={hostKey} onChange={e=>setHostKey(e.target.value)}/></label>
               {error&&<p className="entry-error" role="alert">{error}</p>}
               <div className="entry-submit"><button className="primary-button" disabled={busy||!sessionReady}>{busy?<><LoaderCircle size={18} className="spin"/>正在建立…</>:<>建立圆桌<ArrowRight size={18}/></>}</button><p className="form-note"><LockKeyhole size={13}/>房主凭 Key 建房，朋友扫码即可入座</p></div>
@@ -178,7 +195,7 @@ export default function Home(){
       <section className="table-panel showcase" aria-label="当前角色配置预览">
         <div className="table-caption"><span>今晚的圆桌</span><span><Users size={14}/>{capacity} 人 · {PRESETS[preset].name}</span></div>
         <Table count={capacity}/>
-        <div className="showcase-roster"><div className="alignment-line"><span><i/>{capacity-EVIL_COUNTS[capacity]} 位好人</span><span><i/>{EVIL_COUNTS[capacity]} 位坏人</span></div><RoleChips count={capacity} preset={preset}/></div>
+        <div className="showcase-roster"><div className="alignment-line"><span><i/>{capacity-EVIL_COUNTS[capacity]} 位好人</span><span><i/>{EVIL_COUNTS[capacity]} 位坏人</span></div><RoleChips roles={previewRoles}/>{preset==="custom"&&ladyOfLake&&<p className="module-badge">湖中仙女 · 已启用</p>}</div>
         <p className="privacy-note"><Shield size={14}/>身份由系统私密分发，房主也无法提前查看。</p>
       </section>
     </div> : <section className="room-page">
@@ -204,7 +221,7 @@ export default function Home(){
             {!me?<section className="action-card"><span className="eyebrow">JOIN THE TABLE</span><h2>给自己留个座位。</h2>{room.phase==="lobby"?<><label className="field">你的昵称<input maxLength={12} autoComplete="nickname" placeholder="大家怎么称呼你" value={name} onChange={e=>setName(e.target.value)}/></label><p className="muted-copy">填好昵称后，在圆桌上选一个空位，就能加入朋友的房间。</p></>:<p className="muted-copy">本局已经发身份，无法中途加入。原玩家请使用入座时的浏览器返回。</p>}<button className="text-button" onClick={back}><ArrowLeft size={16}/>返回首页</button></section>:
             room.phase==="lobby"?<section className="action-card lobby-action"><div className="your-seat-label"><span className="eyebrow">你的位置</span><span className="seat-ticket">{String(me.seat).padStart(2,"0")}<small>号座位</small></span></div><h2>{me.name}，入座了。</h2><p className="muted-copy">{room.round>1?"座位已经为你保留。重新准备后，让新的故事开始。":"和身边的朋友确认座位，准备好就可以开始了。"}</p><button className={me.ready?"secondary-button wide ready-button":"primary-button"} disabled={busy||!connected} onClick={()=>void act("ready",{ready:!me.ready})}>{me.ready?<><Check size={18}/>已准备 · 点击取消</>:<>我准备好了<Check size={18}/></>}</button>{isHost&&<div className="host-start"><div className="host-start-label"><Crown size={15}/><span>房主操作</span></div><button className="primary-button" disabled={busy||!allReady||!connected} onClick={()=>setConfirmStart(true)}><Shield size={17}/>发身份</button><p className="action-note">{room.players.length<room.capacity?`还差 ${room.capacity-room.players.length} 位朋友入座`:!allReady?"等待全员准备":"全员已准备，让故事开始"}</p></div>}<button className="text-button subtle" onClick={()=>setConfirmLeave(true)} disabled={busy}><LogOut size={15}/>离开房间</button></section>:
             <section className="action-card identity-card"><div className="identity-heading"><span className="eyebrow"><Shield size={14}/>PRIVATE · 仅你可见</span><span className="identity-seat">{me.seat} 号</span></div><h2>只属于你的线索。</h2><div className={`identity-surface ${reveal?"revealed":""}`} aria-live="off">{reveal&&identity?<><span className={`side-label ${identity.side}`}>{identity.side==="good"?"正义阵营":"邪恶阵营"}</span><h3>{ROLES[identity.role].name}</h3><p>{ROLES[identity.role].description}</p><div className="identity-clues"><strong>你知道的线索</strong>{identity.known.map(p=><div className="clue" key={p.seat}><span>{p.seat} 号</span><b>{p.name}</b><small>{p.label}</small></div>)}<p>{identity.note}</p></div></>:<div className="sealed"><span className="sealed-mark"><LockKeyhole size={36} strokeWidth={1.25}/></span><strong>你的身份已密封</strong><p>秘密只有你知道。<br/>查看前，留意身边的目光。</p><span className="sealed-rule"/></div>}</div><button className="reveal-button" disabled={!identity} onPointerDown={e=>{e.preventDefault();e.currentTarget.setPointerCapture(e.pointerId);setReveal(true);setSeen(true);}} onPointerUp={()=>setReveal(false)} onPointerCancel={()=>setReveal(false)} onLostPointerCapture={()=>setReveal(false)} onKeyDown={e=>{if(e.key===" "||e.key==="Enter"){e.preventDefault();setReveal(true);setSeen(true);}}} onKeyUp={e=>{if(e.key===" "||e.key==="Enter")setReveal(false);}} onBlur={()=>setReveal(false)} onContextMenu={e=>e.preventDefault()}>{reveal?<EyeOff size={18}/>:<Eye size={18}/>}按住查看，松开隐藏</button>{!room.game&&<button className={me.confirmed?"secondary-button wide ready-button":"primary-button"} disabled={busy||me.confirmed||!seen||!connected} onClick={()=>{setReveal(false);void act("confirm");}}><Check size={18}/>{me.confirmed?"我已确认身份":"我记住了，确认身份"}</button>}<p className="action-note">{room.game?"切到后台时，身份会自动隐藏。":room.phase==="ready"?"全员已确认，等待房主开始对局。":`还有 ${room.capacity-confirmedCount} 人等待确认身份`}</p>{room.phase==="ready"&&<div className="ready-notice"><Crown size={19}/><div><strong>第一任队长 · {room.firstLeader} 号</strong><p>房主点击上方「开始对局」，进入第一轮。</p></div></div>}</section>}
-            <section className="config-card"><div className="config-heading"><h3>本局阵容</h3><span>{PRESETS[room.preset].name}</span></div><div className="alignment-line"><span><i/>{room.capacity-EVIL_COUNTS[room.capacity]} 位好人</span><span><i/>{EVIL_COUNTS[room.capacity]} 位坏人</span></div><RoleChips count={room.capacity} preset={room.preset}/><p className="action-note"><Shield size={13}/>配置公开，个人身份私密分发。</p></section>
+            <section className="config-card"><div className="config-heading"><h3>本局阵容</h3><span>{PRESETS[room.preset].name}</span></div><div className="alignment-line"><span><i/>{room.capacity-EVIL_COUNTS[room.capacity]} 位好人</span><span><i/>{EVIL_COUNTS[room.capacity]} 位坏人</span></div><RoleChips roles={room.roles}/>{room.ladyOfLake&&<p className="module-badge">湖中仙女 · 已启用</p>}<p className="action-note"><Shield size={13}/>配置公开，个人身份私密分发。</p></section>
           </aside>
         </div>
       </details>

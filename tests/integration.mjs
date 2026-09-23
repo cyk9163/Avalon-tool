@@ -8,6 +8,14 @@ class Client{
  async call(body){const r=await fetch(`${base}/api/room`,{method:"POST",headers:{"Content-Type":"application/json",Origin:base,Cookie:this.cookie},body:JSON.stringify(body)});return {status:r.status,data:await r.json()};}
  async get(code){const r=await fetch(`${base}/api/room?code=${code}`,{headers:{Cookie:this.cookie}});assert.equal(r.headers.get("cache-control"),"no-store, private");return {status:r.status,data:await r.json()};}
 }
+{
+ const host=await new Client().init(),customRoles=["merlin","percival","goodLancelot","loyal","assassin","morgana","evilLancelot"];
+ const created=await host.call({action:"create",name:"扩展板测试",capacity:7,preset:"custom",roles:customRoles,ladyOfLake:true,requestId:crypto.randomUUID(),hostKey});
+ assert.equal(created.status,200,JSON.stringify(created));assert.deepEqual(created.data.roles,customRoles);assert.equal(created.data.ladyOfLake,true);
+ const invalid=await host.call({action:"create",name:"错误板子",capacity:7,preset:"custom",roles:customRoles.map(role=>role==="evilLancelot"?"minion":role),ladyOfLake:true,requestId:crypto.randomUUID(),hostKey});
+ assert.equal(invalid.status,400);assert.match(invalid.data.error,/兰斯洛特/);
+ console.log("PASS custom board: server accepts valid expansion roles and rejects broken dependencies");
+}
 for(const capacity of [5,7,10]){
  const clients=await Promise.all(Array.from({length:capacity+2},()=>new Client().init()));
  const host=clients[0],requestId=crypto.randomUUID();

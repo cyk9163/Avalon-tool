@@ -103,6 +103,11 @@ function stageSummary(room: RoomView): StageSummary {
           detail: `${game.submittedQuestCount} / ${game.teamSize} 张已提交`,
         },
       };
+    case "lake":
+      return {
+        title: "湖中仙女查验中",
+        description: room.game?.lake ? `令牌由 ${room.game.lake.holderSeat} 号玩家持有，等待其私密查验阵营。` : "等待湖中仙女完成查验。",
+      };
     case "assassination":
       return {
         title: "最后的刺杀",

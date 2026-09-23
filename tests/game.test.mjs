@@ -6,6 +6,7 @@ function sample(capacity=10,preset="full"){
 }
 test("All supported player counts and presets retain correct factions and unique special roles",()=>{
   for(let n=5;n<=10;n++)for(const [preset,spec] of Object.entries(PRESETS)){
+    if(preset==="custom")continue;
     if(n<spec.minimum){assert.throws(()=>rolePool(n,preset));continue;}
     const roles=rolePool(n,preset);assert.equal(roles.length,n);assert.equal(roles.filter(r=>ROLES[r].side==="evil").length,EVIL_COUNTS[n]);
     for(const role of ["merlin","assassin","percival","morgana","mordred","oberon"])assert.ok(roles.filter(r=>r===role).length<=1);
