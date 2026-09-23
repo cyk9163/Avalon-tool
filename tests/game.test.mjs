@@ -28,7 +28,7 @@ test("Evil sees only teammates except Oberon; loyal and Oberon have no extra inf
   const room=sample();for(const me of room.players){const identity=roomView(room,me.key,1).identity;
     if(["loyal","oberon"].includes(me.role))assert.equal(identity.known.length,0);
     if(ROLES[me.role].side==="evil"&&me.role!=="oberon"){
-      assert.equal(identity.known.length,2);assert.ok(identity.known.every(k=>k.seat!==me.seat&&k.label==="邪恶同伴"));
+      assert.equal(identity.known.length,2);assert.ok(identity.known.every(k=>k.seat!==me.seat&&k.label===ROLES[room.players.find(x=>x.seat===k.seat).role].name),"evil allies see each other's exact roles");
       assert.ok(!identity.known.some(k=>k.seat===room.players.find(x=>x.role==="oberon").seat));
     }
   }

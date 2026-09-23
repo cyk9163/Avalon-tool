@@ -2,11 +2,11 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {mutateRoom, roomView, rolePool, ROLES} from "../lib/game.ts";
 
-// v1.0 house rule: with anytimeAssassin the assassin may strike once at any
-// point of play; a hit wins for Evil, a miss wins for Good, either way it ends.
-function sample(anytimeAssassin = true, capacity = 5) {
+// House rule: the assassin may strike once at any point of play; a hit wins
+// for Evil, a miss wins for Good, and either way the game ends.
+function sample(capacity = 5) {
   return {
-    code: "654321", capacity, preset: "classic", phase: "ready", hostId: "p0", ...(anytimeAssassin ? {anytimeAssassin} : {}),
+    code: "654321", capacity, preset: "classic", phase: "ready", hostId: "p0",
     players: rolePool(capacity, "classic").map((role, i) => ({id: `p${i}`, key: `secret-${i}`, name: `玩家${i + 1}`, seat: i + 1, ready: true, confirmed: true, role})),
     createdAt: Date.now(), expiresAt: Date.now() + 86400000, requestId: "assassin-test", firstLeader: capacity,
   };
@@ -15,13 +15,8 @@ const seatOf = (room, role) => room.players.find(p => p.role === role).seat;
 const player = (room, seat) => room.players.find(p => p.seat === seat);
 const view = (room, seat) => roomView(room, player(room, seat).key, 1);
 const act = (room, seat, action, input = {}) => mutateRoom(room, player(room, seat).key, action, input);
-function begin(anytime = true) { const room = sample(anytime); act(room, 1, "begin"); assert.equal(room.phase, "team"); return room; }
+function begin() { const room = sample(); act(room, 1, "begin"); assert.equal(room.phase, "team"); return room; }
 function strike(room, target, seat = seatOf(room, "assassin")) { act(room, seat, "assassinate", {turnId: room.game.turnId, targetSeat: target}); }
-
-test("the option is exposed to every player and defaults to off for older rooms", () => {
-  assert.equal(view(begin(true), 1).anytimeAssassin, true);
-  assert.equal(view(begin(false), 1).anytimeAssassin, false);
-});
 
 test("an early hit on Merlin ends the game at once with an Evil win", () => {
   const room = begin();
@@ -62,15 +57,12 @@ test("only the assassin may strike, never themselves, and only once", () => {
   assert.equal(room.game.result.targetSeat, merlin);
 });
 
-test("without the rule, or before play starts, or with a stale turn, an early strike is refused", () => {
-  const official = begin(false);
-  const before = JSON.stringify(official);
-  assert.throws(() => strike(official, seatOf(official, "merlin")), /还不能刺杀/);
-  assert.equal(JSON.stringify(official), before);
-
-  const waiting = sample(true);
+test("before play starts, or with a stale turn, an early strike is refused", () => {
+  const waiting = sample();
   waiting.phase = "ready";
+  const before = JSON.stringify(waiting);
   assert.throws(() => act(waiting, seatOf(waiting, "assassin"), "assassinate", {turnId: "00000000-0000-4000-8000-000000000000", targetSeat: 1}), /开始任务|还不能/);
+  assert.equal(JSON.stringify(waiting), before);
 
   const room = begin();
   const old = room.game.turnId;

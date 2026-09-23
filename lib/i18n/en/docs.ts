@@ -1,8 +1,8 @@
 // English entries keyed by the Chinese source text (docs).
 export const DOCS: Record<string, string> = {
   "：你在对局中给其他玩家做的标记和发言备注，只存在这台设备，不上传服务器，其他玩家也看不到；保留最近 5 局，可以随时清空。": ": the marks and notes you make about other players during a game. They stay on this device only, are never uploaded, and no other player can see them. The last 5 games are kept, and you can clear them at any time.",
-  "刺客随时出刀（本站默认）": "Anytime strike (default here)",
-  "：建房时默认开启。对局开始后，刺客可以在任意时刻刺杀一次；刺中梅林邪恶立即获胜，刺错正义立即获胜。如果一直没有出刀，好人三次任务成功后照常进入最后刺杀。房主建房时可以关闭，改用官方规则。": ": on by default when creating a room. Once the game starts, the Assassin may strike once at any moment; hitting Merlin wins for Evil at once, missing wins for Good at once. If the Assassin never strikes, three successful quests still lead to the final assassination. The host can turn it off when creating the room to play the official rule.",
+  "刺客随时出刀（本站规则）": "Anytime strike (house rule)",
+  "：对局开始后，刺客可以在任意时刻刺杀一次；刺中梅林邪恶立即获胜，刺错正义立即获胜。如果一直没有出刀，好人三次任务成功后照常进入最后刺杀。（本站规则，官方规则中只能在三次任务成功后刺杀。）": ": once the game starts, the Assassin may strike once at any moment; hitting Merlin wins for Evil at once, missing wins for Good at once. If the Assassin never strikes, three successful quests still lead to the final assassination. (A house rule here; officially the assassination only comes after three successful quests.)",
   // Shared by both pages
   "正义": "Good",
   "邪恶": "Evil",
@@ -51,7 +51,7 @@ export const DOCS: Record<string, string> = {
   "出现在：{where}": "Appears in: {where}",
   "<b>梅林</b>看见所有邪恶玩家，但看不见莫德雷德。": "<b>Merlin</b> sees every Evil player except Mordred.",
   "<b>派西维尔</b>看见梅林和莫甘娜，但分不清谁是谁。": "<b>Percival</b> sees Merlin and Morgana but can't tell which is which.",
-  "<b>邪恶玩家</b>互相认识（包括邪恶兰斯洛特），但看不见奥伯伦；<b>奥伯伦</b>也不认识其他邪恶玩家。": "<b>Evil players</b> know each other (including Evil Lancelot) but can't see Oberon; <b>Oberon</b> doesn't know the other Evil players either.",
+  "<b>邪恶玩家</b>互相认识，并且知道彼此的具体角色（包括邪恶兰斯洛特），但看不见奥伯伦；<b>奥伯伦</b>也不认识其他邪恶玩家。（本站规则，官方规则中坏人只知道彼此是坏人。）": "<b>Evil players</b> know each other and each other's exact roles (including Evil Lancelot), but can't see Oberon; <b>Oberon</b> doesn't know the other Evil players either. (A house rule here; officially Evil players only know that the others are Evil.)",
   "<b>两位兰斯洛特</b>互相知道对方的身份与阵营。本版不使用阵营转换变体。": "<b>The two Lancelots</b> know each other's role and side. This version doesn't use the side-switching variant.",
   "<b>牧师</b>知道第一任队长属于正义还是邪恶。": "The <b>Cleric</b> learns whether the first leader is Good or Evil.",
   "<b>忠臣</b>和<b>爪牙</b>之外的线索，都在按住身份卡时显示，只有本人能看到。": "Apart from <b>Loyal Servants</b> and <b>Minions</b>, every role's clues appear when you press and hold your role card, and only you can see them.",

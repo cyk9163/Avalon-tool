@@ -1,7 +1,7 @@
 // English entries keyed by the Chinese source text (server).
 export const SERVER: Record<string, string> = {
+  "两位兰斯洛特互相知道身份与阵营；邪恶同伴之间知道彼此的具体角色，奥伯伦除外。本局不使用阵营转换变体。": "The two Lancelots know each other's identity and side; Evil allies know each other's exact roles, except Oberon. The side-switching variant is not used.",
   "现在还不能刺杀。": "You can't strike right now.",
-  "刺杀规则配置无效。": "Invalid assassination rule setting.",
   // Sides (inserted into UI and server patterns)
   "正义": "Good",
   "邪恶": "Evil",
@@ -18,7 +18,7 @@ export const SERVER: Record<string, string> = {
   "牧师": "Cleric",
   "你知道第一任队长属于正义还是邪恶阵营。用这条线索判断开局风向。": "You know whether the first leader is Good or Evil. Use this clue to read the early game.",
   "刺客": "Assassin",
-  "隐藏在队伍中阻挠任务。好人完成三次任务后，你有一次刺杀梅林的机会。": "Hide among the players and sabotage quests. If Good completes three quests, you get one chance to assassinate Merlin.",
+  "隐藏在队伍中阻挠任务。对局中你可以随时出刀刺杀梅林，但只有一次；如果一直没出刀，好人完成三次任务后还有最后这一次机会。": "Hide among the players and sabotage quests. You may strike at Merlin at any point, but only once; if you never do, you get this one last chance after Good completes three quests.",
   "莫甘娜": "Morgana",
   "在派西维尔眼中，你与梅林无法区分。利用这一点隐藏自己。": "To Percival, you look just like Merlin. Use that to stay hidden.",
   "莫德雷德": "Mordred",
@@ -71,7 +71,7 @@ export const SERVER: Record<string, string> = {
   "第一任队长是正义": "First leader is Good",
   "第一任队长是邪恶": "First leader is Evil",
   "你只知道第一任队长的阵营，不知道其具体角色。": "You only know the first leader's side, not their exact role.",
-  "你们同属邪恶阵营。奥伯伦不会出现，你也无法获知同伴的具体角色。": "You're all on the Evil side. Oberon won't appear here, and you can't learn your teammates' exact roles.",
+  "你们同属邪恶阵营，彼此知道对方的具体角色。奥伯伦不会出现在这里，他也不认识你们。": "You're all on the Evil side and know each other's exact roles. Oberon doesn't appear here, and he doesn't know you either.",
   "你不知道其他邪恶同伴是谁，他们也不认识你。梅林能看见你。": "You don't know who the other Evil players are, and they don't know you. Merlin can see you.",
 
   // Game actions

@@ -14,10 +14,7 @@ const ok = response => { assert.equal(response.status, 200, JSON.stringify(respo
 
 {
   const clients = await Promise.all(Array.from({length: 5}, () => new Client().init()));
-  const bad = await clients[0].call({action: "create", name: "规则测试", capacity: 5, preset: "classic", anytimeAssassin: "yes", requestId: crypto.randomUUID(), hostKey});
-  assert.equal(bad.status, 400, "the option must be a boolean");
-  const {code, anytimeAssassin} = ok(await clients[0].call({action: "create", name: "规则测试", capacity: 5, preset: "classic", anytimeAssassin: true, requestId: crypto.randomUUID(), hostKey}));
-  assert.equal(anytimeAssassin, true);
+  const {code} = ok(await clients[0].call({action: "create", name: "规则测试", capacity: 5, preset: "classic", requestId: crypto.randomUUID(), hostKey}));
   for (let i = 1; i < 5; i++) ok(await clients[i].call({action: "join", code, name: `玩家${i + 1}`, seat: i + 1}));
   for (const client of clients) ok(await client.call({action: "ready", code, ready: true}));
   ok(await clients[0].call({action: "start", code}));
@@ -25,7 +22,11 @@ const ok = response => { assert.equal(response.status, 200, JSON.stringify(respo
   for (const client of clients) ok(await client.call({action: "confirm", code}));
   const started = ok(await clients[0].call({action: "begin", code}));
   assert.equal(started.phase, "team");
-  assert.ok(views.every(view => view.anytimeAssassin === true), "every player sees the house rule");
+  const evilSeats = views.map((view, index) => [index + 1, view.identity]).filter(([, identity]) => ["assassin", "morgana"].includes(identity.role));
+  for (const [seat, identity] of evilSeats) {
+    const ally = evilSeats.find(([other]) => other !== seat);
+    assert.deepEqual(identity.known.map(item => [item.seat, item.label]), [[ally[0], ally[1].role === "assassin" ? "刺客" : "莫甘娜"]], "evil allies see each other's exact roles");
+  }
   const assassin = views.findIndex(view => view.identity.role === "assassin");
   const merlinSeat = views.findIndex(view => view.identity.role === "merlin") + 1;
   const other = views.findIndex(view => !["assassin", "merlin"].includes(view.identity.role));
@@ -34,5 +35,5 @@ const ok = response => { assert.equal(response.status, 200, JSON.stringify(respo
   assert.equal(finished.phase, "finished");
   assert.deepEqual(finished.game.result, {winner: "evil", reason: "merlin-assassinated", targetSeat: merlinSeat, early: true});
   assert.equal((await clients[0].get(code)).game.revealedRoles.length, 5);
-  console.log("PASS v1.0 anytime assassin: boolean option, visible rule, assassin-only early strike ends the game");
+  console.log("PASS v1.1 house rules: evil allies see exact roles, assassin-only early strike ends the game");
 }

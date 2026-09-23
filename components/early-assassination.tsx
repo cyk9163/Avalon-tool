@@ -11,7 +11,7 @@ import { MarkTag } from "@/components/player-notes";
 const PLAY_PHASES = ["team", "vote", "quest", "lake"];
 
 /**
- * The assassin's one-time strike under the anytime-assassin rule. Rendered only
+ * The assassin's one-time strike (house rule: at any point of play). Rendered only
  * on the assassin's own device, inside the private (collapsed) identity area,
  * so a glance at the screen does not give the role away.
  */
@@ -28,7 +28,7 @@ export function EarlyAssassination({ room, busy, connected, act }: {
     document.addEventListener("visibilitychange", hide);
     return () => document.removeEventListener("visibilitychange", hide);
   }, []);
-  if (!room.anytimeAssassin || room.identity?.role !== "assassin" || !room.game || !PLAY_PHASES.includes(room.phase)) return null;
+  if (room.identity?.role !== "assassin" || !room.game || !PLAY_PHASES.includes(room.phase)) return null;
   const me = room.players.find(player => player.id === room.meId);
   const others = room.players.filter(player => player.id !== room.meId).sort((a, b) => a.seat - b.seat);
   const close = () => { setOpen(false); setTarget(null); setConfirming(false); };

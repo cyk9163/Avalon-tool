@@ -7,7 +7,7 @@ export const ROLES: Record<Role, { name: string; side: "good" | "evil"; descript
   loyal: { name: "亚瑟的忠臣", side: "good", description: "你没有额外的身份线索。通过讨论与投票，找到值得信任的同伴。" },
   goodLancelot: { name: "正义兰斯洛特", side: "good", description: "你知道邪恶兰斯洛特是谁。你仍属于正义阵营，只能提交成功牌。" },
   cleric: { name: "牧师", side: "good", description: "你知道第一任队长属于正义还是邪恶阵营。用这条线索判断开局风向。" },
-  assassin: { name: "刺客", side: "evil", description: "隐藏在队伍中阻挠任务。好人完成三次任务后，你有一次刺杀梅林的机会。" },
+  assassin: { name: "刺客", side: "evil", description: "隐藏在队伍中阻挠任务。对局中你可以随时出刀刺杀梅林，但只有一次；如果一直没出刀，好人完成三次任务后还有最后这一次机会。" },
   morgana: { name: "莫甘娜", side: "evil", description: "在派西维尔眼中，你与梅林无法区分。利用这一点隐藏自己。" },
   mordred: { name: "莫德雷德", side: "evil", description: "梅林无法看见你的邪恶身份，但其他邪恶同伴认识你（奥伯伦除外）。" },
   oberon: { name: "奥伯伦", side: "evil", description: "你与其他邪恶同伴互不相识，但梅林能看见你的邪恶身份。" },
@@ -169,8 +169,6 @@ export interface Room {
   preset: Preset;
   customRoles?: Role[];
   ladyOfLake?: boolean;
-  // House rule (v1.0): the assassin may strike once at any point of the game.
-  anytimeAssassin?: boolean;
   phase: RoomPhase;
   hostId: string;
   hostRevision?: number;
@@ -211,7 +209,6 @@ export interface RoomView {
   preset: Preset;
   roles: Role[];
   ladyOfLake: boolean;
-  anytimeAssassin: boolean;
   phase: RoomPhase;
   hostId: string;
   hostRevision: number;
@@ -310,9 +307,9 @@ export function identityFor(room: Room, me: Player): Identity | null {
     if (me.role === "evilLancelot") {
       known.push(...room.players.filter(player => player.id !== me.id && player.role &&
         ROLES[player.role].side === "evil" && player.role !== "oberon" && player.role !== "evilLancelot")
-        .map(player => ({ seat: player.seat, name: player.name, label: "邪恶同伴" })));
+        .map(player => ({ seat: player.seat, name: player.name, label: ROLES[player.role!].name })));
     }
-    note = "两位兰斯洛特互相知道身份与阵营；本局不使用阵营转换变体。";
+    note = me.role === "evilLancelot" ? "两位兰斯洛特互相知道身份与阵营；邪恶同伴之间知道彼此的具体角色，奥伯伦除外。本局不使用阵营转换变体。" : "两位兰斯洛特互相知道身份与阵营；本局不使用阵营转换变体。";
   } else if (me.role === "cleric") {
     const leader = room.players.find(player => player.seat === room.firstLeader);
     if (leader?.role) known = [{ seat: leader.seat, name: leader.name, label: ROLES[leader.role].side === "good" ? "第一任队长是正义" : "第一任队长是邪恶" }];
@@ -320,8 +317,8 @@ export function identityFor(room: Room, me: Player): Identity | null {
   } else if (ROLES[me.role].side === "evil" && me.role !== "oberon") {
     known = room.players.filter(player => player.id !== me.id && player.role &&
       ROLES[player.role].side === "evil" && player.role !== "oberon")
-      .map(player => ({ seat: player.seat, name: player.name, label: "邪恶同伴" }));
-    note = "你们同属邪恶阵营。奥伯伦不会出现，你也无法获知同伴的具体角色。";
+      .map(player => ({ seat: player.seat, name: player.name, label: ROLES[player.role!].name }));
+    note = "你们同属邪恶阵营，彼此知道对方的具体角色。奥伯伦不会出现在这里，他也不认识你们。";
   } else if (me.role === "oberon") {
     note = "你不知道其他邪恶同伴是谁，他们也不认识你。梅林能看见你。";
   }
@@ -422,7 +419,6 @@ export function roomView(room: Room, key: string, version: number, invite?: stri
     preset: room.preset,
     roles: roomRoles(room),
     ladyOfLake: room.ladyOfLake === true,
-    anytimeAssassin: room.anytimeAssassin === true,
     phase: room.phase,
     hostId: room.hostId,
     hostRevision: room.hostRevision ?? 0,
@@ -682,12 +678,12 @@ function assassinate(room: Room, game: GameState, me: Player, input: Record<stri
     if (game.result.targetSeat !== targetSeat) throw new GameError("刺杀已结束，不能更换目标。 ");
     return;
   }
-  // With the anytime rule the assassin may strike during any step of play, on
-  // the current turn only; the strike ends the game either way, so it can only
-  // ever happen once. Otherwise only the final assassination step accepts it.
+  // House rule: the assassin may strike during any step of play, on the
+  // current turn only; the strike ends the game either way, so it can only
+  // ever happen once. If nobody struck, three successes lead to the final step.
   const early = room.phase !== "assassination";
   if (early) {
-    if (!room.anytimeAssassin || !EARLY_STRIKE_PHASES.includes(room.phase)) throw new GameError("现在还不能刺杀。");
+    if (!EARLY_STRIKE_PHASES.includes(room.phase)) throw new GameError("现在还不能刺杀。");
     if (turnId !== game.turnId) throw new GameError("这一步已结束，请查看最新进度。 ");
   } else {
     requireCurrentTurn(room, game, turnId, "assassination");

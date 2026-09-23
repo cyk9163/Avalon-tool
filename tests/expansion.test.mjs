@@ -23,7 +23,11 @@ test("Expansion identities reveal only their official private information",()=>{
   const good=roomView(state,"k3",1).identity,evil=roomView(state,"k8",1).identity,cleric=roomView(state,"k4",1).identity;
   assert.deepEqual(good.known.map(item=>item.seat),[8]);
   assert.ok(evil.known.some(item=>item.seat===3&&item.label==="正义兰斯洛特"));
-  assert.ok(evil.known.some(item=>item.seat===6&&item.label==="邪恶同伴"));
+  assert.ok(evil.known.some(item=>item.seat===6&&item.label==="刺客"),"evil allies see each other's exact roles");
+  const assassin=roomView(state,"k6",1).identity;
+  assert.deepEqual(assassin.known.map(item=>[item.seat,item.label]),[[7,"莫甘娜"],[8,"邪恶兰斯洛特"]]);
+  const merlin=roomView(state,"k1",1).identity;
+  assert.ok(merlin.known.every(item=>item.label==="已知邪恶"),"Merlin learns only who is evil, not their roles");
   assert.deepEqual(cleric.known,[{seat:1,name:"玩家1",label:"第一任队长是正义"}]);
   assert.ok(!JSON.stringify(roomView(state,"outsider",1)).includes("正义兰斯洛特"));
 });
