@@ -1,5 +1,13 @@
 # 更新记录
 
+## 1.15.0 · 依赖自动更新 · 2026-09-23
+
+不改功能。
+
+- 新增 `.github/dependabot.yml`：npm 每周检查一次，同时最多 5 个 PR，并分成 cloudflare、vinext、react-next、test-tools 四组；GitHub Actions 每月检查一次，最多 3 个 PR。vinext 单独成组，因为它仍是测试版，合并前要看变更说明，等 CI 全绿，并先在 staging 验证再上正式。
+- `npm ci` 时可能出现 allow-scripts 警告，涉及 esbuild、unrs-resolver、workerd 的安装脚本。它们只下载或校验本机二进制，供 Vite、ESLint 和 Wrangler 使用。结论是保持默认，不运行 `npm approve-scripts`，也不把批准记录提交进仓库。警告不会让安装失败。如果以后的 npm 改成默认不执行这些脚本，再只批准这三家，不要一次批准全部依赖。
+- 合并升级 PR：在 GitHub 打开 Dependabot 的 PR，等自动检查全绿；vinext 那一组先读变更说明，部署 staging 确认后再合并。在 PR 页面点 Merge 即可，不要强制推送。
+
 ## 1.14.0 · 拆分大文件 · 2026-09-23
 
 只拆文件，不改规则、接口、文案或样式。
