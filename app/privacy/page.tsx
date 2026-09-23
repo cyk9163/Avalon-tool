@@ -38,6 +38,7 @@ export default function PrivacyPage() {
         <ul>
           <li><strong>Cookie <code>avalon_device</code></strong>：一串随机凭据，让服务器认出你的座位。仅限本站、HttpOnly（网页脚本读不到）、30 天有效。清除后需要用恢复码或请房主批准才能回到座位。</li>
           <li><strong>本地存储</strong>：你上次用的昵称、最近一个房间码，以及该房间的邀请口令，方便刷新或重开时自动回到房间。点“离开房间”会清掉房间码。</li>
+          <li><strong>我的板子模板</strong>：你保存的自定义板子（名称和角色组合，最多 8 个），只存在这台设备，不上传服务器。</li>
           <li><strong>离线提示页</strong>：安装到主屏幕后，只缓存一个公开的“网络已断开”页面，不缓存房间、身份或投票。</li>
         </ul>
         <p>本站不使用任何跟踪 Cookie、广告标识或第三方统计脚本。</p>
@@ -50,7 +51,7 @@ export default function PrivacyPage() {
           <li><strong>防刷限流记录</strong>：只保存网络地址或设备凭据的摘要和计数，最长 24 小时，同样每小时清理。</li>
           <li><strong>服务日志</strong>：记录请求编号、动作类型、状态码和耗时，房间码只记匿名摘要，不记昵称、Cookie、Key、恢复码或身份。日志由 Cloudflare 按其保留期保存（免费方案目前为 3 天）。</li>
         </ul>
-        <p>圆桌没有永久战绩。需要留存复盘，请在结局页自行导出或截图。</p>
+        <p>圆桌没有永久战绩。需要留存复盘，请在结局页用“复制复盘文字”或“下载 .txt”自行导出；导出内容包含同桌昵称、身份和表决，但不包含谁出了哪张任务牌。</p>
       </section>
 
       <section id="hidden">

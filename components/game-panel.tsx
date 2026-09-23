@@ -5,6 +5,7 @@ import { ArrowLeftRight, ArrowRight, Check, ChevronDown, CircleDashed, Crown, Fl
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { ROLES, type RoomView } from "@/lib/game";
+import { ReplayExport } from "@/components/replay-export";
 
 type Props = {
   room: RoomView;
@@ -167,6 +168,7 @@ export function GamePanel({ room, busy, connected, error, act, onNewGame }: Prop
       {!me && <p className="action-note">完整身份仅向本局成员揭晓。</p>}
       <div className="rematch-actions">{me?.id === room.hostId ? <button className="primary-button" disabled={blocked} onClick={() => setPending({ action: "rematch", input: { round: room.round }, title: "同房再来一局？", description: "保留房间码、玩家和座位，清除本局身份与全部投票记录。请先完成复盘；重开后所有人重新准备、重新发身份。房间仍在创建 24 小时后过期。", label: "确认重开" })}><RotateCcw size={17} />同房再来一局</button> : me && <p className="waiting-note" role="status">复盘完成后，可以请房主开启同房新一局。</p>}
       <button className="secondary-button" onClick={onNewGame}>返回首页<ArrowRight size={16} /></button></div>
+      <ReplayExport room={room} />
       <p className="action-note">本局记录保留到同房重开或房间过期。重开前，请先完成复盘。</p>
     </div>}
 

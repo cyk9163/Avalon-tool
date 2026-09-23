@@ -7,7 +7,7 @@
 - 仓库：[cyk9163/Avalon-tool](https://github.com/cyk9163/Avalon-tool)，主分支 `main`。
 - 正式地址：[圆桌 · 阿瓦隆助手](https://avalon-roundtable.yunkangchen2017.workers.dev)。个人 Cloudflare Workers + D1 + Durable Objects（SQLite 版），保持免费方案，不再部署到 GPT Sites。
 - staging：[avalon-roundtable-staging](https://avalon-roundtable-staging.yunkangchen2017.workers.dev)，独立 Worker、独立 D1（`avalon-roundtable-staging-db`）和独立房主 Key 白名单；明文 Key 在原机器被 Git 忽略的 `work/staging-host-keys.txt`。
-- 当前为 v0.10.0：v0.6 的自定义板子与扩展角色之上，v0.7 完成企业级基础治理（lint 清零、安全头、结构化日志、健康检查、Cron 清理、依赖漏洞清零、CI 扩充、部署后 smoke test），v0.8 加入换设备恢复（恢复码／房主批准）与带口令的邀请链接，v0.9 加入 Durable Object + WebSocket 实时同步与 staging 环境，v0.9.1 轮换房主 Key 并简化 Key 输入，v0.10 加入规则教学页与隐私说明页。
+- 当前为 v0.11.0：v0.6 的自定义板子与扩展角色之上，v0.7 完成企业级基础治理（lint 清零、安全头、结构化日志、健康检查、Cron 清理、依赖漏洞清零、CI 扩充、部署后 smoke test），v0.8 加入换设备恢复（恢复码／房主批准）与带口令的邀请链接，v0.9 加入 Durable Object + WebSocket 实时同步与 staging 环境，v0.9.1 轮换房主 Key 并简化 Key 输入，v0.10 加入规则教学页与隐私说明页，v0.11 加入板子模板与复盘导出。
 - 交接日期：2026-09-23。规则测试覆盖自定义阵容、扩展身份线索、强制任务牌、揭露者和湖中仙女隐私；每次发布的最终验证结果以 `CHANGELOG.md`、GitHub CI 与交付消息为准。
 - 发布证据入口：[main 最新提交](https://github.com/cyk9163/Avalon-tool/commits/main)、[自动检查](https://github.com/cyk9163/Avalon-tool/actions)、上述正式站点。不能仅凭版本号认定上线；每次交付消息还应给出具体提交与线上验证结果。
 
@@ -58,6 +58,8 @@ Windows 上若系统的 npm 启动脚本解析出错，可用 `node scripts/run-
 | `lib/room-store.ts` | D1 查询、房间持久化与并发条件更新；提交成功后调用 `signalRoom` |
 | `lib/live.ts`、`lib/live-gateway.ts`、`lib/room-hub.ts`、`lib/room-signal.ts`、`lib/use-room-live.ts` | 实时信号：协议、握手校验、每房间 Durable Object、提交后通知、前端连接与退避 |
 | `app/rules/page.tsx`、`app/privacy/page.tsx`、`components/doc-page.tsx`、`app/docs.css` | 规则教学与隐私说明（静态页，表格与角色取自 `lib/game.ts`）；修改数据保存方式时要同步更新隐私说明 |
+| `lib/board-templates.ts` | 推荐板子模板与本机保存的模板（localStorage），可用性用服务端的 `validateCustomRoles` 判断 |
+| `lib/replay.ts`、`components/replay-export.tsx` | 结局复盘文字导出：只用本人的 RoomView，不含任务牌归属、房间码或湖中仙女私密结果 |
 | `lib/request-context.ts` | 接口与实时网关共用的设备身份、网络限流、房间码查找预算 |
 | `scripts/environments.mjs`、`scripts/deploy.mjs`、`scripts/staging-check.mjs` | 正式／staging 部署（核对 Worker 名称）与 staging 端到端实时检查 |
 | `db/schema.ts`、`drizzle/` | 数据库结构、迁移和迁移记录 |

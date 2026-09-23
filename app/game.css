@@ -213,3 +213,10 @@
   .player-option { gap: 6px; padding: 10px 7px; }.selection-check { width: 15px; height: 15px; }.player-option .player-number { width: 23px; height: 23px; }
   .game-action-footer p { display: flex; flex-wrap: wrap; gap: 9px; }.game-history summary small { margin-left: auto; }.history-chevron { display: none; }
 }
+/* v0.11 replay export */
+.replay-export { width: 100%; margin-top: 20px; padding-top: 18px; border-top: 1px solid #b6c9ba1f; display: grid; gap: 8px; justify-items: center; }
+.replay-export-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.replay-export-actions .secondary-button { margin: 0; width: auto; display: inline-flex; align-items: center; gap: 8px; }
+.replay-export .action-note { margin: 0; max-width: 520px; }
+.replay-fallback { width: 100%; font: 13px/1.6 ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; color: var(--foreground); background: #0c171a; border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; resize: vertical; }
+@media (max-width: 760px) { .replay-export-actions { width: 100%; flex-direction: column; } .replay-export-actions .secondary-button { width: 100%; justify-content: center; } }

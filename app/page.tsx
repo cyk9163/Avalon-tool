@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, type ChangeEvent } from "react";
 import Link from "next/link";
-import { ArrowRight, ArrowLeft, Shield, Users, Crown, KeyRound, Check, Copy, QrCode, Eye, EyeOff, RefreshCw, LogOut, LockKeyhole, CircleHelp, Smartphone, LoaderCircle, ChevronDown } from "lucide-react";
+import { ArrowRight, ArrowLeft, Shield, Users, Crown, KeyRound, Check, Copy, QrCode, Eye, EyeOff, RefreshCw, LogOut, LockKeyhole, CircleHelp, Smartphone, LoaderCircle, ChevronDown, Bookmark, X } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -16,6 +16,7 @@ import { RecoveryCodeCard, SeatRecovery } from "@/components/device-recovery";
 import { TakeoverAlert, TakeoverRequests } from "@/components/takeover-requests";
 import { useRoomLive } from "@/lib/use-room-live";
 import { LIVE_FALLBACK_POLL_MS } from "@/lib/live";
+import { BUILT_IN_TEMPLATES, MAX_SAVED_TEMPLATES, MAX_TEMPLATE_NAME, fillCustomRoles, loadSavedTemplates, newTemplateId, sameBoard, storeSavedTemplates, templateFits, templateMinimum, type BoardTemplate } from "@/lib/board-templates";
 import { HOST_KEY_LENGTH, formatHostKey, formattedCaret, hostKeyCharacters, hostKeyForSubmit } from "@/lib/host-key-input";
 
 type Mode="create"|"join";
@@ -53,10 +54,6 @@ function RoleChips({roles}:{roles:Role[]}){
   return <div className="role-chips">{[...new Set(pool)].map(role=><span className={`role-chip ${ROLES[role].side}`} key={role}>{ROLES[role].name}{pool.filter(r=>r===role).length>1?` ×${pool.filter(r=>r===role).length}`:""}</span>)}</div>;
 }
 
-function fillCustomRoles(capacity:number,specials:Set<Role>):Role[]{
-  const good=[...specials].filter(role=>ROLES[role].side==="good"),evil=[...specials].filter(role=>ROLES[role].side==="evil");
-  return [...good,...Array(capacity-EVIL_COUNTS[capacity]-good.length).fill("loyal"),...evil,...Array(EVIL_COUNTS[capacity]-evil.length).fill("minion")] as Role[];
-}
 function Table({count,room,onSeat,disabled}:{count:number;room?:RoomView|null;onSeat?:(seat:number)=>void;disabled?:boolean}){
   return <div className={`roundtable ${room?"live-table":""}`}><div className="table-center"><Crown size={32} strokeWidth={1.3}/><span>AVALON</span><p>{room?`${room.players.length} / ${count} 位已入座`:"每个人，都有自己的秘密。"}</p></div>{Array.from({length:count},(_,i)=>{
     const player=room?.players.find(p=>p.seat===i+1),mine=!!player&&player.id===room?.meId;
@@ -65,8 +62,11 @@ function Table({count,room,onSeat,disabled}:{count:number;room?:RoomView|null;on
 }
 
 export default function Home(){
-  const [mode,setMode]=useState<Mode>("create"),[name,setName]=useState(""),[hostKey,setHostKey]=useState(""),[capacity,setCapacity]=useState(7),[preset,setPreset]=useState<Preset>("classic"),[code,setCode]=useState("");
+  const [mode,setMode]=useState<Mode>("create"),[name,setName]=useState(""),[hostKey,setHostKey]=useState(""),[capacity,setCapacity]=useState(8),[preset,setPreset]=useState<Preset>("classic"),[code,setCode]=useState("");
   const [customSpecials,setCustomSpecials]=useState<Set<Role>>(()=>new Set(["merlin","assassin"])),[ladyOfLake,setLadyOfLake]=useState(false);
+  // Saved boards live on this device only. The picker renders only after the
+  // host chooses a custom board, so reading storage here cannot affect hydration.
+  const [savedTemplates,setSavedTemplates]=useState<BoardTemplate[]>(()=>typeof window==="undefined"?[]:loadSavedTemplates()),[templateName,setTemplateName]=useState<string|null>(null);
   const [room,setRoom]=useState<RoomView|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState(""),[sessionReady,setSessionReady]=useState(false),[connected,setConnected]=useState(true);
   const [membershipNotice,setMembershipNotice]=useState("");
   // Code of a room the server reported as expired or closed: stop syncing it.
@@ -187,6 +187,17 @@ export default function Home(){
   };
   const back=()=>{currentCode.current="";latest.current=null;setRoom(null);setError("");setReveal(false);setMembershipNotice("");history.replaceState(null,"","/");try{localStorage.removeItem("avalon:last-room");}catch{}};
   const customRoles=fillCustomRoles(capacity,customSpecials);
+  const applyTemplate=(template:BoardTemplate)=>{setCustomSpecials(new Set(template.specials));setLadyOfLake(template.ladyOfLake);createId.current="";setError("");};
+  const saveTemplate=()=>{
+    const label=(templateName??"").trim().slice(0,MAX_TEMPLATE_NAME);
+    if(!label){setError("请给模板起个名字。");return;}
+    const template:BoardTemplate={id:newTemplateId(),name:label,specials:[...customSpecials],ladyOfLake};
+    if(templateMinimum(template)===null){setError("当前板子无法在任何人数下使用，请调整后再保存。");return;}
+    const next=[template,...savedTemplates.filter(item=>!sameBoard(item,customSpecials,ladyOfLake))].slice(0,MAX_SAVED_TEMPLATES);
+    if(!storeSavedTemplates(next)){setError("这台设备无法保存模板（可能处于无痕模式）。");return;}
+    setSavedTemplates(next);setTemplateName(null);setError("");
+  };
+  const deleteTemplate=(id:string)=>{const next=savedTemplates.filter(item=>item.id!==id);storeSavedTemplates(next);setSavedTemplates(next);};
   const previewRoles=preset==="custom"?customRoles:rolePool(capacity,preset);
   const toggleCustomRole=(role:Role)=>{if(role==="merlin"||role==="assassin")return;setCustomSpecials(current=>{
     const next=new Set(current),adding=!next.has(role),paired:Role[]=[];
@@ -252,10 +263,11 @@ export default function Home(){
           <TabsList className="entry-tab-list"><TabsTrigger value="create">建立房间</TabsTrigger><TabsTrigger value="join">加入房间</TabsTrigger></TabsList>
           <TabsContent value="create">
             <form className="form-stack" onSubmit={e=>{e.preventDefault();void create();}}>
-              <label className="field"><span className="field-label">你的昵称</span><input autoComplete="nickname" placeholder="大家怎么称呼你" maxLength={12} required value={name} onChange={e=>setName(e.target.value)}/></label>
-              <fieldset><legend>这次有几位朋友？</legend><RadioGroup aria-label="游戏人数" className="count-grid" value={String(capacity)} onValueChange={v=>{const next=Number(v);setCapacity(next);setCustomSpecials(new Set(["merlin","assassin"]));setLadyOfLake(false);if(next<PRESETS[preset].minimum)setPreset("classic");createId.current="";}}>{[5,6,7,8,9,10].map(n=><label className={`count-option ${capacity===n?"selected":""}`} key={n}><RadioGroupItem value={String(n)} className="sr-only"/><strong>{n}</strong><span>人</span></label>)}</RadioGroup></fieldset>
+                            <fieldset><legend>这次有几位朋友？</legend><RadioGroup aria-label="游戏人数" className="count-grid" value={String(capacity)} onValueChange={v=>{const next=Number(v);setCapacity(next);if(!templateFits({specials:[...customSpecials],ladyOfLake},next)){setCustomSpecials(new Set(["merlin","assassin"]));setLadyOfLake(false);}if(next<PRESETS[preset].minimum)setPreset("classic");createId.current="";}}>{[5,6,7,8,9,10].map(n=><label className={`count-option ${capacity===n?"selected":""}`} key={n}><RadioGroupItem value={String(n)} className="sr-only"/><strong>{n}</strong><span>人</span></label>)}</RadioGroup></fieldset>
               <fieldset><legend>选择角色配置</legend><RadioGroup aria-label="角色配置" value={preset} onValueChange={v=>{setPreset(v as Preset);createId.current="";}} className="preset-grid">{(Object.keys(PRESETS) as Preset[]).map(key=><label className={`preset-choice ${key===preset?"selected":""} ${capacity<PRESETS[key].minimum?"unavailable":""}`} key={key}><RadioGroupItem value={key} disabled={capacity<PRESETS[key].minimum}/><div><strong>{PRESETS[key].name}</strong><span>{PRESETS[key].hint}</span></div></label>)}</RadioGroup></fieldset>
-              {preset==="custom"&&<fieldset className="custom-board"><legend>编辑自定义板子</legend><div className="custom-board-summary"><span>正义 {capacity-EVIL_COUNTS[capacity]} 位</span><span>邪恶 {EVIL_COUNTS[capacity]} 位</span><small>空余位置自动补为忠臣或爪牙</small></div><div className="custom-role-columns"><div><strong>正义角色</strong>{CUSTOM_GOOD_ROLES.map(role=><button type="button" key={role} className={customSpecials.has(role)?"selected":""} aria-pressed={customSpecials.has(role)} disabled={role==="merlin"||(capacity<7&&["goodLancelot","cleric"].includes(role))} onClick={()=>toggleCustomRole(role)}><span>{ROLES[role].name}</span><small>{role==="merlin"?"必选":role==="goodLancelot"?"与邪恶兰斯洛特成对":"可选"}</small></button>)}</div><div><strong>邪恶角色</strong>{CUSTOM_EVIL_ROLES.map(role=><button type="button" key={role} className={customSpecials.has(role)?"selected":""} aria-pressed={customSpecials.has(role)} disabled={role==="assassin"||(capacity<7&&["evilLancelot","lunatic","brute","revealer"].includes(role))} onClick={()=>toggleCustomRole(role)}><span>{ROLES[role].name}</span><small>{role==="assassin"?"必选":role==="evilLancelot"?"成对加入":role==="morgana"?"需派西维尔":"可选"}</small></button>)}</div></div><label className={`module-toggle ${capacity<7?"disabled":""}`}><input type="checkbox" checked={ladyOfLake} disabled={capacity<7} onChange={e=>{setLadyOfLake(e.target.checked);createId.current="";}}/><span><strong>启用湖中仙女</strong><small>第 2、3、4 次任务后，持有者私密查验一位玩家的阵营</small></span></label></fieldset>}
+              <fieldset className="template-picker"><legend>推荐板子<small>一键套用，之后还能微调</small></legend><div className="template-chips">{[...BUILT_IN_TEMPLATES,...savedTemplates].map(template=>{const fits=templateFits(template,capacity),active=preset==="custom"&&sameBoard(template,customSpecials,ladyOfLake);return <span key={template.id} className={`template-chip${active?" selected":""}${template.builtIn?"":" mine"}`}><button type="button" disabled={!fits} aria-pressed={active} onClick={()=>{setPreset("custom");applyTemplate(template);}}><span>{template.name}</span><small>{fits?(template.hint??`我的模板${template.ladyOfLake?" · 湖中仙女":""}`):`${templateMinimum(template)} 人起`}</small></button>{!template.builtIn&&<button type="button" className="template-delete" aria-label={`删除模板「${template.name}」`} onClick={()=>deleteTemplate(template.id)}><X size={14}/></button>}</span>;})}</div></fieldset>
+              {preset==="custom"&&<fieldset className="custom-board"><legend>编辑自定义板子</legend><div className="custom-board-summary"><span>正义 {capacity-EVIL_COUNTS[capacity]} 位</span><span>邪恶 {EVIL_COUNTS[capacity]} 位</span><small>空余位置自动补为忠臣或爪牙</small></div><div className="custom-role-columns"><div><strong>正义角色</strong>{CUSTOM_GOOD_ROLES.map(role=><button type="button" key={role} className={customSpecials.has(role)?"selected":""} aria-pressed={customSpecials.has(role)} disabled={role==="merlin"||(capacity<7&&["goodLancelot","cleric"].includes(role))} onClick={()=>toggleCustomRole(role)}><span>{ROLES[role].name}</span><small>{role==="merlin"?"必选":role==="goodLancelot"?"与邪恶兰斯洛特成对":"可选"}</small></button>)}</div><div><strong>邪恶角色</strong>{CUSTOM_EVIL_ROLES.map(role=><button type="button" key={role} className={customSpecials.has(role)?"selected":""} aria-pressed={customSpecials.has(role)} disabled={role==="assassin"||(capacity<7&&["evilLancelot","lunatic","brute","revealer"].includes(role))} onClick={()=>toggleCustomRole(role)}><span>{ROLES[role].name}</span><small>{role==="assassin"?"必选":role==="evilLancelot"?"成对加入":role==="morgana"?"需派西维尔":"可选"}</small></button>)}</div></div><label className={`module-toggle ${capacity<7?"disabled":""}`}><input type="checkbox" checked={ladyOfLake} disabled={capacity<7} onChange={e=>{setLadyOfLake(e.target.checked);createId.current="";}}/><span><strong>启用湖中仙女</strong><small>第 2、3、4 次任务后，持有者私密查验一位玩家的阵营</small></span></label><div className="template-save-row">{templateName===null?<button type="button" className="template-save" onClick={()=>setTemplateName("")}><Bookmark size={15}/>保存当前板子为模板</button>:<div className="template-save-form"><input autoFocus aria-label="模板名称" placeholder={`模板名称，最多 ${MAX_TEMPLATE_NAME} 字`} maxLength={MAX_TEMPLATE_NAME} value={templateName} onChange={e=>setTemplateName(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"){e.preventDefault();saveTemplate();}if(e.key==="Escape")setTemplateName(null);}}/><button type="button" className="template-save-confirm" onClick={saveTemplate}>保存</button><button type="button" className="template-save-cancel" onClick={()=>setTemplateName(null)}>取消</button></div>}{savedTemplates.length>0&&<small>我的模板只保存在这台设备（{savedTemplates.length}/{MAX_SAVED_TEMPLATES}）</small>}</div></fieldset>}
+              <label className="field"><span className="field-label">你的昵称</span><input autoComplete="nickname" placeholder="大家怎么称呼你" maxLength={12} required value={name} onChange={e=>setName(e.target.value)}/></label>
               <label className="field host-key-field"><span className="host-key-label"><span><KeyRound size={14}/>房主 Key</span><small aria-live="polite">{hostKey?`${hostKey.length} / ${HOST_KEY_LENGTH} 位`:"仅创建房间需要"}</small></span><span className="host-key-input"><span className="host-key-prefix" aria-hidden="true">AVL-</span><input type="text" name="avalon-host-key" inputMode="text" autoComplete="off" autoCorrect="off" autoCapitalize="characters" spellCheck={false} placeholder="XXXX-XXXX-XXXX-XXXX" maxLength={40} required aria-label="房主 Key：16 位字母和数字，不含 0、1、I、O" value={formatHostKey(hostKey)} onChange={onHostKeyChange}/></span></label>
               {error&&<p className="entry-error" role="alert">{error}</p>}
               <div className="entry-submit"><button className="primary-button" disabled={busy||!sessionReady}>{busy?<><LoaderCircle size={18} className="spin"/>正在建立…</>:<>建立圆桌<ArrowRight size={18}/></>}</button><p className="form-note"><LockKeyhole size={13}/>房主凭 Key 建房，朋友扫码即可入座</p></div>
