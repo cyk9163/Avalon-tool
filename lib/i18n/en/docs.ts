@@ -160,4 +160,6 @@ export const DOCS: Record<string, string> = {
   "负": "Lost",
   "（被刺中）": " (found)",
   "：对局结束时，这台设备记下日期、人数、板子、你的角色、最终阵营、胜负，以及这局有没有刺中梅林。只存在这台设备，不上传服务器；保留最近 200 局，同一房间的同一局只记一次，可以随时清空。": ": when a game ends, this device stores the date, player count, board, your role, your final side, the result, and whether Merlin was assassinated. It stays on this device, is never uploaded, keeps the last 200 games, records each room and round once, and can be cleared at any time.",
+  "锁屏提醒": "Lock-screen alerts",
+  "：你主动开启后，服务器保存推送地址和密钥（不含身份），只在轮到你发言、选队、投票、出牌、使用湖中仙女或刺杀时发送一条通知，例如「轮到你投票 · 房间 123456」。随房间在 24 小时后删除，可以随时关闭。": ": after you turn them on, the server stores the push address and keys (never a role) and sends one notification only when it is your turn to speak, pick a team, vote, play a card, use the Lady of the Lake, or strike — for example \"Your turn to vote · room 123456\". It is deleted with the room after 24 hours, and you can turn it off at any time.",
 };

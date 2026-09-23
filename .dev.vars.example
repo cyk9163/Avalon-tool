@@ -4,3 +4,5 @@ HOST_KEY_HASHES=a05617900e7b3165bfe3a81942dab6339dd50e8924b6a372407c219d61b63f08
 
 # 本地管理后台测试 Key：ADM-TEST-ADMN-KEYS-2345-6789（公开值，勿用于正式环境）。
 ADMIN_KEY_HASHES=80e08849f7ac5d9313b88cf1d785b3d250248c38e07efb0ecc6e4dd6e67c612c
+
+# 锁屏提醒的签名私钥不要写进这个示例。本地密钥只放 work/vapid-private.txt 和本机 .dev.vars 的 VAPID_PRIVATE_KEY。未配置时房间照常进行，只是不发通知。

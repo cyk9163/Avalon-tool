@@ -312,4 +312,13 @@ export const GAME: Record<string, string> = {
   "刺客提前出刀就锁定了梅林。": "The Assassin pinned Merlin on an early strike.",
   "刺客没有找到梅林。": "The Assassin missed Merlin.",
   "连续否决最多出现在任务 {quest}：连续 {n} 次。": "The longest rejection streak was on quest {quest}: {n} in a row.",
+  "{label} · 房间 {code}": "{label} · room {code}",
+  "开启锁屏提醒": "Turn on lock-screen alerts",
+  "关闭锁屏提醒": "Turn off lock-screen alerts",
+  "这台浏览器不支持锁屏提醒。": "This browser can't show lock-screen alerts.",
+  "iPhone 请先把圆桌添加到主屏幕，系统为 iOS 16.4 或更新，再开启锁屏提醒。": "On iPhone, add Round Table to your home screen (iOS 16.4 or later), then turn on lock-screen alerts.",
+  "需要允许通知，才能在锁屏时提醒你。": "Allow notifications to get a reminder on the lock screen.",
+  "锁屏提醒暂时没能开启，请稍后再试。": "Lock-screen alerts couldn't be turned on. Please try again shortly.",
+  "锁屏提醒已开启。轮到你时会收到一条不含身份的通知。": "Lock-screen alerts are on. When it's your turn you'll get a notification with no role in it.",
+  "锁屏提醒已关闭。": "Lock-screen alerts are off.",
 };

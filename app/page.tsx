@@ -10,6 +10,7 @@ import { AlertDialog, AlertDialogContent, AlertDialogTitle, AlertDialogDescripti
 import { ROLES, PRESETS, rolePool, EVIL_COUNTS, CUSTOM_GOOD_ROLES, CUSTOM_EVIL_ROLES, type Preset, type Role, type RoomView } from "@/lib/game";
 import { GamePanel } from "@/components/game-panel";
 import { InstallApp } from "@/components/install-app";
+import { PushToggle } from "@/components/push-toggle";
 import { RoomManagement } from "@/components/room-management";
 import { RoomProgress } from "@/components/room-progress";
 import { RecoveryCodeCard, SeatRecovery } from "@/components/device-recovery";
@@ -266,6 +267,7 @@ export default function Home(){
         <span className="edition"><span className="status-dot"/>{t("面对面，才有意思")}</span>
         <ThemeToggle/><LangToggle/>
         <InstallApp/>
+        {room?.meId && <PushToggle seated act={act}/>}
         <button className="icon-button" aria-label={t("使用说明")} onClick={()=>setHelp(true)}><CircleHelp size={20}/></button>
       </div>
     </header>

@@ -3,6 +3,7 @@ import {GameError,roomView} from "@/lib/game";
 import {verifyHostKey} from "@/lib/host-key";
 import {log,newRequestId,roomRef} from "@/lib/log";
 import {getRoom,createRoom,changeRoom,rateLimit,rateLimited} from "@/lib/room-store";
+import {removePushSubscription,requirePushMember,savePushSubscription,validatePushSubscription} from "@/lib/push-store";
 import {hash,deviceToken as token,ipKey,enforceLookupBudget,recordLookupMiss} from "@/lib/request-context";
 export const dynamic="force-dynamic";
 const cookieName="avalon_device";
@@ -91,7 +92,15 @@ export async function POST(request:Request){
         if(ip)await rateLimit(`takeover-ip:${ip}`,12,600000);
       }
       try{
-        result=response(requestId,await changeRoom(input.code,key,input.action,input,inviteFrom(request),stats));
+        if(input.action==="push-subscribe"||input.action==="push-unsubscribe"){
+          const {room,version}=await getRoom(input.code);
+          const me=requirePushMember(room,key);
+          if(input.action==="push-subscribe")await savePushSubscription(room,me.id,validatePushSubscription(input));
+          else await removePushSubscription(room,me.id);
+          result=response(requestId,roomView(room,key,version,inviteFrom(request)));
+        }else{
+          result=response(requestId,await changeRoom(input.code,key,input.action,input,inviteFrom(request),stats));
+        }
       }catch(error){
         await recordLookupMiss(ip,error);
         if(error instanceof GameError&&error.status===403)for(const bucket of recoverBuckets)await rateLimit(bucket,Number.MAX_SAFE_INTEGER,RECOVER_FAILURES.windowMs);

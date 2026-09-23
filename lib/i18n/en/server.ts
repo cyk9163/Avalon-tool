@@ -160,6 +160,7 @@ export const SERVER: Record<string, string> = {
 
   // Room store and request limits
   "房间服务暂时不可用，请稍后再试。": "The room service is temporarily unavailable. Please try again later.",
+  "推送订阅无效。": "That notification subscription is not valid.",
   "请输入 6 位房间码。": "Please enter a 6-digit room code.",
   "房间不存在或已过期，请检查房间码。": "This room doesn't exist or has expired. Please check the room code.",
   "操作太频繁，请稍后再试。": "Too many actions. Please try again in a moment.",

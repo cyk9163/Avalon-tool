@@ -6,7 +6,7 @@ test("a member can step through the replay, and the result is saved on this devi
   try {
     const code = game.code;
     const identities = await Promise.all(game.players.map(player => player.get(code)));
-    const sides = identities.map(view => (view as { identity: { side: "good" | "evil" } }).identity.side);
+    const sides = identities.map(view => (view as unknown as { identity: { side: "good" | "evil" } }).identity.side);
     for (let mission = 1; mission <= 3; mission++) {
       const before = await game.players[0].get(code);
       const size = before.game!.teamSize;
@@ -38,6 +38,9 @@ test("a member can step through the replay, and the result is saved on this devi
     await replay.getByRole("button", { name: "下一步" }).click();
     await expect(caption).not.toHaveText(first);
     await expectNoHorizontalScroll(page);
+    await expect(page.getByRole("button", { name: "开启锁屏提醒" })).toBeVisible();
+    await page.getByRole("button", { name: "开启锁屏提醒" }).click();
+    await expect(page.locator(".push-note")).toBeVisible();
 
     await page.goto("/me");
     await expect(page.getByRole("heading", { name: "我的战绩" })).toBeVisible();

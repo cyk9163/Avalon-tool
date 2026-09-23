@@ -39,11 +39,11 @@ test("static assets use the same policy as Worker responses", () => {
 
 test("scheduled cleanup deletes expired rows in bounded batches and logs counts", async () => {
   const calls = [];
-  const remaining = {rooms: 1203, rate_limits: 7};
+  const remaining = {rooms: 1203, rate_limits: 7, push_subscriptions: 4};
   const db = {prepare(sql) {
     return {bind(now, limit) {
       return {async run() {
-        const table = sql.includes("FROM rooms") ? "rooms" : "rate_limits";
+        const table = sql.includes("push_subscriptions") ? "push_subscriptions" : sql.includes("FROM rooms") ? "rooms" : "rate_limits";
         calls.push({table, now, limit});
         const changes = Math.min(limit, remaining[table]);
         remaining[table] -= changes;
@@ -51,8 +51,8 @@ test("scheduled cleanup deletes expired rows in bounded batches and logs counts"
       }};
     }};
   }};
-  assert.deepEqual(await cleanupExpired(db, 1234, 500, 20), {rooms: 1203, rateLimits: 7});
-  assert.deepEqual(calls.map(call => call.table), ["rooms", "rooms", "rooms", "rate_limits"]);
+  assert.deepEqual(await cleanupExpired(db, 1234, 500, 20), {rooms: 1203, rateLimits: 7, pushSubscriptions: 4});
+  assert.deepEqual(calls.map(call => call.table), ["rooms", "rooms", "rooms", "rate_limits", "push_subscriptions"]);
   assert.ok(calls.every(call => call.now === 1234 && call.limit === 500));
   const lines = [];
   const original = console.log;

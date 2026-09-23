@@ -10,6 +10,29 @@ self.addEventListener("install", event => {
   // Updates wait until old pages close: never reload an ongoing game.
 });
 
+self.addEventListener("push", event => {
+  let payload = {};
+  try { payload = event.data ? event.data.json() : {}; } catch { payload = {}; }
+  const body = typeof payload.body === "string" ? payload.body.slice(0, 180) : "轮到你了";
+  const room = typeof payload.url === "string" && /^\/\?room=\d{6}$/.test(payload.url) ? payload.url : "/";
+  event.waitUntil(self.registration.showNotification("圆桌", {
+    body,
+    icon: "/icons/icon-192.png",
+    badge: "/icons/icon-192.png",
+    data: { url: room },
+  }));
+});
+
+self.addEventListener("notificationclick", event => {
+  event.notification.close();
+  const url = event.notification.data && typeof event.notification.data.url === "string" ? event.notification.data.url : "/";
+  event.waitUntil(self.clients.matchAll({ type: "window", includeUncontrolled: true }).then(windows => {
+    const existing = windows.find(window => window.url.includes(url));
+    if (existing) return existing.focus();
+    return self.clients.openWindow(url);
+  }));
+});
+
 self.addEventListener("activate", event => {
   event.waitUntil((async () => {
     const keys = await caches.keys();

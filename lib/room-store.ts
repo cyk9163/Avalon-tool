@@ -1,5 +1,8 @@
 import {env} from "cloudflare:workers";
 import {signalRoom} from "./room-signal";
+import {log} from "./log";
+import {notifyNewTurns} from "./push-store";
+import {turnMap} from "./turn";
 import {GameError,type Room,mutateRoom,roomView,type Preset,rolePool,nickname,randomInt,newRecoveryCode,newInviteToken,ROOM_SCHEMA_VERSION} from "./game";
 function db(){if(!env.DB)throw new GameError("房间服务暂时不可用，请稍后再试。",503);return env.DB;}
 type Row={state:string;version:number;expires_at:number};
@@ -52,9 +55,14 @@ export async function createRoom(key:string,input:Record<string,unknown>){
 export async function changeRoom(code:string,key:string,action:string,input:Record<string,unknown>,invite?:string|null,stats?:{conflicts:number}){
   for(let attempt=0;attempt<24;attempt++){
     const {room,version}=await getRoom(code);
+    const beforeTurns=turnMap(room);
     mutateRoom(room,key,action,input);
     const result=await db().prepare("UPDATE rooms SET state=?, version=version+1 WHERE code=? AND version=? AND expires_at>?").bind(JSON.stringify(room),code,version,Date.now()).run();
-    if(result.meta.changes===1){signalRoom(code,version+1);return roomView(room,key,version+1,invite);}
+    if(result.meta.changes===1){
+      signalRoom(code,version+1);
+      void notifyNewTurns(beforeTurns,room).catch(error=>log("warn","push.failed",{reason:error instanceof Error?error.message:"unknown"}));
+      return roomView(room,key,version+1,invite);
+    }
     if(stats)stats.conflicts++;
     await new Promise(resolve=>setTimeout(resolve,5+randomInt(20)));
   }

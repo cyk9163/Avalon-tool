@@ -66,7 +66,8 @@ button svg { flex-shrink: 0; }
 .brand { display: flex; align-items: center; gap: 13px; font-weight: 600; font-size: 23px; letter-spacing: 3px; flex-shrink: 0; }
 .brand-icon { display: grid; place-items: center; border: 1px solid #dbc18a55; background: #dbc18a06; color: var(--primary); width: 46px; height: 46px; border-radius: 13px; }
 .brand-sub { display: block; font-size: 9px; letter-spacing: 3px; font-weight: 400; margin-top: 4px; color: #a9b9ac; }
-.header-right { display: flex; align-items: center; gap: 18px; }
+.header-right { display: flex; align-items: center; gap: 18px; position: relative; }
+.push-note { position: absolute; z-index: 4; right: 0; top: calc(100% + 8px); width: min(280px, 72vw); margin: 0; padding: 8px 10px; border: 1px solid #344c46; border-radius: 10px; background: #13272b; color: #d6dfd1; font-size: 12px; line-height: 1.5; text-align: left; }
 .edition { display: inline-flex; align-items: center; gap: 9px; color: #a4b5aa; font-size: 12px; }
 .status-dot { width: 5px; height: 5px; border-radius: 50%; background: #9bcab7; box-shadow: 0 0 0 4px #9bcab70a; }
 .icon-button { display: grid; place-items: center; min-width: 44px; min-height: 44px; border: 1px solid transparent; background: transparent; color: #a4b5b2; border-radius: 10px; }

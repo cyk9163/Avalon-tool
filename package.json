@@ -1,6 +1,6 @@
 {
   "name": "avalon-roundtable",
-  "version": "1.12.0",
+  "version": "1.13.0",
   "private": true,
   "engines": {
     "node": ">=24"
@@ -23,7 +23,7 @@
     "cf:rollback": "node scripts/wrangler.mjs rollback --config wrangler.jsonc",
     "cf:tail": "node scripts/wrangler.mjs tail --config wrangler.jsonc --format pretty",
     "cf:tail:staging": "node scripts/wrangler.mjs tail --config wrangler.jsonc --env staging --format pretty",
-    "test": "node --experimental-transform-types --test --test-isolation=none tests/game.test.mjs tests/expansion.test.mjs tests/stage2.test.mjs tests/stage3.test.mjs tests/pwa.test.mjs tests/management.test.mjs tests/host-key.test.mjs tests/recovery.test.mjs tests/security.test.mjs tests/live.test.mjs tests/templates-replay.test.mjs tests/admin.test.mjs tests/i18n.test.mjs tests/assassin.test.mjs tests/player-notes.test.mjs tests/speech.test.mjs tests/record.test.mjs tests/screen.test.mjs tests/guide-theme.test.mjs tests/v12.test.mjs",
+    "test": "node --experimental-transform-types --test --test-isolation=none tests/game.test.mjs tests/expansion.test.mjs tests/stage2.test.mjs tests/stage3.test.mjs tests/pwa.test.mjs tests/management.test.mjs tests/host-key.test.mjs tests/recovery.test.mjs tests/security.test.mjs tests/live.test.mjs tests/templates-replay.test.mjs tests/admin.test.mjs tests/i18n.test.mjs tests/assassin.test.mjs tests/player-notes.test.mjs tests/speech.test.mjs tests/record.test.mjs tests/screen.test.mjs tests/guide-theme.test.mjs tests/v12.test.mjs tests/push.test.mjs",
     "test:integration": "node tests/integration.mjs",
     "test:e2e": "playwright test",
     "typecheck": "tsc --noEmit",
