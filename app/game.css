@@ -263,3 +263,8 @@
 .player-notes-list textarea::placeholder { color: #7f928b; }
 .player-notes-footer { display: flex; justify-content: flex-end; padding: 6px 14px 14px; font-size: 13px; color: #c9d4cc; }
 .player-notes-footer span { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.player-draft { display: grid; gap: 6px; margin: 0 12px 12px; padding: 12px; border-radius: 12px; background: #dbc18a0d; border: 1px solid #dbc18a33; }
+.player-draft > span { font-size: 13px; font-weight: 600; color: var(--primary); }
+.player-draft textarea { width: 100%; min-height: 72px; padding: 8px 10px; border-radius: 9px; border: 1px solid var(--border); background: #0c171a; color: var(--foreground); font: 16px/1.5 inherit; resize: vertical; }
+.player-draft textarea::placeholder { color: #7f928b; }
+.player-draft small { justify-self: end; color: #93a59e; font-size: 11px; font-variant-numeric: tabular-nums; }

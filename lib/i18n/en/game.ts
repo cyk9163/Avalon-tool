@@ -1,5 +1,10 @@
 // English entries keyed by the Chinese source text (game).
 export const GAME: Record<string, string> = {
+  "我的发言准备": "What I'll say",
+  "先写好轮到自己时想说的：怎么表水、想推谁上车、为什么这样投票…": "Plan your turn to speak: how you'll show you're Good, who you want on the team, why you voted as you did…",
+  "{n} / {max} 字": "{n} / {max} characters",
+  "已标记 {n} / {total} 人 · 有发言草稿": "{n} / {total} marked · draft saved",
+  "确定清空所有标记、备注和发言草稿？": "Clear all marks, notes and your draft?",
   "好人": "Good",
   "坏人": "Evil",
   "未知": "Unknown",
@@ -13,7 +18,6 @@ export const GAME: Record<string, string> = {
   "{n} 号的发言备注": "Notes on Seat {n}",
   "记下发言、站边、投票理由…": "What they said, who they backed, why they voted…",
   "清空本局笔记": "Clear notes for this game",
-  "确定清空所有标记和备注？": "Clear all marks and notes?",
   "清空": "Clear",
   "出刀刺杀": "Strike now",
   "本局规则：刺客可以随时出刀，但只有一次。刺中梅林邪恶立即获胜，刺错正义立即获胜。": "House rule: you may strike at any moment, but only once. Hit Merlin and Evil wins at once; miss and Good wins at once.",

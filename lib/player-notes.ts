@@ -4,18 +4,20 @@
 // Evil or as a role on this board, and jot down what they said. Notes live in
 // this device's localStorage only — they are never sent to the server — and
 // are kept per room and per game, so a rematch starts with a clean sheet.
+// A free-form draft holds what the player plans to say on their own turn.
 import { useCallback, useSyncExternalStore } from "react";
 import { ROLES, type Role } from "./game.ts";
 
 export type Side = "good" | "evil";
 export type Mark = { side?: Side; role?: Role };
-export type PlayerNotes = { marks: Record<number, Mark>; notes: Record<number, string> };
+export type PlayerNotes = { marks: Record<number, Mark>; notes: Record<number, string>; draft: string };
 
 export const MAX_NOTE_LENGTH = 300;
+export const MAX_DRAFT_LENGTH = 600;
 const PREFIX = "avalon:notes:";
 const INDEX_KEY = "avalon:notes-index";
 const KEEP_GAMES = 5;
-const EMPTY: PlayerNotes = { marks: {}, notes: {} };
+const EMPTY: PlayerNotes = { marks: {}, notes: {}, draft: "" };
 
 const cache = new Map<string, PlayerNotes>();
 const listeners = new Set<() => void>();
@@ -26,9 +28,10 @@ export function notesKey(code: string, round: number): string {
 
 /** Keeps only well-formed seats, sides, roles and notes. */
 export function sanitizeNotes(value: unknown, roles: readonly Role[]): PlayerNotes {
-  const result: PlayerNotes = { marks: {}, notes: {} };
+  const result: PlayerNotes = { marks: {}, notes: {}, draft: "" };
   if (!value || typeof value !== "object") return result;
-  const { marks, notes } = value as Record<string, unknown>;
+  const { marks, notes, draft } = value as Record<string, unknown>;
+  if (typeof draft === "string" && draft.trim()) result.draft = draft.slice(0, MAX_DRAFT_LENGTH);
   const seat = (key: string) => (/^(?:[1-9]|10)$/.test(key) ? Number(key) : null);
   if (marks && typeof marks === "object") {
     for (const [key, mark] of Object.entries(marks as Record<string, unknown>)) {
@@ -97,6 +100,7 @@ export function usePlayerNotes(code: string, round: number, roles: readonly Role
     if (text) notesBySeat[seat] = text.slice(0, MAX_NOTE_LENGTH); else delete notesBySeat[seat];
     write(key, { ...current, notes: notesBySeat });
   }, [key, roles]);
-  const clear = useCallback(() => write(key, { marks: {}, notes: {} }), [key]);
-  return { notes, setMark, setNote, clear };
+  const setDraft = useCallback((text: string) => write(key, { ...read(key, roles), draft: text.slice(0, MAX_DRAFT_LENGTH) }), [key, roles]);
+  const clear = useCallback(() => write(key, { marks: {}, notes: {}, draft: "" }), [key]);
+  return { notes, setMark, setNote, setDraft, clear };
 }

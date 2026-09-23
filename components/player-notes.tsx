@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ChevronDown, NotebookPen } from "lucide-react";
 import { ROLES, type Role, type RoomView } from "@/lib/game";
 import { useI18n } from "@/lib/i18n/react";
-import { MAX_NOTE_LENGTH, usePlayerNotes, type Mark } from "@/lib/player-notes";
+import { MAX_DRAFT_LENGTH, MAX_NOTE_LENGTH, usePlayerNotes, type Mark } from "@/lib/player-notes";
 
 /** Small tag showing my private mark for a seat, for use next to player names. */
 export function MarkTag({ mark }: { mark?: Mark }) {
@@ -16,7 +16,7 @@ export function MarkTag({ mark }: { mark?: Mark }) {
 /** My private marks and notes for this room and game (this device only). */
 export function PlayerNotesPanel({ room }: { room: RoomView }) {
   const { t } = useI18n();
-  const { notes, setMark, setNote, clear } = usePlayerNotes(room.code, room.round, room.roles);
+  const { notes, setMark, setNote, setDraft, clear } = usePlayerNotes(room.code, room.round, room.roles);
   const [confirmClear, setConfirmClear] = useState(false);
   if (!room.meId || !room.game && room.phase !== "identity" && room.phase !== "ready") return null;
   const others = room.players.filter(player => player.id !== room.meId).sort((a, b) => a.seat - b.seat);
@@ -26,10 +26,21 @@ export function PlayerNotesPanel({ room }: { room: RoomView }) {
     <details className="player-notes">
       <summary>
         <span className="player-notes-title"><NotebookPen size={18} aria-hidden="true" /><span>{t("我的推理笔记")}</span></span>
-        <small>{t("已标记 {n} / {total} 人", { n: marked, total: others.length })}</small>
+        <small>{notes.draft ? t("已标记 {n} / {total} 人 · 有发言草稿", { n: marked, total: others.length }) : t("已标记 {n} / {total} 人", { n: marked, total: others.length })}</small>
         <ChevronDown className="player-notes-chevron" size={17} aria-hidden="true" />
       </summary>
       <p className="player-notes-hint">{t("只保存在这台设备，不会发给服务器或其他玩家；同房再开后换一张新笔记。")}</p>
+      <label className="player-draft">
+        <span>{t("我的发言准备")}</span>
+        <textarea
+          placeholder={t("先写好轮到自己时想说的：怎么表水、想推谁上车、为什么这样投票…")}
+          maxLength={MAX_DRAFT_LENGTH}
+          rows={notes.draft ? 4 : 3}
+          value={notes.draft}
+          onChange={event => setDraft(event.target.value)}
+        />
+        <small>{t("{n} / {max} 字", { n: notes.draft.length, max: MAX_DRAFT_LENGTH })}</small>
+      </label>
       <ul className="player-notes-list">
         {others.map(player => {
           const mark = notes.marks[player.seat];
@@ -67,7 +78,7 @@ export function PlayerNotesPanel({ room }: { room: RoomView }) {
       <div className="player-notes-footer">
         {!confirmClear
           ? <button type="button" className="text-button subtle" onClick={() => setConfirmClear(true)}>{t("清空本局笔记")}</button>
-          : <span>{t("确定清空所有标记和备注？")}<button type="button" className="text-button" onClick={() => { clear(); setConfirmClear(false); }}>{t("清空")}</button><button type="button" className="text-button subtle" onClick={() => setConfirmClear(false)}>{t("取消")}</button></span>}
+          : <span>{t("确定清空所有标记、备注和发言草稿？")}<button type="button" className="text-button" onClick={() => { clear(); setConfirmClear(false); }}>{t("清空")}</button><button type="button" className="text-button subtle" onClick={() => setConfirmClear(false)}>{t("取消")}</button></span>}
       </div>
     </details>
   );

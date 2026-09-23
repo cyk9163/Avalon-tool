@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {MAX_NOTE_LENGTH, notesKey, sanitizeNotes} from "../lib/player-notes.ts";
+import {MAX_DRAFT_LENGTH, MAX_NOTE_LENGTH, notesKey, sanitizeNotes} from "../lib/player-notes.ts";
 
 const board = ["merlin", "percival", "loyal", "assassin", "morgana"];
 
@@ -22,5 +22,12 @@ test("stored notes are cleaned: only real seats, sides, roles on this board and 
   });
   assert.deepEqual(Object.keys(cleaned.notes), ["1", "3"]);
   assert.equal(cleaned.notes[3].length, MAX_NOTE_LENGTH);
-  for (const junk of [null, undefined, 7, "text", []]) assert.deepEqual(sanitizeNotes(junk, board), {marks: {}, notes: {}});
+  for (const junk of [null, undefined, 7, "text", []]) assert.deepEqual(sanitizeNotes(junk, board), {marks: {}, notes: {}, draft: ""});
+});
+
+test("the speaking draft is kept, capped, and blank drafts are dropped", () => {
+  assert.equal(sanitizeNotes({draft: "先表水，再推 3 号上车"}, board).draft, "先表水，再推 3 号上车");
+  assert.equal(sanitizeNotes({draft: "字".repeat(MAX_DRAFT_LENGTH + 20)}, board).draft.length, MAX_DRAFT_LENGTH);
+  assert.equal(sanitizeNotes({draft: "   "}, board).draft, "");
+  assert.equal(sanitizeNotes({draft: 12}, board).draft, "");
 });
