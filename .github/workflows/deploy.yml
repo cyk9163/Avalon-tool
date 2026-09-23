@@ -1,7 +1,8 @@
 name: Deploy
 # Push to main updates staging only. Production is a manual run, and it asks
-# for the real-phone checklist in RELEASE.md. Both steps no-op with a notice
-# until the repository secret CLOUDFLARE_API_TOKEN exists.
+# for the real-phone checklist in RELEASE.md. Deploys use CLOUDFLARE_API_TOKEN
+# when that secret is a long-lived API token. Otherwise they exchange
+# CLOUDFLARE_OAUTH_REFRESH_TOKEN for a one-hour access token.
 on:
   push:
     branches: [main]
@@ -36,17 +37,18 @@ jobs:
       - id: token
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        run: if [ -n "$CLOUDFLARE_API_TOKEN" ]; then echo "ready=true" >> "$GITHUB_OUTPUT"; else echo "ready=false" >> "$GITHUB_OUTPUT"; echo "CLOUDFLARE_API_TOKEN is not set; staging deploy skipped."; fi
+          CLOUDFLARE_OAUTH_REFRESH_TOKEN: ${{ secrets.CLOUDFLARE_OAUTH_REFRESH_TOKEN }}
+        run: bash .github/workflows/cloudflare-auth.sh
       - if: steps.token.outputs.ready == 'true'
         run: npm ci
       - if: steps.token.outputs.ready == 'true'
         run: npm run db:migrate:staging
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_API_TOKEN: ${{ env.CLOUDFLARE_API_TOKEN }}
       - if: steps.token.outputs.ready == 'true'
         run: npm run deploy:staging
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_API_TOKEN: ${{ env.CLOUDFLARE_API_TOKEN }}
 
   production:
     name: Production
@@ -62,10 +64,18 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
+      - id: token
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_OAUTH_REFRESH_TOKEN: ${{ secrets.CLOUDFLARE_OAUTH_REFRESH_TOKEN }}
+        run: bash .github/workflows/cloudflare-auth.sh
+      - name: Require a Cloudflare credential
+        if: steps.token.outputs.ready != 'true'
+        run: echo "Set CLOUDFLARE_API_TOKEN or CLOUDFLARE_OAUTH_REFRESH_TOKEN." && exit 1
       - run: npm ci
       - run: npm run db:migrate:remote
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_API_TOKEN: ${{ env.CLOUDFLARE_API_TOKEN }}
       - run: npm run deploy
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_API_TOKEN: ${{ env.CLOUDFLARE_API_TOKEN }}

@@ -165,7 +165,7 @@ GitHub Actions 的 Verify 工作流有三个任务：lint（0 警告）、类型
 
 ## 待办
 
-v1.16 起，推到 `main` 会在配好 `CLOUDFLARE_API_TOKEN` 后自动部署 staging。正式环境用 Actions 的 Deploy 手动发布，并要勾上 `RELEASE.md` 里的真机清单。
+v1.16 起，推到 `main` 会自动部署 staging。仓库里已保存可续期的 Cloudflare 登录（Secret `CLOUDFLARE_OAUTH_REFRESH_TOKEN`）；如果以后改成长期 API 令牌，放在 `CLOUDFLARE_API_TOKEN` 即可。正式环境用 Actions 的 Deploy 手动发布，并要勾上 `RELEASE.md` 里的真机清单。
 
 锁屏提醒的 `VAPID_PRIVATE_KEY` 仍要在 staging 和正式环境分别设置，值与 `work/vapid-private.txt` 相同，不要贴进聊天或仓库。
 

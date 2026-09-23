@@ -4,7 +4,7 @@
 
 让网站更稳，不改游戏规则。
 
-- 推到 `main` 后，如果仓库配了 `CLOUDFLARE_API_TOKEN`，会自动迁移并部署 staging。正式环境要在 Actions 里手动运行 Deploy，并勾上「真机清单已做完」，见 `RELEASE.md`。
+- 推到 `main` 后会自动迁移并部署 staging。凭证用仓库里的 Cloudflare 登录续期（`CLOUDFLARE_OAUTH_REFRESH_TOKEN`），也可以改放长期的 `CLOUDFLARE_API_TOKEN`。正式环境要在 Actions 里手动运行 Deploy，并勾上「真机清单已做完」，见 `RELEASE.md`。
 - 断网或超时再按投票时，页面会写「上一动作没送出，请再按一次」。服务器已经收下的操作，重连时会写「刚才的操作已经在服务器上」。已经成功的动作不会因为再按一次而执行两遍。
 - 管理后台新增三个汇总数字：已开局、已结束或留有战绩、同房重开过。仍然看不到房间码、昵称、身份或投票。操作日志多了一个 `outcome` 字段（ok / rejected / unavailable），方便按错误编号检索。
 
