@@ -4,6 +4,8 @@ import type { RoomView } from "@/lib/game";
 type RoomProgressProps = {
   room: RoomView;
   connected: boolean;
+  /** True while the live WebSocket channel is open (v0.9). */
+  live?: boolean;
 };
 
 type Progress = {
@@ -132,7 +134,7 @@ function stageSummary(room: RoomView): StageSummary {
   }
 }
 
-export function RoomProgress({ room, connected }: RoomProgressProps) {
+export function RoomProgress({ room, connected, live = false }: RoomProgressProps) {
   const activeStep = currentStep(room.phase);
   const summary = stageSummary(room);
   const progress = summary.progress;
@@ -155,9 +157,9 @@ export function RoomProgress({ room, connected }: RoomProgressProps) {
             </li>
           ))}
         </ol>
-        <span className={`room-progress-connection${connected ? "" : " is-reconnecting"}`} role="status">
+        <span className={`room-progress-connection${connected ? (live ? " is-live" : "") : " is-reconnecting"}`} role="status" title={connected ? (live ? "实时连接：其他人的操作会立即显示" : "定时同步：每隔几秒刷新一次") : undefined}>
           <span aria-hidden="true" />
-          {connected ? "已同步" : "重连中"}
+          {connected ? (live ? "实时" : "已同步") : "重连中"}
         </span>
       </div>
 

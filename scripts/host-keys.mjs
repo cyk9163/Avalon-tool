@@ -3,9 +3,12 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, isAbsolute, relative, resolve } from 'node:path';
 import { spawn } from 'node:child_process';
 
-const [action, target] = process.argv.slice(2);
-if (!['generate', 'publish'].includes(action) || !target) {
-  console.error('Usage: node scripts/host-keys.mjs generate|publish work/private-keys.txt');
+const [action, target, ...options] = process.argv.slice(2);
+// publish accepts --env staging to update the staging Worker's allowlist.
+const envIndex = options.indexOf('--env');
+const wranglerEnv = envIndex >= 0 ? options[envIndex + 1] : null;
+if (!['generate', 'publish'].includes(action) || !target || (envIndex >= 0 && wranglerEnv !== 'staging')) {
+  console.error('Usage: node scripts/host-keys.mjs generate|publish work/private-keys.txt [--env staging]');
   process.exit(1);
 }
 const workspace = resolve('work');
@@ -29,8 +32,8 @@ if (action === 'generate') {
   const keys = [...new Set(readFileSync(file, 'utf8').match(pattern) ?? [])];
   if (!keys.length) throw new Error('No valid host keys found.');
   const hashes = keys.map(key => createHash('sha256').update(key).digest('hex')).join(',');
-  console.log(`Publishing ${keys.length} allowed key digests to the configured Cloudflare Worker.`);
-  const child = spawn(process.execPath, ['scripts/wrangler.mjs', 'secret', 'put', 'HOST_KEY_HASHES', '--config', 'wrangler.jsonc'], { stdio: ['pipe', 'inherit', 'inherit'] });
+  console.log(`Publishing ${keys.length} allowed key digests to the ${wranglerEnv ?? 'production'} Cloudflare Worker.`);
+  const child = spawn(process.execPath, ['scripts/wrangler.mjs', 'secret', 'put', 'HOST_KEY_HASHES', '--config', 'wrangler.jsonc', ...(wranglerEnv ? ['--env', wranglerEnv] : [])], { stdio: ['pipe', 'inherit', 'inherit'] });
   child.stdin.end(hashes + '\n');
   child.once('error', error => { console.error(error.message); process.exitCode = 1; });
   child.once('exit', code => { process.exitCode = code ?? 1; });

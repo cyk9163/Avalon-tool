@@ -14,6 +14,8 @@ import { RoomManagement } from "@/components/room-management";
 import { RoomProgress } from "@/components/room-progress";
 import { RecoveryCodeCard, SeatRecovery } from "@/components/device-recovery";
 import { TakeoverAlert, TakeoverRequests } from "@/components/takeover-requests";
+import { useRoomLive } from "@/lib/use-room-live";
+import { LIVE_FALLBACK_POLL_MS } from "@/lib/live";
 
 type Mode="create"|"join";
 let sessionBootstrap:Promise<unknown>|null=null;
@@ -66,6 +68,8 @@ export default function Home(){
   const [customSpecials,setCustomSpecials]=useState<Set<Role>>(()=>new Set(["merlin","assassin"])),[ladyOfLake,setLadyOfLake]=useState(false);
   const [room,setRoom]=useState<RoomView|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState(""),[sessionReady,setSessionReady]=useState(false),[connected,setConnected]=useState(true);
   const [membershipNotice,setMembershipNotice]=useState("");
+  // Code of a room the server reported as expired or closed: stop syncing it.
+  const [goneCode,setGoneCode]=useState("");
   const [booting,setBooting]=useState(true);
   const [share,setShare]=useState(false),[qrImage,setQrImage]=useState<{url:string;data:string}|null>(null),[copied,setCopied]=useState(false),[reveal,setReveal]=useState(false),[seen,setSeen]=useState(false),[confirmStart,setConfirmStart]=useState(false),[confirmLeave,setConfirmLeave]=useState(false),[help,setHelp]=useState(false);
   const currentCode=useRef(""),createId=useRef(""),latest=useRef<RoomView|null>(null),busyRef=useRef(false);
@@ -91,6 +95,21 @@ export default function Home(){
     latest.current=data;setRoom(data);setConnected(navigator.onLine!==false);
   },[]);
   const load=useCallback(async(target:string)=>{const data=await request(`/api/room?code=${encodeURIComponent(target)}`,undefined,target);accept(data);return data as RoomView;},[accept]);
+  // Live signals only say "the room reached version N": re-read our own view
+  // through the authorized API, coalescing bursts into one request at a time.
+  const refreshing=useRef(false),refreshAgain=useRef(false);
+  const onLiveSignal=useCallback((version:number|null)=>{
+    const target=currentCode.current;if(!target)return;
+    if(version!==null&&latest.current?.code===target&&latest.current.version>=version)return;
+    if(refreshing.current){refreshAgain.current=true;return;}
+    refreshing.current=true;
+    void (async()=>{
+      do{refreshAgain.current=false;try{await load(target);}catch{/* the polling loop reports connection problems */}}
+      while(refreshAgain.current&&currentCode.current===target);
+      refreshing.current=false;
+    })();
+  },[load]);
+  const live=useRoomLive(room?.code&&room.code!==goneCode?room.code:null,onLiveSignal);
   useEffect(()=>{
     let cancelled=false;
     ensureSession().then(async()=>{
@@ -114,19 +133,20 @@ export default function Home(){
       if(!document.hidden&&navigator.onLine!==false){try{await load(room.code);failures=0;}catch(e){
         // An expired or closed room will never come back: stop polling instead
         // of spending the network's lookup budget on it.
-        if([404,410].includes((e as {status?:number}).status??0)){if(!cancelled){setError((e as Error).message);setConnected(true);}inFlight=false;return;}
+        if([404,410].includes((e as {status?:number}).status??0)){if(!cancelled){setError((e as Error).message);setConnected(true);setGoneCode(room.code);}inFlight=false;return;}
         if(!cancelled){setConnected(false);failures++;}
       }}
       inFlight=false;
-      if(!cancelled)timer=setTimeout(poll,Math.min(3000*(failures+1),15000));
+      // With the live channel open, polling is only a safety net.
+      if(!cancelled)timer=setTimeout(poll,live&&!failures?LIVE_FALLBACK_POLL_MS:Math.min(3000*(failures+1),15000));
     };
-    timer=setTimeout(poll,3000);
+    timer=setTimeout(poll,live?LIVE_FALLBACK_POLL_MS:3000);
     const wake=()=>{setReveal(false);if(!document.hidden){clearTimeout(timer);void poll();}};
     const offline=()=>{setConnected(false);setReveal(false);};
     document.addEventListener("visibilitychange",wake);
     window.addEventListener("online",wake);window.addEventListener("offline",offline);window.addEventListener("pageshow",wake);
     return()=>{cancelled=true;clearTimeout(timer);document.removeEventListener("visibilitychange",wake);window.removeEventListener("online",wake);window.removeEventListener("offline",offline);window.removeEventListener("pageshow",wake);};
-  },[room?.code,load]);
+  },[room?.code,load,live]);
   useEffect(()=>{const hide=()=>setReveal(false);window.addEventListener("blur",hide);window.addEventListener("pagehide",hide);return()=>{window.removeEventListener("blur",hide);window.removeEventListener("pagehide",hide);};},[]);
   useEffect(()=>{window.scrollTo({top:0,behavior:"instant"});},[room?.code]);
   // Re-seal the identity card whenever the seat, role or game changes. This is
@@ -252,7 +272,7 @@ export default function Home(){
       {room.phase==="lobby"&&room.resetReason==="abort"&&<p className="membership-notice" role="status">上一局已由房主作废，身份和记录已清除。玩家与座位已保留，请重新准备；需要补位时可由房主移除离场玩家。</p>}
       <TakeoverAlert room={room} busy={busy} connected={connected} act={act}/>
       <TakeoverRequests room={room} busy={busy} connected={connected} act={act}/>
-      <RoomProgress room={room} connected={connected}/>
+      <RoomProgress room={room} connected={connected} live={live}/>
       <GamePanel key={`${room.round}:${room.game?.turnId??"pregame"}`} room={room} busy={busy} connected={connected} error={error} act={act} onNewGame={back}/>
       <details className={`room-details ${room.game?"in-game":""}`} open={!room.game}>
         <summary><span><LockKeyhole size={17}/>{me?"我的身份与圆桌座位":"圆桌座位与角色配置"}</span><ChevronDown size={18}/></summary>

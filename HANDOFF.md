@@ -5,8 +5,9 @@
 ## 当前状态
 
 - 仓库：[cyk9163/Avalon-tool](https://github.com/cyk9163/Avalon-tool)，主分支 `main`。
-- 正式地址：[圆桌 · 阿瓦隆助手](https://avalon-roundtable.yunkangchen2017.workers.dev)。个人 Cloudflare Workers + D1，保持免费方案，不再部署到 GPT Sites。
-- 当前为 v0.8.0：v0.6 的自定义板子与扩展角色之上，v0.7 完成企业级基础治理（lint 清零、安全头、结构化日志、健康检查、Cron 清理、依赖漏洞清零、CI 扩充、部署后 smoke test），v0.8 加入换设备恢复（恢复码／房主批准）与带口令的邀请链接。
+- 正式地址：[圆桌 · 阿瓦隆助手](https://avalon-roundtable.yunkangchen2017.workers.dev)。个人 Cloudflare Workers + D1 + Durable Objects（SQLite 版），保持免费方案，不再部署到 GPT Sites。
+- staging：[avalon-roundtable-staging](https://avalon-roundtable-staging.yunkangchen2017.workers.dev)，独立 Worker、独立 D1（`avalon-roundtable-staging-db`）和独立房主 Key 白名单；明文 Key 在原机器被 Git 忽略的 `work/staging-host-keys.txt`。
+- 当前为 v0.9.0：v0.6 的自定义板子与扩展角色之上，v0.7 完成企业级基础治理（lint 清零、安全头、结构化日志、健康检查、Cron 清理、依赖漏洞清零、CI 扩充、部署后 smoke test），v0.8 加入换设备恢复（恢复码／房主批准）与带口令的邀请链接，v0.9 加入 Durable Object + WebSocket 实时同步与 staging 环境。
 - 交接日期：2026-09-23。规则测试覆盖自定义阵容、扩展身份线索、强制任务牌、揭露者和湖中仙女隐私；每次发布的最终验证结果以 `CHANGELOG.md`、GitHub CI 与交付消息为准。
 - 发布证据入口：[main 最新提交](https://github.com/cyk9163/Avalon-tool/commits/main)、[自动检查](https://github.com/cyk9163/Avalon-tool/actions)、上述正式站点。不能仅凭版本号认定上线；每次交付消息还应给出具体提交与线上验证结果。
 
@@ -54,7 +55,10 @@ Windows 上若系统的 npm 启动脚本解析出错，可用 `node scripts/run-
 | `components/device-recovery.tsx`、`components/takeover-requests.tsx` | 恢复码、换设备请求与房主批准界面 |
 | `lib/host-key.ts`、`scripts/host-keys.mjs` | Key 格式／摘要验证、生成和发布允许列表 |
 | `lib/game.ts` | 规则状态机、权限、幂等重试、面向当前玩家的响应投影 |
-| `lib/room-store.ts` | D1 查询、房间持久化与并发条件更新 |
+| `lib/room-store.ts` | D1 查询、房间持久化与并发条件更新；提交成功后调用 `signalRoom` |
+| `lib/live.ts`、`lib/live-gateway.ts`、`lib/room-hub.ts`、`lib/room-signal.ts`、`lib/use-room-live.ts` | 实时信号：协议、握手校验、每房间 Durable Object、提交后通知、前端连接与退避 |
+| `lib/request-context.ts` | 接口与实时网关共用的设备身份、网络限流、房间码查找预算 |
+| `scripts/environments.mjs`、`scripts/deploy.mjs`、`scripts/staging-check.mjs` | 正式／staging 部署（核对 Worker 名称）与 staging 端到端实时检查 |
 | `db/schema.ts`、`drizzle/` | 数据库结构、迁移和迁移记录 |
 | `components/install-app.tsx`、`public/sw.js`、`public/manifest.webmanifest` | 安装入口与公开断网提示 |
 | `tests/` | 规则、权限、重放、并发、多玩家 API 与 PWA 验证 |
@@ -62,7 +66,7 @@ Windows 上若系统的 npm 启动脚本解析出错，可用 `node scripts/run-
 
 前端是 React + TypeScript，通过 Vinext 运行于 Cloudflare Workers。Vinext 当前锁定 beta 版本；应用运行不调用 AI API，也不依赖 Codex 或 ChatGPT 登录。
 
-每个房间以 JSON 状态存入 D1，并使用版本号条件更新与重试处理并发。客户端约每 3 秒轮询，后台暂停，恢复前台时重新同步；尚未接入 WebSocket 或 Durable Objects。不要将“已同步”解释为实时长连接。
+每个房间以 JSON 状态存入 D1，并使用版本号条件更新与重试处理并发。v0.9 起，每次提交成功后通知该房间的 Durable Object（`RoomHub`），它通过 WebSocket（Hibernation API）向所有连接广播 `{"type":"changed","version":N}`；客户端收到后经 `GET /api/room` 读取自己的投影。实时连接打开时轮询降为 30 秒兜底（进度栏显示「实时」），连接不可用时回到每 3 秒轮询（显示「已同步」）；页面进入后台时断开，回到前台重连并补拉。D1 仍是唯一数据源，Durable Object 不存数据。
 
 必须保持的权限边界：
 
@@ -71,6 +75,7 @@ Windows 上若系统的 npm 启动脚本解析出错，可用 `node scripts/run-
 - 组队票收齐后才逐人公开；任务牌只公开汇总结果，**结局后仍不能返回任务牌与玩家的关联**。服务端重试回执不可加入客户端响应。
 - `turnId` 隔离提案／任务，`round` 隔离新局，`hostRevision` 隔离房主权限变更。不要为了兼容界面跳过这些服务端校验。
 - Service Worker 只缓存公开断网提示页，不缓存房间页面、API、身份或投票，不自动补发离线操作。
+- 实时信号只能包含版本号。不要把房间状态、昵称、身份、投票或任务牌放进 WebSocket 消息；需要新数据时让客户端走授权的 GET。握手必须校验同源 Origin，并与读取接口共用限流。
 - 恢复码只投影给本人，换设备请求的设备凭据摘要不进入任何响应；房主座位不能经批准流程接管；批准前有 60 秒等待，原设备可拒绝；核对码用于当面配对；每次换设备写入公开记录。没有邀请口令的局外人看不到昵称，移出玩家会更换口令。本地（回环地址）不计网络限流，集成测试用 `CF-Connecting-IP` 模拟网络。
 
 ## 仓库包含什么
@@ -98,7 +103,7 @@ npm run cf:whoami
 npm run deploy
 ```
 
-该脚本先构建，再部署 Worker。线上已有 `HOST_KEY_HASHES` Cloudflare Secret，普通部署会保留它；不要用本地测试环境文件覆盖线上 Secret。没有数据库结构变化时不需要额外执行线上迁移。
+该脚本先构建，再部署 Worker，最后运行只读 smoke test。建议先 `npm run deploy:staging` 和 `npm run check:staging` 在 staging 验证，再部署正式环境。v0.9 的 Durable Object 迁移使 Cloudflare 可能拒绝回滚到 v0.9 之前的版本，出问题时优先修复后重新部署。线上已有 `HOST_KEY_HASHES` Cloudflare Secret，普通部署会保留它；不要用本地测试环境文件覆盖线上 Secret。没有数据库结构变化时不需要额外执行线上迁移。
 
 若新增数据库迁移：修改 `db/schema.ts`，运行 `npm run db:generate`、`npm run db:migrate:local`，审查并验证新的迁移文件后，再执行 `npm run db:migrate:remote`。禁止改写已应用的旧迁移。
 

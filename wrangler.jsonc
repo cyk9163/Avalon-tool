@@ -17,5 +17,30 @@
       "database_id": "ceb97089-4be2-4e52-aeaf-767d5555df59",
       "migrations_dir": "drizzle"
     }
-  ]
+  ],
+  // v0.9 live signals: one hibernating Durable Object per room. The free plan
+  // only offers SQLite-backed Durable Objects, hence new_sqlite_classes.
+  "durable_objects": { "bindings": [{ "name": "ROOM_HUB", "class_name": "RoomHub" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["RoomHub"] }],
+  "env": {
+    // Staging: separate Worker, database and host-key allowlist. Build and
+    // deploy with `npm run deploy:staging`; never shares data with production.
+    "staging": {
+      "name": "avalon-roundtable-staging",
+      "workers_dev": true,
+      "preview_urls": false,
+      "observability": { "enabled": true },
+      "triggers": { "crons": ["17 * * * *"] },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "avalon-roundtable-staging-db",
+          "database_id": "70d64266-6e14-477b-a52d-200411297e0a",
+          "migrations_dir": "drizzle"
+        }
+      ],
+      "durable_objects": { "bindings": [{ "name": "ROOM_HUB", "class_name": "RoomHub" }] },
+      "migrations": [{ "tag": "v1", "new_sqlite_classes": ["RoomHub"] }]
+    }
+  }
 }

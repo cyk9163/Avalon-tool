@@ -104,6 +104,10 @@
   background: var(--progress-success);
 }
 
+.room-progress-connection.is-live > span {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--progress-success) 22%, transparent);
+}
+
 .room-progress-connection.is-reconnecting {
   color: var(--progress-gold);
 }

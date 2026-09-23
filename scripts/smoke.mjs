@@ -3,9 +3,9 @@
 // /api/health, then checks the security headers on the home page. Read-only:
 // it never creates rooms or writes to the production database.
 import { readFileSync } from "node:fs";
+import { ENVIRONMENTS } from "./environments.mjs";
 
-const PRODUCTION_URL = "https://avalon-roundtable.yunkangchen2017.workers.dev";
-const target = new URL(process.argv[2] || process.env.AVALON_SMOKE_URL || PRODUCTION_URL).origin;
+const target = new URL(process.argv[2] || process.env.AVALON_SMOKE_URL || ENVIRONMENTS.production.url).origin;
 const expected = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")).version;
 const deadline = Date.now() + 90_000;
 
@@ -37,4 +37,8 @@ for (const directive of ["frame-ancestors 'none'", "object-src 'none'", "default
   if (!csp.includes(directive)) fail(`home page CSP is missing ${directive}`);
 }
 if (target.startsWith("https:") && !page.headers.get("strict-transport-security")) fail("HSTS header missing");
-console.log(`SMOKE OK ${target}: version ${health.version}, database ${health.checks?.database}, security headers present`);
+// The live endpoint must be answered by the Worker gateway (not the app's 404
+// page). A plain GET is refused before any room lookup, so this reads nothing.
+const live = await fetch(`${target}/api/room/live?code=000000`, { cache: "no-store" });
+if (live.status !== 426) fail(`live endpoint returned ${live.status}, expected 426`);
+console.log(`SMOKE OK ${target}: version ${health.version}, database ${health.checks?.database}, security headers present, live gateway answering`);

@@ -3,27 +3,13 @@ import {GameError,roomView} from "@/lib/game";
 import {verifyHostKey} from "@/lib/host-key";
 import {log,newRequestId,roomRef} from "@/lib/log";
 import {getRoom,createRoom,changeRoom,rateLimit,rateLimited} from "@/lib/room-store";
+import {hash,deviceToken as token,ipKey,enforceLookupBudget,recordLookupMiss} from "@/lib/request-context";
 export const dynamic="force-dynamic";
 const cookieName="avalon_device";
 const INVITE_HEADER="x-avalon-invite";
-// Failed lookups of unknown room codes, per client IP: blunts code enumeration.
-const LOOKUP_MISSES={max:30,windowMs:600000};
 const RECOVER_FAILURES={max:8,windowMs:600000};
-async function hash(text:string){return Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256",new TextEncoder().encode(text)))).map(x=>x.toString(16).padStart(2,"0")).join("");}
-function token(request:Request){const match=request.headers.get("cookie")?.match(/(?:^|;\s*)avalon_device=([a-f0-9]{64})(?:;|$)/);return match?.[1];}
 function newToken(){return Array.from(crypto.getRandomValues(new Uint8Array(32))).map(x=>x.toString(16).padStart(2,"0")).join("");}
 function inviteFrom(request:Request){const value=request.headers.get(INVITE_HEADER);return value&&/^[A-Za-z0-9_-]{16,64}$/.test(value)?value:null;}
-// Once a network has used up its budget of unknown-code lookups, only devices
-// already seated in the room may keep reading or acting on it. Players sharing
-// the party Wi-Fi are never locked out of their own room by someone probing.
-async function enforceLookupBudget(ip:string|null,key:string,code:string){
-  if(!ip||!await rateLimited(`miss:${ip}`,LOOKUP_MISSES.max,LOOKUP_MISSES.windowMs))return;
-  const found=await getRoom(code).catch(()=>null);
-  if(!found||!found.room.players.some(player=>player.key===key))throw new GameError("查找房间的次数太多，请稍后再试。",429);
-}
-// Network budgets use the client IP Cloudflare reports. The local dev server
-// reports loopback for every client, so budgets are not applied there.
-async function ipKey(request:Request){const ip=request.headers.get("cf-connecting-ip");return ip&&!/^(127\.|::1$|::ffff:127\.)/.test(ip)?await hash(ip):null;}
 function response(requestId:string,data:unknown,status=200,cookie?:string,secure=false){return new Response(JSON.stringify(data),{status,headers:{"Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store, private","Vary":"Cookie","X-Content-Type-Options":"nosniff","X-Request-Id":requestId,...(cookie?{"Set-Cookie":`${cookieName}=${cookie}; Path=/; HttpOnly; SameSite=Strict; Max-Age=2592000${secure?"; Secure":""}`}:{})}});}
 function fail(requestId:string,error:unknown){
   if(error instanceof GameError)return response(requestId,{error:error.message},error.status);
@@ -61,7 +47,7 @@ export async function GET(request:Request){
       const {room,version}=await getRoom(code);
       result=response(requestId,roomView(room,key,version,inviteFrom(request)));
     }catch(error){
-      if(ip&&error instanceof GameError&&error.status===404)await rateLimit(`miss:${ip}`,Number.MAX_SAFE_INTEGER,LOOKUP_MISSES.windowMs);
+      await recordLookupMiss(ip,error);
       throw error;
     }
   }catch(error){result=fail(requestId,error);}
@@ -107,7 +93,7 @@ export async function POST(request:Request){
       try{
         result=response(requestId,await changeRoom(input.code,key,input.action,input,inviteFrom(request),stats));
       }catch(error){
-        if(error instanceof GameError&&error.status===404&&ip)await rateLimit(`miss:${ip}`,Number.MAX_SAFE_INTEGER,LOOKUP_MISSES.windowMs);
+        await recordLookupMiss(ip,error);
         if(error instanceof GameError&&error.status===403)for(const bucket of recoverBuckets)await rateLimit(bucket,Number.MAX_SAFE_INTEGER,RECOVER_FAILURES.windowMs);
         throw error;
       }

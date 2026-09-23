@@ -12,12 +12,14 @@ v0.7：企业级基础治理——lint 清零、安全响应头、结构化日�
 
 v0.8：换设备恢复（一次性恢复码、房主当面核实后批准）、公开换设备记录、带不可猜口令的邀请链接、未知房间码查找限流。
 
+v0.9：实时同步——每个房间一个 Durable Object 通过 WebSocket 推送变更信号（只含版本号），连接可用时轮询降为 30 秒兜底；新增独立的 staging 环境（Worker、D1、房主 Key 均与正式环境分开）。
+
 v0.5：重做手机与桌面视觉、阶段进度、选队／投票／复盘界面；房主凭服务器验证的 Key 建房，朋友入房不需要 Key。完整交接见 `HANDOFF.md`。
 
 ## 实现
 
 - React + TypeScript 手机界面，运行在 Cloudflare Workers 兼容的 Vinext。
-- 第一阶段使用个人 Cloudflare 账户中的 D1 持久化和每 3 秒同步，后台页面暂停同步。规划中的 Durable Objects/WebSocket 尚未接入。
+- 使用个人 Cloudflare 账户中的 D1 持久化。v0.9 起每个房间有一个 Durable Object，通过 WebSocket 推送“房间已到版本 N”，客户端再经授权接口读取自己的视图；实时连接不可用时回到每 3 秒轮询，后台页面暂停同步。
 - 一个房间保存为一条带版本号的记录，通过条件更新、重试防止并发抢座和重复发牌。
 - HttpOnly / SameSite=Strict Cookie 保存设备凭据；数据库只保存其 SHA-256 摘要。生产 HTTPS Cookie 使用 Secure。
 - 房间公开响应仅含座位和准备状态；对局详情与私密身份按服务器认证的设备凭据投影。游戏结束前房主没有特殊身份读取权限，结束后本局成员可查看所有角色。
@@ -60,4 +62,4 @@ npm run test:integration
 
 ## 后续方向
 
-目前尚未提供永久战绩及导出。房间仍在创建 24 小时后过期。下一步是实际 iPhone / Android 聚会验收；之后按原规划评估 v0.9（Durable Objects + WebSocket、staging 环境）与 v1.0（板子模板、规则教学、复盘导出、多语言、管理后台、隐私页面）。同步架构仍为 D1 轮询，当前无需付费升级。
+目前尚未提供永久战绩及导出。房间仍在创建 24 小时后过期。下一步是实际 iPhone / Android 聚会验收；v0.9（Durable Objects + WebSocket、staging 环境）已完成；之后是 v1.0（板子模板、规则教学、复盘导出、多语言、管理后台、隐私页面）。当前全部使用免费方案，无需付费升级。

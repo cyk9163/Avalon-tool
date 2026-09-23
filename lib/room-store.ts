@@ -1,4 +1,5 @@
 import {env} from "cloudflare:workers";
+import {signalRoom} from "./room-signal";
 import {GameError,type Room,mutateRoom,roomView,type Preset,rolePool,nickname,randomInt,newRecoveryCode,newInviteToken,ROOM_SCHEMA_VERSION} from "./game";
 function db(){if(!env.DB)throw new GameError("房间服务暂时不可用，请稍后再试。",503);return env.DB;}
 type Row={state:string;version:number;expires_at:number};
@@ -53,7 +54,7 @@ export async function changeRoom(code:string,key:string,action:string,input:Reco
     const {room,version}=await getRoom(code);
     mutateRoom(room,key,action,input);
     const result=await db().prepare("UPDATE rooms SET state=?, version=version+1 WHERE code=? AND version=? AND expires_at>?").bind(JSON.stringify(room),code,version,Date.now()).run();
-    if(result.meta.changes===1)return roomView(room,key,version+1,invite);
+    if(result.meta.changes===1){signalRoom(code,version+1);return roomView(room,key,version+1,invite);}
     if(stats)stats.conflicts++;
     await new Promise(resolve=>setTimeout(resolve,5+randomInt(20)));
   }

@@ -1,10 +1,10 @@
 # 圆桌 · 阿瓦隆助手
 
-面对面玩阿瓦隆的手机网页工具。当前为 v0.8：房主 Key 验证、5–10 人建房、官方预设与自定义板子、扩展角色、湖中仙女、扫码入座、私密身份、完整投票与任务、刺杀、复盘、同房再开、房主移交、移出玩家、中途作废、换设备恢复（恢复码或房主批准）、带口令的邀请链接，以及添加到手机主屏幕。v0.7 起具备安全响应头、结构化日志、健康检查、定时清理和完整 CI。
+面对面玩阿瓦隆的手机网页工具。当前为 v0.9：房主 Key 验证、5–10 人建房、官方预设与自定义板子、扩展角色、湖中仙女、扫码入座、私密身份、完整投票与任务、刺杀、复盘、同房再开、房主移交、移出玩家、中途作废、换设备恢复（恢复码或房主批准）、带口令的邀请链接，以及添加到手机主屏幕。v0.7 起具备安全响应头、结构化日志、健康检查、定时清理和完整 CI；v0.9 起房间变化实时推送到每台手机，并有独立的 staging 环境。
 
 本项目包含完整前后端源码、数据库结构、迁移、测试和部署配置。独立部署到 Cloudflare Workers + D1，不依赖 ChatGPT、Codex 或 Sites 账号；使用时不调用 AI API。
 
-线上地址：[圆桌 · 阿瓦隆助手](https://avalon-roundtable.yunkangchen2017.workers.dev)。
+线上地址：[圆桌 · 阿瓦隆助手](https://avalon-roundtable.yunkangchen2017.workers.dev)。预发布（staging）：[avalon-roundtable-staging](https://avalon-roundtable-staging.yunkangchen2017.workers.dev)，数据与正式环境完全分开。
 
 ## 界面与操作
 
@@ -26,6 +26,13 @@
 - **房主批准**：没记下恢复码时，选择「请房主批准」，新设备会显示 4 位核对码。房主页面顶部出现「换设备请求」和同一核对码，当面核对后批准。为防冒用，原设备会收到提醒并可拒绝，请求发出 60 秒后才能批准。房主自己的座位只能用恢复码恢复。
 - 每次换设备都会在全桌留下公开记录（座位与方式），被替换的设备会看到提示。
 - **邀请口令**：房主分享的二维码／链接带有不可猜的口令，扫码进入可看到昵称；只输入六位房间码也能入座，但看不到昵称。房主移出玩家后口令自动更换。未知房间码的查找按网络限流防止枚举，已入座玩家不受影响。
+
+## 实时同步（v0.9）
+
+- 每个房间有一个 Durable Object，只负责推送“房间有变化（版本 N）”。手机收到后，照常通过带权限校验的 `/api/room` 读取自己能看到的内容，所以 WebSocket 不会多暴露任何信息。D1 仍是唯一的数据源。
+- 连接地址是 `/api/room/live?code=房间码`，由 `worker/index.ts` 在 vinext 之前处理。握手要求同源 Origin 且房间存在，与读取接口共用限流；每个房间最多 48 个连接。
+- 实时连接打开时，轮询放宽到每 30 秒一次；连接不上时自动回到 3 秒轮询。页面切到后台就断开，回到前台立即重连并补拉。房间进度栏显示「实时」或「已同步」。
+- 使用 Hibernation API：没有消息时对象休眠、不计时长；心跳由运行时直接回复，不唤醒对象。免费方案额度足够日常聚会。
 
 ## 运维与安全基线（v0.7）
 
@@ -104,9 +111,19 @@ npm run db:migrate:remote
 npm run deploy
 ```
 
-`deploy` 会先构建再发布，然后自动对正式地址运行只读 smoke test（等待 `/api/health` 报告新版本并检查安全头）。也可以单独运行 `npm run smoke`。
+`deploy` 会先构建再发布，然后自动对正式地址运行只读 smoke test（等待 `/api/health` 报告新版本，检查安全头和实时网关）。也可以单独运行 `npm run smoke`。
 
-出问题时回滚：`npm run cf:deployments` 查看历史版本，`npm run cf:rollback -- <version-id>` 回到指定版本（仅回滚代码，不回滚 D1 数据）。v0.7 起部署会同时注册每小时 Cron 清理任务，免费方案可用。克隆到新电脑后重新登录同一个 Cloudflare 账号即可继续部署，线上 D1 数据仍保存在 Cloudflare。
+建议先发布到 staging 验证，再上线正式环境：
+
+```sh
+npm run db:migrate:staging   # 有新迁移时
+npm run deploy:staging       # 构建、部署到 staging、只读 smoke test
+npm run check:staging        # 在 staging 建临时房间，端到端验证实时信号
+```
+
+staging 使用独立 Worker、独立 D1 和独立的房主 Key 白名单（明文 Key 在被 Git 忽略的 `work/staging-host-keys.txt`，用 `node scripts/host-keys.mjs publish work/staging-host-keys.txt --env staging` 发布）。部署脚本会核对构建出的 Worker 名称，staging 构建无法覆盖正式环境。
+
+出问题时回滚：`npm run cf:deployments` 查看历史版本，`npm run cf:rollback -- <version-id>` 回到指定版本（仅回滚代码，不回滚 D1 数据）。v0.9 加入了 Durable Object 迁移，Cloudflare 可能拒绝回滚到 v0.9 之前的版本，此时应修复后重新部署。v0.7 起部署会同时注册每小时 Cron 清理任务，免费方案可用。克隆到新电脑后重新登录同一个 Cloudflare 账号即可继续部署，线上 D1 数据仍保存在 Cloudflare。
 
 根目录 `wrangler.jsonc` 保存 Worker 名、账户 ID 和 D1 数据库 ID。这些是资源标识，不是密码，可随源码提交；具有对应账户权限的登录凭据才允许部署或读写线上数据库。
 
@@ -157,7 +174,9 @@ git push origin main
 - `app/api/health/route.ts`：健康检查。
 - `worker/index.ts`：Worker 入口，添加安全头并运行定时清理；`lib/security-headers.ts`、`public/_headers`、`lib/maintenance.ts`、`lib/log.ts`。
 - `components/device-recovery.tsx`、`components/takeover-requests.tsx`、`app/recovery.css`：恢复码、换设备与房主批准界面。
-- `scripts/smoke.mjs`：部署后只读检查。
+- `lib/live.ts`、`lib/live-gateway.ts`、`lib/room-hub.ts`、`lib/room-signal.ts`、`lib/use-room-live.ts`：实时信号（协议、握手校验、Durable Object、提交后通知、前端连接）。
+- `lib/request-context.ts`：接口与实时网关共用的设备身份和网络限流。
+- `scripts/smoke.mjs`：部署后只读检查；`scripts/environments.mjs`：正式与 staging 地址；`scripts/staging-check.mjs`：staging 端到端实时检查。
 - `lib/host-key.ts`、`scripts/host-keys.mjs`：房主 Key 验证、生成与发布。
 - `HANDOFF.md`：架构、部署凭据边界与新会话交接。
 - `lib/game.ts`：角色配置、发牌、线索投影、游戏操作。

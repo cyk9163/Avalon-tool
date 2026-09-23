@@ -1,6 +1,6 @@
 {
   "name": "avalon-roundtable",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "private": true,
   "engines": {
     "node": ">=24"
@@ -15,11 +15,15 @@
     "db:migrate:local": "node scripts/wrangler.mjs d1 migrations apply DB --local --persist-to .wrangler/state --config wrangler.jsonc",
     "db:migrate:remote": "node scripts/wrangler.mjs d1 migrations apply DB --remote --config wrangler.jsonc",
     "deploy": "node scripts/deploy.mjs",
+    "deploy:staging": "node scripts/deploy.mjs staging",
+    "db:migrate:staging": "node scripts/wrangler.mjs d1 migrations apply DB --remote --config wrangler.jsonc --env staging",
+    "check:staging": "node scripts/staging-check.mjs",
     "smoke": "node scripts/smoke.mjs",
     "cf:deployments": "node scripts/wrangler.mjs deployments list --config wrangler.jsonc",
     "cf:rollback": "node scripts/wrangler.mjs rollback --config wrangler.jsonc",
     "cf:tail": "node scripts/wrangler.mjs tail --config wrangler.jsonc --format pretty",
-    "test": "node --experimental-transform-types --test --test-isolation=none tests/game.test.mjs tests/expansion.test.mjs tests/stage2.test.mjs tests/stage3.test.mjs tests/pwa.test.mjs tests/management.test.mjs tests/host-key.test.mjs tests/recovery.test.mjs tests/security.test.mjs",
+    "cf:tail:staging": "node scripts/wrangler.mjs tail --config wrangler.jsonc --env staging --format pretty",
+    "test": "node --experimental-transform-types --test --test-isolation=none tests/game.test.mjs tests/expansion.test.mjs tests/stage2.test.mjs tests/stage3.test.mjs tests/pwa.test.mjs tests/management.test.mjs tests/host-key.test.mjs tests/recovery.test.mjs tests/security.test.mjs tests/live.test.mjs",
     "test:integration": "node tests/integration.mjs",
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --max-warnings=0",
