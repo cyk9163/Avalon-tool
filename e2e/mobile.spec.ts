@@ -170,3 +170,29 @@ test("tapping a role name opens what that role sees, who sees it and its cards",
     await context.close();
   }
 });
+
+test("big-screen mode shows the public table live, with no roles and no buttons", async ({ browser }) => {
+  const game = await startedGame(browser);
+  const tablet = await browser.newContext({ viewport: { width: 1180, height: 820 }, isMobile: false, hasTouch: true });
+  try {
+    const invite = (await game.leader.get(game.code) as unknown as { inviteToken: string }).inviteToken;
+    const screen = await tablet.newPage();
+    await screen.goto(`/screen?room=${game.code}&invite=${invite}`);
+    await expect(screen.locator(".big-screen-phase")).toContainText("组建队伍");
+    await expect(screen).toHaveURL(new RegExp(`/screen[?]room=${game.code}$`), { timeout: 5_000 });
+    await expect(screen.locator(".big-screen button")).toHaveCount(0);
+    const { turnId } = (await game.leader.get(game.code)).game!;
+    await game.leader.call({ action: "propose", code: game.code, turnId, team: [game.leader.seat, game.other.seat] });
+    await expect(screen.locator(".big-screen-phase")).toContainText("全员表决", { timeout: 5_000 });
+    for (const player of game.players) await player.call({ action: "vote", code: game.code, turnId, approve: true });
+    await expect(screen.locator(".reveal-overlay .reveal-result")).toContainText("通过", { timeout: 5_000 });
+    await expect(screen.locator(".identity-card, .revealed-roles, .lake-private-result")).toHaveCount(0);
+    // Without the invite the screen shows no game.
+    const bare = await tablet.newPage();
+    await bare.goto(`/screen?room=${game.code}`);
+    await expect(bare.locator(".big-screen-waiting")).toContainText("大屏模式");
+  } finally {
+    await tablet.close();
+    await game.close();
+  }
+});

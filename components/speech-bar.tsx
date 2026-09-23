@@ -50,8 +50,9 @@ export function SpeechBar({ room, game, blocked, act }: {
     return () => { clearTimeout(first); clearInterval(timer); };
   }, [speech, speaker, mySpeech]);
 
-  if (!speech || !me) return null;
-  const chair = me.seat === game.leaderSeat || me.id === room.hostId;
+  if (!speech) return null;
+  // Without a seat (the big screen) the bar is read-only.
+  const chair = !!me && (me.seat === game.leaderSeat || me.id === room.hostId);
   const name = (seat: number) => room.players.find(player => player.seat === seat)?.name ?? "";
   const remaining = speech.seconds * 1000 - elapsed;
   const over = speech.seconds > 0 && remaining < 0;

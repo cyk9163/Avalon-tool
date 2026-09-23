@@ -45,7 +45,7 @@ export async function GET(request:Request){
     await enforceLookupBudget(ip,key,code);
     try{
       const {room,version}=await getRoom(code);
-      result=response(requestId,roomView(room,key,version,inviteFrom(request)));
+      result=response(requestId,roomView(room,key,version,inviteFrom(request),url.searchParams.get("view")==="screen"));
     }catch(error){
       await recordLookupMiss(ip,error);
       throw error;

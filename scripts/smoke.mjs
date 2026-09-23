@@ -2,11 +2,13 @@
 // Waits until the given site reports the version in package.json through
 // /api/health, then checks the security headers on the home page. Read-only:
 // it never creates rooms or writes to the production database.
+// AVALON_SMOKE_ANY_VERSION=1 accepts whatever version is live (the hourly
+// uptime monitor, which may run between a push and its deploy).
 import { readFileSync } from "node:fs";
 import { ENVIRONMENTS } from "./environments.mjs";
 
 const target = new URL(process.argv[2] || process.env.AVALON_SMOKE_URL || ENVIRONMENTS.production.url).origin;
-const expected = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")).version;
+const expected = process.env.AVALON_SMOKE_ANY_VERSION ? null : JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")).version;
 const deadline = Date.now() + 90_000;
 
 function fail(message) {
@@ -20,14 +22,14 @@ while (Date.now() < deadline) {
   try {
     const response = await fetch(`${target}/api/health`, { cache: "no-store" });
     health = await response.json();
-    if (response.ok && health.status === "ok" && health.version === expected) break;
+    if (response.ok && health.status === "ok" && (expected === null || health.version === expected)) break;
   } catch {
     // Keep waiting: a fresh deployment can take a few seconds to propagate.
   }
   await new Promise(resolve => setTimeout(resolve, 3000));
 }
 if (!health) fail("health endpoint unreachable");
-if (health.version !== expected) fail(`expected version ${expected}, got ${health.version ?? "unknown"}`);
+if (expected !== null && health.version !== expected) fail(`expected version ${expected}, got ${health.version ?? "unknown"}`);
 if (health.status !== "ok") fail(`health status ${health.status}`);
 
 const page = await fetch(`${target}/`, { cache: "no-store" });

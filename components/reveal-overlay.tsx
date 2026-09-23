@@ -81,6 +81,9 @@ export function RevealOverlay({ room }: { room: RoomView }) {
             ? <>{good ? t("通过") : t("否决")}<small>{t("{yes} 赞成 · {no} 反对", { yes, no: reveal.proposal.votes.length - yes })}</small></>
             : <>{good ? t("任务成功") : t("任务失败")}<small>{t("{n} 张失败", { n: reveal.quest.failCount })}</small></>}
         </p>
+        <p className="sr-only" role="status">{reveal.kind === "vote"
+          ? t("任务 {q} · 第 {a} 车表决", { q: reveal.proposal.quest, a: reveal.proposal.attempt }) + t("：") + (good ? t("通过") : t("否决")) + t("，") + t("{yes} 赞成 · {no} 反对", { yes, no: reveal.proposal.votes.length - yes })
+          : t("任务 {n} 的任务牌", { n: reveal.quest.quest }) + t("：") + (good ? t("任务成功") : t("任务失败")) + t("，") + t("{n} 张失败", { n: reveal.quest.failCount })}</p>
         <button type="button" className="text-button reveal-skip" onClick={() => setReveal(null)}>{t("跳过")}</button>
       </div>
     </div>

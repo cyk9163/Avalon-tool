@@ -19,7 +19,7 @@ export function RoleInfoButton({ role, className, children }: { role: Role; clas
   const side = ROLES[role].side;
   return (
     <>
-      <button type="button" className={`role-info-button ${className ?? ""}`} onClick={() => setOpen(true)} aria-haspopup="dialog" aria-label={t("查看角色说明：{role}", { role: t(ROLES[role].name) })}>
+      <button type="button" className={`role-info-button ${className ?? ""}`} onClick={() => setOpen(true)} aria-haspopup="dialog" aria-label={t("查看角色说明：{role}", { role: t("{role}（{side}）", { role: t(ROLES[role].name), side: side === "good" ? t("正义") : t("邪恶") }) })}>
         {children ?? t(ROLES[role].name)}
       </button>
       <Dialog open={open} onOpenChange={setOpen}>

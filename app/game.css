@@ -463,3 +463,52 @@ button.role-chip { font-size: 11px; }
 .role-info-facts dd { margin: 4px 0 0; color: var(--foreground); font-size: 14px; line-height: 1.6; }
 .role-info-note { display: flex; align-items: center; gap: 6px; margin: 4px 0 0; color: #9fb4ac; font-size: 11px; }
 @media (pointer: coarse) { button.role-chip { min-height: 36px; padding: 6px 11px; } }
+
+/* v1.10 big-screen mode: one tablet or laptop in the middle of the table */
+.big-screen { min-height: 100vh; padding: 20px clamp(16px, 3vw, 40px) 40px; color: var(--foreground); background: var(--background, #10201e); }
+.big-screen.empty { display: grid; place-items: center; color: #9fb4ac; font-size: 18px; }
+.big-screen-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding-bottom: 14px; border-bottom: 1px solid #314a49; color: #9fb4ac; font-size: 15px; }
+.big-screen-title { margin: 0; color: var(--foreground); font-size: 20px; font-weight: 700; }
+.big-screen-code { margin-left: auto; }
+.big-screen-code b { color: var(--primary); font-size: 22px; letter-spacing: .08em; font-variant-numeric: tabular-nums; }
+.big-screen-head .room-section-status { display: inline-flex; align-items: center; }
+.big-screen-head .room-section-status i { width: 10px; height: 10px; border-radius: 50%; background: #7f928b; }
+.big-screen-head .room-section-status.live i { background: var(--success); box-shadow: 0 0 0 3px #9bcab726; }
+.big-screen-waiting { display: grid; place-items: center; gap: 8px; min-height: 60vh; text-align: center; }
+.big-screen-waiting h2 { font-size: clamp(28px, 4vw, 44px); margin: 0; }
+.big-screen-grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: clamp(16px, 3vw, 40px); align-items: start; margin-top: 20px; }
+.big-screen-table .game-table { max-width: min(640px, 100%); }
+.big-screen-table .game-table .seat-position { width: 96px; }
+.big-screen-table .game-table .seat-circle { width: 64px; height: 64px; font-size: 20px; }
+.big-screen-table .game-table .seat-name { font-size: 16px; }
+.big-screen-table .game-table-quest { font-size: 30px; }
+.big-screen-table .game-table .table-center p { font-size: 16px; }
+.big-screen-info { display: grid; gap: 16px; }
+.big-screen-score { display: flex; gap: 12px; }
+.big-screen-score span { flex: 1; display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-radius: 14px; border: 1px solid #314a49; font-size: 18px; }
+.big-screen-score b { margin-left: auto; font-size: 34px; }
+.big-screen-score .good { color: var(--success); }
+.big-screen-score .evil { color: var(--danger); }
+.big-screen-quests { margin: 0; }
+.big-screen-phase { display: flex; gap: 14px; align-items: flex-start; padding: 16px 18px; border-radius: 16px; background: #ffffff06; border: 1px solid #314a49; color: var(--primary); }
+.big-screen-phase > div { display: grid; gap: 6px; color: #c2cfc3; font-size: 16px; }
+.big-screen-phase strong { color: var(--foreground); font-size: 24px; }
+.big-screen-team { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.big-screen-team b { display: inline-grid; place-items: center; min-width: 32px; height: 32px; border-radius: 50%; background: #dbc18a; color: #1d3025; font-size: 15px; }
+.big-screen .speech-bar { margin: 0; }
+.big-screen .speech-order li { width: 36px; height: 36px; font-size: 15px; }
+.big-screen .speech-now { font-size: 17px; }
+.big-screen .speech-clock { font-size: 18px; }
+.big-screen-log { margin-top: 0; border-top: 0; }
+.big-screen .reveal-card { width: min(100%, 640px); transform: scale(1.15); }
+a.big-screen-link { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 12px; text-decoration: none; }
+@media (max-width: 900px) { .big-screen-grid { grid-template-columns: minmax(0, 1fr); } }
+
+/* v1.10 side icons next to colour (colour-blind friendly) */
+.role-chip svg { display: inline-block; vertical-align: -1px; margin-right: 3px; }
+button.role-chip { display: inline-flex; align-items: center; gap: 3px; }
+.revealed-roles strong svg { display: inline-block; vertical-align: -2px; margin-right: 4px; }
+@media (forced-colors: active) {
+  .vote-matrix td.on-team::before, .reveal-ballot, .speech-order li.current { border-color: CanvasText; forced-color-adjust: none; }
+  .speech-order li.current { background: Highlight; color: HighlightText; }
+}

@@ -1,5 +1,11 @@
 // English entries keyed by the Chinese source text (docs).
 export const DOCS: Record<string, string> = {
+  "复盘图片": "Recap image",
+  "：「保存图片」在你的设备上生成，不上传服务器。": ": \"Save image\" is drawn on your device and never uploaded.",
+  "大屏模式": "Big-screen mode",
+  "：每局结束时，房间里记下这一局的胜方、原因以及每位玩家的昵称、座位、角色和阵营，只向参与过这一局的玩家显示，随房间一起过期删除。": ": when a game ends, the room keeps its winner, reason and each player's nickname, seat, role and side. Only players of that game see it, and it is deleted with the room.",
+  "：凭邀请口令打开，只读取对局的公开信息（圆桌、任务、发言顺序和表决），不含任何人的身份、湖中仙女结果或出牌记录，也不占用座位。": ": opened with the invite token, it reads only public game information (table, quests, speaking order and votes) — never roles, Lady of the Lake results or who played which card — and takes no seat.",
+  "大屏模式 · 圆桌": "Big screen · Round Table",
   "：你在对局中给其他玩家做的标记、发言备注和自己的发言草稿，只存在这台设备，不上传服务器，其他玩家也看不到；保留最近 5 局，可以随时清空。": ": the marks and notes you make about other players, and your own speaking draft. They stay on this device only, are never uploaded, and no other player can see them. The last 5 games are kept, and you can clear them at any time.",
   "刺客随时出刀（本站规则）": "Anytime strike (house rule)",
   "：对局开始后，刺客可以在任意时刻刺杀一次；刺中梅林邪恶立即获胜，刺错正义立即获胜。如果一直没有出刀，好人三次任务成功后照常进入最后刺杀。（本站规则，官方规则中只能在三次任务成功后刺杀。）": ": once the game starts, the Assassin may strike once at any moment; hitting Merlin wins for Evil at once, missing wins for Good at once. If the Assassin never strikes, three successful quests still lead to the final assassination. (A house rule here; officially the assassination only comes after three successful quests.)",

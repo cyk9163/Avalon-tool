@@ -1,0 +1,28 @@
+name: Uptime
+# Hourly read-only check of the production site (v1.10): health and database,
+# security headers, rules/privacy pages, admin API locked, live gateway up.
+# A failed run makes GitHub email the repository owner. Hourly keeps it well
+# inside the free Actions minutes; run it by hand from the Actions tab too.
+on:
+  schedule:
+    - cron: "41 * * * *"
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: uptime
+  cancel-in-progress: false
+jobs:
+  production:
+    name: Production health
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Read-only smoke test
+        run: node scripts/smoke.mjs
+        env:
+          AVALON_SMOKE_ANY_VERSION: "1"
