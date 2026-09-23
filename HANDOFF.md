@@ -7,7 +7,7 @@
 - 仓库：[cyk9163/Avalon-tool](https://github.com/cyk9163/Avalon-tool)，主分支 `main`。
 - 正式地址：[圆桌 · 阿瓦隆助手](https://avalon-roundtable.yunkangchen2017.workers.dev)。个人 Cloudflare Workers + D1 + Durable Objects（SQLite 版），保持免费方案，不再部署到 GPT Sites。
 - staging：[avalon-roundtable-staging](https://avalon-roundtable-staging.yunkangchen2017.workers.dev)，独立 Worker、独立 D1（`avalon-roundtable-staging-db`）和独立房主 Key 白名单；明文 Key 在原机器被 Git 忽略的 `work/staging-host-keys.txt`。
-- 当前为 v1.11.0：v0.6 的自定义板子与扩展角色之上，v0.7 完成企业级基础治理（lint 清零、安全头、结构化日志、健康检查、Cron 清理、依赖漏洞清零、CI 扩充、部署后 smoke test），v0.8 加入换设备恢复（恢复码／房主批准）与带口令的邀请链接，v0.9 加入 Durable Object + WebSocket 实时同步与 staging 环境，v0.9.1 轮换房主 Key 并简化 Key 输入，v0.10 加入规则教学页与隐私说明页，v0.11 加入板子模板与复盘导出，v0.12 加入管理后台，v1.0 加入中英双语，v1.1 加入本机推理笔记，v1.2 把「坏人互相知道具体角色」「刺客随时出刀一次」定为所有房间的固定规则（与官方规则不同，规则页已注明），v1.2.1 加入发言草稿，v1.3 兰斯洛特改为官方阵营转换规则（公开忠诚牌：`game.loyalty`、`currentSide`），v1.4 优化手机交互（`app/mobile.css`、`components/room-section-nav.tsx`，只改展示），v1.5 结局后向本局成员公开每次任务谁出了哪张牌（`game.questCards`），v1.6 圆桌主视图、队长亮车（`draft` 动作与公开的 `game.draftTeam`）、队长顺序与第五车警示、本局规则卡，v1.7 投票矩阵与玩家统计（`components/vote-matrix.tsx`、`lib/seat-stats.ts`）以及 Playwright 手机浏览器测试（`e2e/`，WebKit iPhone + Chromium Android），v1.8 发言顺序与软计时（`speech` 动作，`game.speech`／`game.speechSeconds`，视图带服务器时间 `now`）、轮到你操作的提醒（`lib/turn.ts`）和揭晓动画（`components/reveal-overlay.tsx`，放在按局数重建的页面层，避免随 turnId 重建的对局面板丢失状态），v1.9 同房战绩（`room.history`，在 `finishGame` 中按局数只记一次，视图只返回本人参与过的对局）、复盘长图（`lib/replay-image.ts`）和角色说明卡（`lib/role-info.ts`，需与 `identityFor`／`allowedQuestCards` 保持一致）。手机大厅用 `display: contents` + 显式 `grid-row` 排列卡片，新增卡片必须给单独的行（见 `app/recovery.css`）。v1.10 大屏模式（`roomView(..., screen=true)` 调用 `gameView(room, null)`：无身份、无湖中仙女结果、无出牌记录，成员设备上也一样；无座位时需要邀请口令）、axe-core 无障碍检查（`e2e/a11y.spec.ts`）和每小时的 Uptime 工作流（`.github/workflows/uptime.yml`，失败时 GitHub 邮件通知）。如需更快的告警，可以在 Cloudflare 控制台的 Notifications 里为 Worker 的错误率另设通知（账号设置，需要所有者自己操作）。v1.11 新手提示（`lib/guide.ts`）和浅色主题：**改了任何 app/*.css 后都要运行 `npm run theme:build`**，否则单元测试会失败；生成器复制所有颜色相关声明（包括 var()），以保持和深色主题相同的层叠顺序。
+- 当前为 v1.12.0：v0.6 的自定义板子与扩展角色之上，v0.7 完成企业级基础治理（lint 清零、安全头、结构化日志、健康检查、Cron 清理、依赖漏洞清零、CI 扩充、部署后 smoke test），v0.8 加入换设备恢复（恢复码／房主批准）与带口令的邀请链接，v0.9 加入 Durable Object + WebSocket 实时同步与 staging 环境，v0.9.1 轮换房主 Key 并简化 Key 输入，v0.10 加入规则教学页与隐私说明页，v0.11 加入板子模板与复盘导出，v0.12 加入管理后台，v1.0 加入中英双语，v1.1 加入本机推理笔记，v1.2 把「坏人互相知道具体角色」「刺客随时出刀一次」定为所有房间的固定规则（与官方规则不同，规则页已注明），v1.2.1 加入发言草稿，v1.3 兰斯洛特改为官方阵营转换规则（公开忠诚牌：`game.loyalty`、`currentSide`），v1.4 优化手机交互（`app/mobile.css`、`components/room-section-nav.tsx`，只改展示），v1.5 结局后向本局成员公开每次任务谁出了哪张牌（`game.questCards`），v1.6 圆桌主视图、队长亮车（`draft` 动作与公开的 `game.draftTeam`）、队长顺序与第五车警示、本局规则卡，v1.7 投票矩阵与玩家统计（`components/vote-matrix.tsx`、`lib/seat-stats.ts`）以及 Playwright 手机浏览器测试（`e2e/`，WebKit iPhone + Chromium Android），v1.8 发言顺序与软计时（`speech` 动作，`game.speech`／`game.speechSeconds`，视图带服务器时间 `now`）、轮到你操作的提醒（`lib/turn.ts`）和揭晓动画（`components/reveal-overlay.tsx`，放在按局数重建的页面层，避免随 turnId 重建的对局面板丢失状态），v1.9 同房战绩（`room.history`，在 `finishGame` 中按局数只记一次，视图只返回本人参与过的对局）、复盘长图（`lib/replay-image.ts`）和角色说明卡（`lib/role-info.ts`，需与 `identityFor`／`allowedQuestCards` 保持一致）。手机大厅用 `display: contents` + 显式 `grid-row` 排列卡片，新增卡片必须给单独的行（见 `app/recovery.css`）。v1.10 大屏模式（`roomView(..., screen=true)` 调用 `gameView(room, null)`：无身份、无湖中仙女结果、无出牌记录，成员设备上也一样；无座位时需要邀请口令）、axe-core 无障碍检查（`e2e/a11y.spec.ts`）和每小时的 Uptime 工作流（`.github/workflows/uptime.yml`，失败时 GitHub 邮件通知）。如需更快的告警，可以在 Cloudflare 控制台的 Notifications 里为 Worker 的错误率另设通知（账号设置，需要所有者自己操作）。v1.11 新手提示（`lib/guide.ts`）和浅色主题：**改了任何 app/*.css 后都要运行 `npm run theme:build`**，否则单元测试会失败；生成器复制所有颜色相关声明（包括 var()），以保持和深色主题相同的层叠顺序。v1.12 结局回放（`lib/replay-steps.ts`、`components/replay-timeline.tsx`，只给本局成员；任务牌作者只在 `questCards` 已公开时出现；湖中仙女只显示本人经手的交接，不含查验结果）、结局高光（`lib/highlights.ts`，最多 4 条，结局页和复盘文字／图片共用）和本机个人战绩（`lib/personal-record.ts`、`/me`，只存 localStorage，房间码＋局数去重，最近 200 局）。
 - 交接日期：2026-09-23。规则测试覆盖自定义阵容、扩展身份线索、强制任务牌、揭露者和湖中仙女隐私；每次发布的最终验证结果以 `CHANGELOG.md`、GitHub CI 与交付消息为准。
 - 发布证据入口：[main 最新提交](https://github.com/cyk9163/Avalon-tool/commits/main)、[自动检查](https://github.com/cyk9163/Avalon-tool/actions)、上述正式站点。不能仅凭版本号认定上线；每次交付消息还应给出具体提交与线上验证结果。
 
@@ -59,7 +59,10 @@ Windows 上若系统的 npm 启动脚本解析出错，可用 `node scripts/run-
 | `lib/live.ts`、`lib/live-gateway.ts`、`lib/room-hub.ts`、`lib/room-signal.ts`、`lib/use-room-live.ts` | 实时信号：协议、握手校验、每房间 Durable Object、提交后通知、前端连接与退避 |
 | `app/rules/page.tsx`、`app/privacy/page.tsx`、`components/doc-page.tsx`、`app/docs.css` | 规则教学与隐私说明（静态页，表格与角色取自 `lib/game.ts`）；修改数据保存方式时要同步更新隐私说明 |
 | `lib/board-templates.ts` | 推荐板子模板与本机保存的模板（localStorage），可用性用服务端的 `validateCustomRoles` 判断 |
-| `lib/replay.ts`、`components/replay-export.tsx` | 结局复盘文字导出：只用本人的 RoomView，不含任务牌归属、房间码或湖中仙女私密结果 |
+| `lib/replay.ts`、`components/replay-export.tsx` | 结局复盘文字导出：只用本人的 RoomView，不含房间码或湖中仙女私密结果 |
+| `lib/replay-steps.ts`、`components/replay-timeline.tsx` | 结局回放：步骤来自现有 GameView；任务牌作者仅在已公开时出现；湖中仙女不含查验结果 |
+| `lib/highlights.ts` | 结局高光：最多 4 条，结局页、复盘文字和长图共用 |
+| `lib/personal-record.ts`、`app/me/page.tsx` | 本机个人战绩：只存 localStorage，房间码＋局数去重 |
 | `app/admin/`、`app/api/admin/route.ts`、`lib/admin-key.ts`、`lib/admin-stats.ts`、`scripts/admin-keys.mjs` | 管理后台：管理员 Key（Secret `ADMIN_KEY_HASHES`，与房主 Key 分开）、只含汇总数字的统计查询。新增统计时只能返回计数，不能返回房间码、昵称、设备凭据、身份、投票或任务牌 |
 | `lib/i18n/`、`components/lang-toggle.tsx`、`scripts/i18n-check.mjs` | 中英双语：以中文原文为键的英文词典（按页面分文件），界面用 `t()`，服务端文字用 `ts()`，服务端组件用 `serverT(await serverLang())`。新增文字必须通过 `npm run i18n:check` |
 | `components/early-assassination.tsx`、`lib/game.ts` 的 `assassinate`、`identityFor` | 本站固定规则：选队／表决／任务／湖中仙女阶段刺客可按当前 `turnId` 出刀一次（结果带 `early: true`）；坏人线索的标签是同伴的角色名，奥伯伦除外；梅林只看到「已知邪恶」 |
@@ -160,15 +163,9 @@ GitHub Actions 的 Verify 工作流有三个任务：lint（0 警告）、类型
 
 下一项实际验收是 iPhone 与 Android 真机聚会测试：先安装再入房，完成身份、表决、任务、锁屏恢复、刷新和同房重开。现有自动化和手机尺寸浏览器检查不能代替这一步。不要把尚未做过的真机验证记为已完成。
 
-## 待办计划：v1.12–v1.15
+## 待办计划：v1.13–v1.15
 
-用户已选定以下内容，v1.11 之后暂停，按顺序逐个阶段做。每个阶段照上面的流程：实现、单元测试、浏览器测试（含浅色主题下的 axe 检查）、更新 README／CHANGELOG／本文件、提交推送、先 staging 后正式部署。改了任何 `app/*.css` 都要运行 `npm run theme:build`；新增界面文字要加英文词条并把新文件加进 `scripts/i18n-check.mjs` 的 `UI_FILES`。
-
-### v1.12 · 复盘回放、结局高光、本机个人战绩
-
-1. **复盘回放时间线**（结局后，本局成员可见）：结局页新增「回放」，一条可拖动／可点「上一步」「下一步」的时间线。步骤按发生顺序：每一车（队长、亮车后提交的队伍、每个人的表决、通过／否决），每次任务（队员、失败张数、结局后才公开的谁出了哪张牌），湖中仙女交接（只显示谁交给谁，查验结果仍然只给本人）。回放时圆桌组件（`components/game-table.tsx`）显示那一步的状态：队长皇冠、车上金框、已表决标记、当时的比分和任务轨道。数据全部来自现有 `GameView`（`proposals`、`quests`、`questCards`、`lake`）；不需要改服务端，也不需要记录时间戳。纯函数放在 `lib/replay-steps.ts`（输入 GameView，输出步骤数组），界面放在 `components/replay-timeline.tsx`。测试：步骤顺序、任务牌只在结局后出现、旁观者没有回放。
-2. **结局高光**（结局后，本局成员可见，只基于已公开的身份）：自动挑出最多 4 条，例如「坏人 X 上了所有失败的车」「梅林 N 次反对里有 M 次反对的是坏车」「派西维尔从第 K 车起一直投梅林在的车」「刺客第一眼就锁定了梅林／没找到梅林」「连续否决最多的一车」。纯函数 `lib/highlights.ts`（输入 GameView + revealedRoles，输出带变量的 msg 键），结局页和复盘文字／图片都用。每条规则都要有单元测试，没有合适高光时不显示。
-3. **本机个人战绩**（只存本设备 localStorage，不上传）：对局结束时记下这一局的日期、人数、板子、我的角色、最终阵营、胜负、是否刺中梅林；保留最近 200 局。首页新增「我的战绩」入口（或规则页旁的新页面 `/me`）：总胜率、各角色和各阵营胜率、当梅林被刺中次数、最近 10 局。提供「清除本机战绩」。参考 `lib/player-notes.ts` 的 `useSyncExternalStore` 写法；隐私说明页加一条「本机战绩」。同一局只记一次（以房间码＋局数去重）。
+v1.12（复盘回放、结局高光、本机个人战绩）已完成，见 `CHANGELOG.md`。接下来按顺序逐个阶段做。每个阶段照上面的流程：实现、单元测试、浏览器测试（含浅色主题下的 axe 检查）、更新 README／CHANGELOG／本文件、提交推送、先 staging 后正式部署。改了任何 `app/*.css` 都要运行 `npm run theme:build`；新增界面文字要加英文词条并把新文件加进 `scripts/i18n-check.mjs` 的 `UI_FILES`。
 
 ### v1.13 · 锁屏时收到「轮到你」（网页推送）
 

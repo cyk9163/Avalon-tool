@@ -31,6 +31,19 @@
 .doc-table thead th { color: #9fb0aa; font-weight: 500; font-size: 12px; }
 .doc-table tbody tr:last-child td, .doc-table tbody tr:last-child th { border-bottom: 0; }
 .doc-table .double { color: var(--danger); font-weight: 600; }
+.record-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 8px 0 22px; }
+.record-stat { margin: 0; padding: 14px 16px; border: 1px solid #344c46; border-radius: 14px; background: #13272b; }
+.record-stat span, .record-stat small, .record-roles small { display: block; color: #9fb0aa; font-size: 12px; line-height: 1.5; }
+.record-stat strong { display: block; margin: 4px 0; color: #f4f0e6; font-size: 28px; font-weight: 600; line-height: 1.2; }
+.record-roles { list-style: none; margin: 8px 0 18px; padding: 0; }
+.record-roles li { display: grid; grid-template-columns: 1fr auto; gap: 0 12px; align-items: baseline; padding: 10px 0; border-bottom: 1px solid #b6c9ba14; }
+.record-roles b { color: #dbc18a; font-weight: 600; }
+.record-clear { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 18px; }
+.record-clear p { flex-basis: 100%; margin: 0; }
+.record-clear .secondary-button, .record-clear-button { width: auto; min-height: 44px; }
+@media (max-width: 640px) {
+  .record-stats { grid-template-columns: 1fr; }
+}
 .role-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 12px; margin-top: 14px; }
 .role-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; border-left: 3px solid var(--success); }
 .role-card.evil { border-left-color: var(--danger); }

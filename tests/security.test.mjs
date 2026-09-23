@@ -28,7 +28,7 @@ test("pages and API responses carry the security baseline without losing their o
 });
 
 test("static assets use the same policy as Worker responses", () => {
-  const rules = readFileSync(new URL("../public/_headers", import.meta.url), "utf8");
+  const rules = readFileSync(new URL("../public/_headers", import.meta.url), "utf8").replace(/\r\n/g, "\n");
   assert.ok(rules.includes(`Content-Security-Policy: ${contentSecurityPolicy()}`));
   for (const [name, value] of Object.entries(securityHeaders({secure: true}))) {
     if (name === "Content-Security-Policy") continue;

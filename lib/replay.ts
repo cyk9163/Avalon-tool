@@ -4,6 +4,7 @@
 // fail card. Private lake-of-the-lake results are left out as well.
 // v1.0: written in the viewer's interface language (Chinese by default).
 import { PRESETS, ROLES, type RoomView } from "./game.ts";
+import { gameHighlights } from "./highlights.ts";
 import { seatStats } from "./seat-stats.ts";
 import { msg, translate, type Lang, type Vars } from "./i18n/core.ts";
 
@@ -44,6 +45,12 @@ export function replayText(room: RoomView, date = new Date(), lang: Lang = "zh")
   lines.push(t("角色：{roles}", { roles: [...counts].map(([role, count]) => count > 1 ? `${role} ×${count}` : role).join(t("、")) }));
   const winner = game.result.winner === "good" ? t("正义获胜") : t("邪恶获胜");
   lines.push(t("结果：{winner}（{reason}）", { winner, reason: t(REASONS[game.result.reason]) }) + (game.result.targetSeat != null ? ` · ${t("刺杀目标：{target}", { target: name(game.result.targetSeat) })}` : "") + (game.result.early ? ` · ${t("提前出刀")}` : ""));
+
+  const highlights = gameHighlights(game, game.revealedRoles, name, t("、"));
+  if (highlights.length) {
+    lines.push("", t("【高光】"));
+    for (const item of highlights) lines.push(t(item.key, item.vars));
+  }
 
   lines.push("", t("【身份】"));
   if (game.revealedRoles) {

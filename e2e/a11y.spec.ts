@@ -12,7 +12,7 @@ async function audit(page: Page, label: string) {
 }
 
 test("home, rules and privacy pages pass the accessibility audit", async ({ page }) => {
-  for (const path of ["/", "/rules", "/privacy"]) {
+  for (const path of ["/", "/rules", "/privacy", "/me"]) {
     await page.goto(path);
     await expect(page.locator("main").first()).toBeVisible();
     await audit(page, path);
@@ -46,7 +46,7 @@ test("the light theme passes the same audit, contrast included, and the choice s
     const page = await game.leader.open(game.code);
     await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
     await audit(page, "light: leader during team building");
-    for (const path of ["/rules", "/privacy"]) { await page.goto(path); await audit(page, `light: ${path}`); }
+    for (const path of ["/rules", "/privacy", "/me"]) { await page.goto(path); await audit(page, `light: ${path}`); }
     // Switching back to dark takes effect at once and survives a reload.
     await page.getByRole("button", { name: "切换到深色主题" }).click();
     await expect(page.locator("html")).not.toHaveAttribute("data-theme", "light");

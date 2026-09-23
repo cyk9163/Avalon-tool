@@ -230,6 +230,7 @@ export const ROOM: Record<string, string> = {
   "没有完成的任务。": "No quests completed.",
   "任务 {quest}：{outcome} · 队员 {team} · {successes} 张成功牌、{fails} 张失败牌": "Quest {quest}: {outcome} · Team {team} · {successes} success, {fails} fail",
   "【组队表决】": "[Team votes]",
+  "【高光】": "[Highlights]",
   "没有组队记录。": "No team proposals.",
   "任务 {quest} 第 {attempt} 次 · 队长 {leader} · 队员 {team} → {outcome}（赞成 {yes}：{yesSeats}；反对 {no}：{noSeats}）": "Quest {quest}, attempt {attempt} · Leader {leader} · Team {team} → {outcome} (Approve {yes}: {yesSeats}; Reject {no}: {noSeats})",
   "对局中任务牌只公布张数；以上出牌记录在结局后公开，仅本局成员可见。": "During the game only card totals were shown; the cards above were revealed after the game, to this game's players only.",

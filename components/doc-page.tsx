@@ -40,6 +40,7 @@ export async function DocFooter() {
       <span className="footer-brand"><Crown size={14} />{t("把推理留在圆桌。")}</span>
       <nav className="footer-links" aria-label={t("站点信息")}>
         <Link href="/rules">{t("规则教学")}</Link>
+        <Link href="/me">{t("我的战绩")}</Link>
         <Link href="/privacy">{t("隐私说明")}</Link>
       </nav>
     </footer>

@@ -156,6 +156,15 @@
 .rematch-actions { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 12px; width: 100%; margin-top: 28px; }
 .rematch-actions .primary-button { width: auto; }.rematch-actions .secondary-button { margin: 0; }.rematch-actions .waiting-note { width: 100%; margin: 0; }
 .game-result > .action-note { margin-top: 17px; color: #9ab2a6; font-size: 12px; }
+.result-highlights, .replay-timeline { width: 100%; max-width: 740px; margin-top: 22px; padding: 16px 22px 18px; border: 1px solid #344c46; border-radius: 15px; background: #13272b; text-align: left; color: #d6dfd1; }
+.result-highlights h3, .replay-timeline h3 { margin: 0 0 8px; color: #c3c6ac; font-size: 13px; line-height: 1.7; font-weight: 500; }
+.result-highlights ul { margin: 0; padding-left: 1.2em; font-size: 14px; line-height: 1.7; }
+.replay-score, .replay-caption, .replay-step-count { margin: 10px 0 0; font-size: 14px; line-height: 1.7; color: #d6dfd1; }
+.replay-caption small, .replay-step-count { display: block; color: #9ab2a6; font-size: 12px; }
+.replay-timeline .quest-track { margin-top: 14px; }
+.replay-controls { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
+.replay-controls .secondary-button { width: auto; min-height: 44px; margin: 0; padding: 8px 14px; }
+.replay-controls input[type="range"] { flex: 1; min-width: 80px; height: 44px; accent-color: #dbc18a; }
 @media (max-width: 900px) {
   .game-start { grid-template-columns: auto 1fr; }
   .game-start .primary-button, .game-start .waiting-note { grid-column: 1 / -1; width: 100%; }
@@ -199,7 +208,10 @@
   .quest-history > div { grid-template-columns: 58px 1fr; gap: 6px 10px; }.quest-history strong { grid-column: 2; font-size: 12px; }.game-history > .action-note { font-size: 12px; }
   .game-start { gap: 17px; padding: 24px 19px; }.game-start-icon { width: 48px; height: 48px; }.game-start-icon svg { width: 24px; }.game-start h2 { font-size: 22px; }.game-start p { font-size: 13px; }
   .game-result { padding: 29px 0 7px; }.result-emblem { width: 73px; height: 73px; }.game-result h2 { font-size: 27px; }.game-result > p { font-size: 13px; }
-  .result-identity-list { margin-top: 26px; padding: 16px; }.revealed-roles { grid-template-columns: 1fr; }.revealed-roles > div { font-size: 13px; }
+  .result-identity-list, .result-highlights, .replay-timeline { margin-top: 22px; padding: 16px; }
+  .revealed-roles { grid-template-columns: 1fr; }.revealed-roles > div { font-size: 13px; }
+  .replay-controls { flex-wrap: wrap; }
+  .replay-controls input[type="range"] { flex-basis: 100%; }
   .rematch-actions { flex-direction: column; margin-top: 23px; }.rematch-actions .primary-button, .rematch-actions .secondary-button { width: 100%; }
 }
 @media (max-width: 620px) {

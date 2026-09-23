@@ -266,6 +266,11 @@
 :root[data-theme="light"] .revealed-roles .good { color: #386044; background: #cdd7d1; }
 :root[data-theme="light"] .revealed-roles .evil { color: #7a4539; background: #e1d7d9; }
 :root[data-theme="light"] .game-result > .action-note { color: #3c5147; }
+:root[data-theme="light"] .result-highlights, :root[data-theme="light"] .replay-timeline { border: 1px solid #cad2d0; background: #e3eaec; color: #272e23; }
+:root[data-theme="light"] .result-highlights h3, :root[data-theme="light"] .replay-timeline h3 { color: #3b3d27; }
+:root[data-theme="light"] .replay-score, :root[data-theme="light"] .replay-caption, :root[data-theme="light"] .replay-step-count { color: #272e23; }
+:root[data-theme="light"] .replay-caption small, :root[data-theme="light"] .replay-step-count { color: #3c5147; }
+:root[data-theme="light"] .replay-controls input[type="range"] { accent-color: #6b510f; }
 :root[data-theme="light"] .replay-export { border-top: 1px solid #3040341f; }
 :root[data-theme="light"] .replay-fallback { color: var(--foreground); background: #f0f4f6; border: 1px solid var(--border); }
 :root[data-theme="light"] .history-tally { color: #41504a; }
@@ -640,6 +645,11 @@
 :root[data-theme="light"] .doc-table thead th { color: #41504a; }
 :root[data-theme="light"] .doc-table tbody tr:last-child td, :root[data-theme="light"] .doc-table tbody tr:last-child th { border-bottom: 0; }
 :root[data-theme="light"] .doc-table .double { color: var(--danger); }
+:root[data-theme="light"] .record-stat { border: 1px solid #cad2d0; background: #e3eaec; }
+:root[data-theme="light"] .record-stat span, :root[data-theme="light"] .record-stat small, :root[data-theme="light"] .record-roles small { color: #41504a; }
+:root[data-theme="light"] .record-stat strong { color: #211e17; }
+:root[data-theme="light"] .record-roles li { border-bottom: 1px solid #30403414; }
+:root[data-theme="light"] .record-roles b { color: #6b510f; }
 :root[data-theme="light"] .role-card { background: var(--card); border: 1px solid var(--border); border-left: 3px solid var(--success); }
 :root[data-theme="light"] .role-card.evil { border-left-color: var(--danger); }
 :root[data-theme="light"] .role-card h3 small { color: var(--success); }

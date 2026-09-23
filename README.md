@@ -1,6 +1,6 @@
 # 圆桌 · 阿瓦隆助手
 
-面对面玩阿瓦隆的手机网页工具。当前为 v1.11：房主 Key 验证、5–10 人建房、官方预设与自定义板子、扩展角色、湖中仙女、扫码入座、私密身份、完整投票与任务、刺杀、复盘、同房再开、房主移交、移出玩家、中途作废、换设备恢复（恢复码或房主批准）、带口令的邀请链接，以及添加到手机主屏幕。v0.7 起具备安全响应头、结构化日志、健康检查、定时清理和完整 CI；v0.9 起房间变化实时推送到每台手机，并有独立的 staging 环境；v0.10 起有规则教学页（`/rules`）和隐私说明页（`/privacy`）；v0.11 起自定义板子可以套用或保存模板，结局后可以导出复盘文字；v0.12 起运营者可以用单独的管理员 Key 在 `/admin` 查看汇总统计；v1.0 起全站支持中文和英文；v1.1 起玩家可以在对局中给他人做私密标记和备注；v1.2 起本站固定规则为坏人（奥伯伦除外）互相知道具体角色、刺客可以随时出刀一次；v1.6 起对局以圆桌为主视图，队长先亮车、可改车再发起表决；v1.7 起对局记录以投票矩阵和玩家统计呈现，并有 iPhone（WebKit）与 Android（Chromium）浏览器自动化测试；v1.8 起选队时有发言顺序和软计时，轮到你操作时标签标题、震动和角标会提醒，表决和任务结果有揭晓动画；v1.9 起有同房多局战绩、可分享的复盘长图和点角色名即可查看的角色说明卡；v1.10 起有只显示公开信息的大屏模式（`/screen`）、色盲友好的阵营图标、自动无障碍检查和每小时一次的线上监控；v1.11 起有按当前处境变化的新手提示和浅色主题。
+面对面玩阿瓦隆的手机网页工具。当前为 v1.12：房主 Key 验证、5–10 人建房、官方预设与自定义板子、扩展角色、湖中仙女、扫码入座、私密身份、完整投票与任务、刺杀、复盘、同房再开、房主移交、移出玩家、中途作废、换设备恢复（恢复码或房主批准）、带口令的邀请链接，以及添加到手机主屏幕。v0.7 起具备安全响应头、结构化日志、健康检查、定时清理和完整 CI；v0.9 起房间变化实时推送到每台手机，并有独立的 staging 环境；v0.10 起有规则教学页（`/rules`）和隐私说明页（`/privacy`）；v0.11 起自定义板子可以套用或保存模板，结局后可以导出复盘文字；v0.12 起运营者可以用单独的管理员 Key 在 `/admin` 查看汇总统计；v1.0 起全站支持中文和英文；v1.1 起玩家可以在对局中给他人做私密标记和备注；v1.2 起本站固定规则为坏人（奥伯伦除外）互相知道具体角色、刺客可以随时出刀一次；v1.6 起对局以圆桌为主视图，队长先亮车、可改车再发起表决；v1.7 起对局记录以投票矩阵和玩家统计呈现，并有 iPhone（WebKit）与 Android（Chromium）浏览器自动化测试；v1.8 起选队时有发言顺序和软计时，轮到你操作时标签标题、震动和角标会提醒，表决和任务结果有揭晓动画；v1.9 起有同房多局战绩、可分享的复盘长图和点角色名即可查看的角色说明卡；v1.10 起有只显示公开信息的大屏模式（`/screen`）、色盲友好的阵营图标、自动无障碍检查和每小时一次的线上监控；v1.11 起有按当前处境变化的新手提示和浅色主题；v1.12 起结局后可以逐步回放、自动挑出本局高光，并在本机保存个人战绩（`/me`）。
 
 本项目包含完整前后端源码、数据库结构、迁移、测试和部署配置。独立部署到 Cloudflare Workers + D1，不依赖 ChatGPT、Codex 或 Sites 账号；使用时不调用 AI API。
 
@@ -193,6 +193,7 @@ git push origin main
 - `components/vote-matrix.tsx`、`lib/seat-stats.ts`：投票矩阵与玩家统计（复盘文字共用统计）。
 - `components/speech-bar.tsx`：发言顺序与计时；`lib/turn.ts`、`components/turn-reminder.tsx`：轮到你操作的提醒；`components/reveal-overlay.tsx`：表决与任务结果的揭晓动画。
 - `lib/room-record.ts`、`components/room-record.tsx`：同房战绩；`lib/replay-image.ts`：复盘长图（本机 canvas 绘制）；`lib/role-info.ts`、`components/role-info.tsx`：角色说明卡。
+- `lib/replay-steps.ts`、`components/replay-timeline.tsx`：结局回放时间线；`lib/highlights.ts`：结局高光（结局页、复盘文字和长图共用）；`lib/personal-record.ts`、`components/personal-record.tsx`、`app/me/page.tsx`：只存在本机的个人战绩。
 - `app/screen/page.tsx`、`components/big-screen.tsx`：大屏模式（`GET /api/room?view=screen` 只返回公开视图）。
 - `lib/guide.ts`、`components/guide-hint.tsx`：新手提示；`scripts/theme-light.mjs` 生成 `app/theme-light.css`（改了样式后运行 `npm run theme:build`，手动微调写在 `app/theme-light-tweaks.css`），`components/theme-toggle.tsx`：主题切换。
 - `e2e/a11y.spec.ts`：axe-core 无障碍检查；`.github/workflows/uptime.yml`：每小时线上只读检查。

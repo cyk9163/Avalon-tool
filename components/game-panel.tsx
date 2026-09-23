@@ -6,6 +6,9 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/compone
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { ROLES, type GameView, type Role, type RoomView } from "@/lib/game";
 import { ReplayExport } from "@/components/replay-export";
+import { ReplayTimeline } from "@/components/replay-timeline";
+import { gameHighlights } from "@/lib/highlights";
+import { recordFromView, usePersonalRecord } from "@/lib/personal-record";
 import { RoomRecord } from "@/components/room-record";
 import { RoleInfoButton } from "@/components/role-info";
 import { MarkTag } from "@/components/player-notes";
@@ -34,6 +37,13 @@ const reasonCopy = {
   "assassin-missed": msg("刺客未能找到梅林，正义阵营守住了胜利。"),
 };
 
+function HighlightList({ game, playerName }: { game: GameView; playerName: (seat: number) => string }) {
+  const { t } = useI18n();
+  const lines = gameHighlights(game, game.revealedRoles, seat => t("{n} 号 · {name}", { n: seat, name: playerName(seat) }), t("、"));
+  if (!lines.length) return null;
+  return <div className="result-highlights"><h3>{t("本局高光")}</h3><ul>{lines.map((line, index) => <li key={index}>{t(line.key, line.vars)}</li>)}</ul></div>;
+}
+
 /** Who leads each remaining attempt of this quest; the fifth attempt decides the game if rejected. */
 function LeaderOrder({ room, game }: { room: RoomView; game: GameView }) {
   const { t } = useI18n();
@@ -49,6 +59,7 @@ function LeaderOrder({ room, game }: { room: RoomView; game: GameView }) {
 export function GamePanel({ room, busy, connected, error, act, onNewGame }: Props) {
   const { t, ts } = useI18n();
   const { notes } = usePlayerNotes(room.code, room.round, room.roles);
+  const { remember } = usePersonalRecord();
   const [selection, setSelection] = useState<number[]>(() => room.game?.draftTeam ?? []);
   const [target, setTarget] = useState<number | null>(null);
   const [pending, setPending] = useState<Pending | null>(null);
@@ -74,6 +85,12 @@ export function GamePanel({ room, busy, connected, error, act, onNewGame }: Prop
       document.removeEventListener("visibilitychange", visibility);
     };
   }, []);
+
+  // One local row per finished game. Spectators have no revealed role, so they are skipped.
+  useEffect(() => {
+    const entry = room.game?.result ? recordFromView(room, Date.now()) : null;
+    if (entry) remember(entry);
+  }, [remember, room]);
 
   const playerName = (seat: number) => room.players.find(player => player.seat === seat)?.name ?? t("玩家");
   const seatsLabel = (seats: number[]) => seats.map(seat => t("{n} 号", { n: seat })).join(t("、"));
@@ -209,8 +226,10 @@ export function GamePanel({ room, busy, connected, error, act, onNewGame }: Prop
     {room.phase === "finished" && game.result && <div className={`game-result ${game.result.winner}`}>
       <span className="result-emblem"><Trophy size={38} strokeWidth={1.3} aria-hidden="true" /></span><span className="game-kicker">THE STORY IS TOLD</span><h2>{game.result.winner === "good" ? t("正义守住了圆桌。") : t("暗影笼罩了圆桌。")}</h2><p>{t(reasonCopy[game.result.reason])}</p>{game.result.early && <p className="assassination-result">{t("刺客在对局中提前出刀，本局就此结束。")}</p>}
       {game.result.targetSeat != null && <p className="assassination-result">{t("刺杀目标：{n} 号 · {name}", { n: game.result.targetSeat, name: playerName(game.result.targetSeat) })}</p>}
+      {game.revealedRoles && <HighlightList game={game} playerName={playerName} />}
       {game.revealedRoles && <div className="result-identity-list"><h3>{t("此刻，身份揭晓。")}</h3><div className="revealed-roles">{game.revealedRoles.map(player => <div key={player.seat}><span className="member-seat">{player.seat}</span><span>{playerName(player.seat)}</span><strong className={finalSide(player.role)}>{finalSide(player.role) === "good" ? <Shield size={13} aria-hidden="true" /> : <Swords size={13} aria-hidden="true" />}<RoleInfoButton role={player.role} className="revealed-role-name" />{finalSide(player.role) !== ROLES[player.role].side && <small>{finalSide(player.role) === "good" ? t("（最终属于正义）") : t("（最终属于邪恶）")}</small>}</strong></div>)}</div></div>}
       {!me && <p className="action-note">{t("完整身份仅向本局成员揭晓。")}</p>}
+      <ReplayTimeline room={room} />
       <div className="rematch-actions">{me?.id === room.hostId ? <button className="primary-button" disabled={blocked} onClick={() => setPending({ action: "rematch", input: { round: room.round }, title: t("同房再来一局？"), description: t("保留房间码、玩家和座位，清除本局身份与全部投票记录。请先完成复盘；重开后所有人重新准备、重新发身份。房间仍在创建 24 小时后过期。"), label: t("确认重开") })}><RotateCcw size={17} />{t("同房再来一局")}</button> : me && <p className="waiting-note" role="status">{t("复盘完成后，可以请房主开启同房新一局。")}</p>}
       <button className="secondary-button" onClick={onNewGame}>{t("返回首页")}<ArrowRight size={16} /></button></div>
       <ReplayExport room={room} />

@@ -3,6 +3,7 @@
 // Drawn on the phone with <canvas>; nothing is sent to the server. Uses only
 // the viewer's own RoomView, like the text recap.
 import { PRESETS, ROLES, type RoomView } from "./game.ts";
+import { gameHighlights } from "./highlights.ts";
 import { msg, translate, type Lang, type Vars } from "./i18n/core.ts";
 import { replayDate } from "./replay.ts";
 
@@ -37,7 +38,12 @@ export function drawReplayImage(room: RoomView, lang: Lang = "zh", date = new Da
 
   const identityRows = Math.ceil(roles.length / 2);
   const cardLines = game.quests.filter(quest => cards.some(item => item.quest === quest.quest && item.cards.length)).length;
-  const height = 250 + 190 + (roles.length ? 110 + identityRows * 76 : 0) + 110 + 190 + cardLines * 46
+  const highlightName = (seat: number) => {
+    const player = seats.find(item => item.seat === seat)?.name ?? "";
+    return player ? t("{seat} 号 {name}", { seat, name: player }) : t("{seat} 号", { seat });
+  };
+  const highs = gameHighlights(game, game.revealedRoles, highlightName, t("、"));
+  const height = 250 + 190 + (highs.length ? 100 + highs.length * 44 : 0) + (roles.length ? 110 + identityRows * 76 : 0) + 110 + 190 + cardLines * 46
     + (game.proposals.length ? 150 + (game.proposals.length + 1) * 52 : 0) + 110;
 
   const canvas = document.createElement("canvas");
@@ -85,6 +91,16 @@ export function drawReplayImage(room: RoomView, lang: Lang = "zh", date = new Da
   const target = game.result.targetSeat != null ? ` · ${t("刺杀目标：{target}", { target: `${game.result.targetSeat} ${name(game.result.targetSeat)}` })}` : "";
   text(t(REASONS[game.result.reason]) + target + (game.result.early ? ` · ${t("提前出刀")}` : ""), W / 2, y + 120, C.muted, 28, 400, "center", W - PAD * 3);
   y += 190;
+
+  if (highs.length) {
+    heading(t("本局高光"), y + 20);
+    y += 80;
+    for (const item of highs) {
+      text(t(item.key, item.vars), PAD, y, C.text, 26, 500, "left", W - PAD * 2);
+      y += 44;
+    }
+    y += 16;
+  }
 
   // Roles, two columns.
   if (roles.length) {
