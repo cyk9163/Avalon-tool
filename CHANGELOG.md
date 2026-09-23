@@ -1,5 +1,12 @@
 # 更新记录
 
+## 1.14.0 · 拆分大文件 · 2026-09-23
+
+只拆文件，不改规则、接口、文案或样式。
+
+- `lib/game.ts`（原先约 1155 行）拆成 `lib/game/model.ts`（411 行，角色与板子）、`lib/game/view.ts`（124 行，视图投影）、`lib/game/play.ts`（329 行，对局动作）、`lib/game/manage.ts`（307 行，入座、移交、移出和恢复）。`lib/game.ts` 仍是统一出口，原来的导入路径不用改。
+- `app/page.tsx`（原先约 363 行）现在约 284 行。会话请求放到 `lib/room-client.ts`，实时同步和轮询放到 `lib/use-room-sync.ts`，圆桌座位放到 `components/seat-table.tsx`，使用说明弹窗放到 `components/help-dialog.tsx`。手机大厅的 DOM 层级没有改。
+
 ## 1.13.0 · 锁屏时收到「轮到你」 · 2026-09-23
 
 - 房间里可以主动开启锁屏提醒。浏览器不会一进房间就弹权限；点「开启锁屏提醒」才请求通知，也可以随时关闭。安卓 Chrome 可以直接用；iPhone 需要 iOS 16.4 以上并且先添加到主屏幕。

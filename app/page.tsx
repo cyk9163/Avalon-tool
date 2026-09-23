@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, type ChangeEvent } from "react";
 import Link from "next/link";
-import { ArrowRight, ArrowLeft, Shield, Users, Crown, KeyRound, Check, Copy, QrCode, Eye, EyeOff, RefreshCw, LogOut, LockKeyhole, CircleHelp, Smartphone, LoaderCircle, ChevronDown, Bookmark, X, Monitor, Swords } from "lucide-react";
+import { ArrowRight, ArrowLeft, Shield, Users, Crown, KeyRound, Check, Copy, QrCode, Eye, EyeOff, RefreshCw, LogOut, LockKeyhole, CircleHelp, Smartphone, LoaderCircle, ChevronDown, Bookmark, X, Monitor } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -23,11 +23,12 @@ import { useTurnReminder } from "@/components/turn-reminder";
 import { myTurn } from "@/lib/turn";
 import { RulesCard } from "@/components/rules-card";
 import { RoomRecord } from "@/components/room-record";
-import { RoleInfoButton } from "@/components/role-info";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { GuideHint, GuideSwitch } from "@/components/guide-hint";
-import { useRoomLive } from "@/lib/use-room-live";
-import { LIVE_FALLBACK_POLL_MS } from "@/lib/live";
+import { GuideHint } from "@/components/guide-hint";
+import { Brand, RoleChips, SeatTable as Table } from "@/components/seat-table";
+import { HelpDialog } from "@/components/help-dialog";
+import { ensureSession, rememberInvite, request } from "@/lib/room-client";
+import { useRoomSync } from "@/lib/use-room-sync";
 import { BUILT_IN_TEMPLATES, MAX_SAVED_TEMPLATES, MAX_TEMPLATE_NAME, fillCustomRoles, loadSavedTemplates, newTemplateId, sameBoard, storeSavedTemplates, templateFits, templateMinimum, type BoardTemplate } from "@/lib/board-templates";
 import { useI18n } from "@/lib/i18n/react";
 import { msg, type Vars } from "@/lib/i18n/core";
@@ -37,48 +38,6 @@ import { HOST_KEY_LENGTH, formatHostKey, formattedCaret, hostKeyCharacters, host
 type Mode="create"|"join";
 // A notice keeps its Chinese source text and values, so it re-renders in the current language.
 type Notice={text:string;vars?:Vars}|null;
-let sessionBootstrap:Promise<unknown>|null=null;
-function ensureSession(){
-  if(!sessionBootstrap){
-    const initialize=()=>request("/api/room?session=1");
-    sessionBootstrap=(navigator.locks?navigator.locks.request("avalon:session",initialize):initialize()).catch(error=>{sessionBootstrap=null;throw error;});
-  }
-  return sessionBootstrap;
-}
-// The invite token from a QR/link lets the holder see nicknames before joining.
-// It is kept for the most recent room only and never placed back in the URL.
-const INVITE_PATTERN=/^[A-Za-z0-9_-]{16,64}$/;
-let invite:{code:string;token:string}|null=null;
-function rememberInvite(code:string,token:string|null|undefined){
-  if(!token||!INVITE_PATTERN.test(token)||(invite?.code===code&&invite.token===token))return;
-  invite={code,token};try{localStorage.setItem("avalon:invite",JSON.stringify(invite));}catch{}
-}
-function inviteFor(code:string){
-  if(!invite){try{const saved=JSON.parse(localStorage.getItem("avalon:invite")||"null");if(saved&&typeof saved.code==="string"&&INVITE_PATTERN.test(saved.token))invite=saved;}catch{}}
-  return invite?.code===code?invite.token:null;
-}
-async function request<T=RoomView>(path:string,body?:Record<string,unknown>,roomCode?:string):Promise<T> {
-  const token=roomCode?inviteFor(roomCode):null;
-  const headers:Record<string,string>={...(body?{"Content-Type":"application/json"}:{}),...(token?{"X-Avalon-Invite":token}:{})};
-  const res=await fetch(path,{method:body?"POST":"GET",credentials:"same-origin",cache:"no-store",headers,body:body?JSON.stringify(body):undefined,signal:AbortSignal.timeout(15000)});
-  let result;try{result=await res.json();}catch{throw new Error(msg("服务暂时不可用，请稍后重试。"));}
-  if(!res.ok)throw Object.assign(new Error((result as {error?:string})?.error||msg("操作未完成，请重试。")),{status:res.status});
-  return result as T;
-}
-function Brand({onHome}:{onHome:()=>void}){const {t}=useI18n();return <Link className="brand" href="/" onClick={e=>{e.preventDefault();onHome();}} aria-label={t("圆桌首页")}><span className="brand-icon"><Crown size={22}/></span><span>{t("圆桌")}<span className="brand-sub">AVALON</span></span></Link>;}
-function RoleChips({roles}:{roles:Role[]}){
-  const {t}=useI18n();
-  const pool=roles;
-  return <div className="role-chips">{[...new Set(pool)].map(role=><RoleInfoButton role={role} className={`role-chip ${ROLES[role].side}`} key={role}>{ROLES[role].side==="good"?<Shield size={11} aria-hidden="true"/>:<Swords size={11} aria-hidden="true"/>}{t(ROLES[role].name)}{pool.filter(r=>r===role).length>1?` ×${pool.filter(r=>r===role).length}`:""}</RoleInfoButton>)}</div>;
-}
-
-function Table({count,room,onSeat,disabled}:{count:number;room?:RoomView|null;onSeat?:(seat:number)=>void;disabled?:boolean}){
-  const {t}=useI18n();
-  return <div className={`roundtable ${room?"live-table":""}`}><div className="table-center"><Crown size={32} strokeWidth={1.3}/><span>AVALON</span><p>{room?t("{n} / {count} 位已入座",{n:room.players.length,count}):t("每个人，都有自己的秘密。")}</p></div>{Array.from({length:count},(_,i)=>{
-    const player=room?.players.find(p=>p.seat===i+1),mine=!!player&&player.id===room?.meId;
-    return <div className="seat-position" key={i} style={{left:`${50+40*Math.sin(i*2*Math.PI/count)}%`,top:`${50-40*Math.cos(i*2*Math.PI/count)}%`}}><button type="button" className={`seat-circle ${player?"occupied":""} ${mine?"mine":""}`} disabled={disabled||!onSeat||!!player} onClick={()=>onSeat?.(i+1)} aria-label={player?(mine?t("{seat} 号座位，{name}，我",{seat:i+1,name:player.name}):t("{seat} 号座位，{name}",{seat:i+1,name:player.name})):t("{seat} 号座位，空位",{seat:i+1})}><span>{String(i+1).padStart(2,"0")}</span>{player&&(room?.phase==="lobby"?player.ready:player.confirmed)&&<Check className="seat-check" size={14}/>}</button>{room&&<span className={`seat-name ${mine?"mine":""}`}>{player?`${player.name||t("已入座")}${mine?` · ${t("我")}`:""}`:t("待入座")}</span>}</div>;
-  })}</div>;
-}
 
 export default function Home(){
   const {t,ts}=useI18n();
@@ -119,21 +78,7 @@ export default function Home(){
     latest.current=data;setRoom(data);setConnected(navigator.onLine!==false);
   },[]);
   const load=useCallback(async(target:string)=>{const data=await request(`/api/room?code=${encodeURIComponent(target)}`,undefined,target);accept(data);return data as RoomView;},[accept]);
-  // Live signals only say "the room reached version N": re-read our own view
-  // through the authorized API, coalescing bursts into one request at a time.
-  const refreshing=useRef(false),refreshAgain=useRef(false);
-  const onLiveSignal=useCallback((version:number|null)=>{
-    const target=currentCode.current;if(!target)return;
-    if(version!==null&&latest.current?.code===target&&latest.current.version>=version)return;
-    if(refreshing.current){refreshAgain.current=true;return;}
-    refreshing.current=true;
-    void (async()=>{
-      do{refreshAgain.current=false;try{await load(target);}catch{/* the polling loop reports connection problems */}}
-      while(refreshAgain.current&&currentCode.current===target);
-      refreshing.current=false;
-    })();
-  },[load]);
-  const live=useRoomLive(room?.code&&room.code!==goneCode?room.code:null,onLiveSignal);
+  const live=useRoomSync(room,goneCode,currentCode,latest,load,setError,setConnected,setGoneCode,setReveal);
   useEffect(()=>{
     let cancelled=false;
     ensureSession().then(async()=>{
@@ -148,29 +93,6 @@ export default function Home(){
     }).catch(()=>{if(!cancelled)setError(msg("暂时无法连接圆桌。请检查网络后刷新页面。"));}).finally(()=>{if(!cancelled)setBooting(false);});
     return()=>{cancelled=true;};
   },[load]);
-  useEffect(()=>{
-    if(!room?.code)return;
-    let cancelled=false,inFlight=false,timer:ReturnType<typeof setTimeout>;let failures=0;
-    const poll=async()=>{
-      if(cancelled||inFlight)return;
-      inFlight=true;
-      if(!document.hidden&&navigator.onLine!==false){try{await load(room.code);failures=0;}catch(e){
-        // An expired or closed room will never come back: stop polling instead
-        // of spending the network's lookup budget on it.
-        if([404,410].includes((e as {status?:number}).status??0)){if(!cancelled){setError((e as Error).message);setConnected(true);setGoneCode(room.code);}inFlight=false;return;}
-        if(!cancelled){setConnected(false);failures++;}
-      }}
-      inFlight=false;
-      // With the live channel open, polling is only a safety net.
-      if(!cancelled)timer=setTimeout(poll,live&&!failures?LIVE_FALLBACK_POLL_MS:Math.min(3000*(failures+1),15000));
-    };
-    timer=setTimeout(poll,live?LIVE_FALLBACK_POLL_MS:3000);
-    const wake=()=>{setReveal(false);if(!document.hidden){clearTimeout(timer);void poll();}};
-    const offline=()=>{setConnected(false);setReveal(false);};
-    document.addEventListener("visibilitychange",wake);
-    window.addEventListener("online",wake);window.addEventListener("offline",offline);window.addEventListener("pageshow",wake);
-    return()=>{cancelled=true;clearTimeout(timer);document.removeEventListener("visibilitychange",wake);window.removeEventListener("online",wake);window.removeEventListener("offline",offline);window.removeEventListener("pageshow",wake);};
-  },[room?.code,load,live]);
   useEffect(()=>{const hide=()=>setReveal(false);window.addEventListener("blur",hide);window.addEventListener("pagehide",hide);return()=>{window.removeEventListener("blur",hide);window.removeEventListener("pagehide",hide);};},[]);
   useEffect(()=>{window.scrollTo({top:0,behavior:"instant"});},[room?.code]);
   // Re-seal the identity card whenever the seat, role or game changes. This is
@@ -357,6 +279,6 @@ export default function Home(){
 <img className="qr-image" src={qr} alt={t("加入本房间的二维码")} width={240} height={240}/>:<div className="qr-loading"><LoaderCircle size={24} className="spin"/>{t("正在生成二维码…")}</div>}<div className="share-code"><small>{t("房间码")}</small>{room?.code}</div><button className="primary-button" onClick={async()=>{try{await navigator.clipboard.writeText(inviteUrl);setCopied(true);setTimeout(()=>setCopied(false),2000);}catch{setError(msg("无法复制，请直接分享房间码。"));}}}>{copied?<Check size={17}/>:<Copy size={17}/ >}{copied?t("已复制邀请链接"):t("复制邀请链接")}</button><p className="action-note">{t("邀请链接含专属口令，扫码进入可看到座位昵称；只输入房间码也能入座，但不显示昵称。")}</p>{room?.inviteToken&&<a className="secondary-button big-screen-link" href={`/screen?room=${room.code}&invite=${room.inviteToken}`} target="_blank" rel="noopener"><Monitor size={17}/>{t("打开大屏模式")}</a>}{room?.inviteToken&&<p className="action-note">{t("在桌子中间的平板或电脑上打开：只显示圆桌、任务、发言顺序和表决等公开信息，不显示任何人的身份。")}</p>}</DialogContent></Dialog>
     <AlertDialog open={confirmStart} onOpenChange={setConfirmStart}><AlertDialogContent><AlertDialogTitle>{t("让秘密各就各位？")}</AlertDialogTitle><AlertDialogDescription>{t("发身份后，本局座位与角色配置会锁定。请确认所有人都已坐在对应位置。")}</AlertDialogDescription><AlertDialogFooter><AlertDialogCancel>{t("再检查一下")}</AlertDialogCancel><AlertDialogAction disabled={busy||!connected||!allReady||!isHost||room?.phase!=="lobby"} onClick={()=>void act("start")}>{t("确认发身份")}</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
     <AlertDialog open={confirmLeave} onOpenChange={setConfirmLeave}><AlertDialogContent><AlertDialogTitle>{t("离开这个房间？")}</AlertDialogTitle><AlertDialogDescription>{t("你的座位会空出来。若你是房主，管理权会交给下一位玩家。")}</AlertDialogDescription><AlertDialogFooter><AlertDialogCancel>{t("继续等朋友")}</AlertDialogCancel><AlertDialogAction variant="destructive" disabled={busy||!connected||room?.phase!=="lobby"} onClick={()=>void act("leave")}>{t("离开房间")}</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
-    <Dialog open={help} onOpenChange={setHelp}><DialogContent className="help-dialog"><span className="dialog-emblem"><Crown size={26}/></span><DialogTitle>{t("围坐，秘密入局。")}</DialogTitle><DialogDescription>{t("每人一部联网手机，无需注册账号。")}</DialogDescription><ol className="help-list"><li><strong>{t("让朋友入座")}</strong>{t("房主凭 Key 选择人数和角色配置建房，朋友无需 Key，扫码或输入房间码，按实际位置选座。")}</li><li><strong>{t("把身份记在心里")}</strong>{t("全员准备后发身份。按住查看角色与线索，松开隐藏，记住后确认。")}</li><li><strong>{t("让每一票留下线索")}</strong>{t("队长选队，全员表决。任务队员秘密提交任务票，只公布失败总数。")}</li><li><strong>{t("复盘，再来一局")}</strong>{t("刺客可以在对局中随时出刀一次，没出刀则在三次成功后刺杀；三次失败或连续五次否决，邪恶获胜。结束后可以复盘和同房重开。")}</li></ol><GuideSwitch/><p className="help-note">{t("房主可在「房间管理」中移交权限、开局前移出玩家，或中止对局后调整人员。")}</p><p className="help-note">{t("刷新或锁屏后用原来的浏览器返回即可。换了手机或浏览器时，在新设备打开房间，选择「我本来就在这桌」，输入自己的恢复码，或请房主当面核实后批准；原设备会立即失效。房间创建 24 小时后过期。")}</p><p className="help-note help-links"><Link href="/rules" onClick={()=>setHelp(false)}>{t("完整规则与角色图鉴 →")}</Link><Link href="/me" onClick={()=>setHelp(false)}>{t("我的战绩")}</Link><Link href="/privacy" onClick={()=>setHelp(false)}>{t("隐私说明")}</Link></p></DialogContent></Dialog>
+    <HelpDialog open={help} onOpenChange={setHelp}/>
   </main>;
 }
