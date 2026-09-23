@@ -1,6 +1,6 @@
 # 圆桌 · 阿瓦隆助手
 
-面对面玩阿瓦隆的手机网页工具。当前为 v1.3：房主 Key 验证、5–10 人建房、官方预设与自定义板子、扩展角色、湖中仙女、扫码入座、私密身份、完整投票与任务、刺杀、复盘、同房再开、房主移交、移出玩家、中途作废、换设备恢复（恢复码或房主批准）、带口令的邀请链接，以及添加到手机主屏幕。v0.7 起具备安全响应头、结构化日志、健康检查、定时清理和完整 CI；v0.9 起房间变化实时推送到每台手机，并有独立的 staging 环境；v0.10 起有规则教学页（`/rules`）和隐私说明页（`/privacy`）；v0.11 起自定义板子可以套用或保存模板，结局后可以导出复盘文字；v0.12 起运营者可以用单独的管理员 Key 在 `/admin` 查看汇总统计；v1.0 起全站支持中文和英文；v1.1 起玩家可以在对局中给他人做私密标记和备注；v1.2 起本站固定规则为坏人（奥伯伦除外）互相知道具体角色、刺客可以随时出刀一次。
+面对面玩阿瓦隆的手机网页工具。当前为 v1.4：房主 Key 验证、5–10 人建房、官方预设与自定义板子、扩展角色、湖中仙女、扫码入座、私密身份、完整投票与任务、刺杀、复盘、同房再开、房主移交、移出玩家、中途作废、换设备恢复（恢复码或房主批准）、带口令的邀请链接，以及添加到手机主屏幕。v0.7 起具备安全响应头、结构化日志、健康检查、定时清理和完整 CI；v0.9 起房间变化实时推送到每台手机，并有独立的 staging 环境；v0.10 起有规则教学页（`/rules`）和隐私说明页（`/privacy`）；v0.11 起自定义板子可以套用或保存模板，结局后可以导出复盘文字；v0.12 起运营者可以用单独的管理员 Key 在 `/admin` 查看汇总统计；v1.0 起全站支持中文和英文；v1.1 起玩家可以在对局中给他人做私密标记和备注；v1.2 起本站固定规则为坏人（奥伯伦除外）互相知道具体角色、刺客可以随时出刀一次。
 
 本项目包含完整前后端源码、数据库结构、迁移、测试和部署配置。独立部署到 Cloudflare Workers + D1，不依赖 ChatGPT、Codex 或 Sites 账号；使用时不调用 AI API。
 
@@ -200,6 +200,7 @@ git push origin main
 - `app/admin/`、`app/api/admin/route.ts`、`lib/admin-key.ts`、`lib/admin-stats.ts`、`scripts/admin-keys.mjs`：管理后台（管理员 Key 与汇总统计）。
 - `lib/i18n/`（`core.ts`、`react.tsx`、`server.ts`、`dictionary.ts`、`en/*.ts`、`GLOSSARY.md`）、`components/lang-toggle.tsx`、`scripts/i18n-check.mjs`：中英双语。
 - `components/early-assassination.tsx`：刺客随时出刀；`lib/player-notes.ts`、`components/player-notes.tsx`：只存在本机的推理笔记。
+- `app/mobile.css`、`components/room-section-nav.tsx`：手机交互层（固定底部操作、分区导航、触屏尺寸、安全区），只影响展示。
 - `lib/request-context.ts`：接口与实时网关共用的设备身份和网络限流。
 - `scripts/smoke.mjs`：部署后只读检查；`scripts/environments.mjs`：正式与 staging 地址；`scripts/staging-check.mjs`：staging 端到端实时检查。
 - `lib/host-key.ts`、`scripts/host-keys.mjs`：房主 Key 验证、生成与发布。

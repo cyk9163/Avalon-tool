@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 
 export const UI_FILES = [
   "app/page.tsx", "app/layout.tsx", "app/admin/page.tsx", "app/rules/page.tsx", "app/privacy/page.tsx",
-  "components/device-recovery.tsx", "components/early-assassination.tsx", "components/player-notes.tsx", "components/doc-page.tsx", "components/game-panel.tsx", "components/install-app.tsx",
+  "components/device-recovery.tsx", "components/early-assassination.tsx", "components/player-notes.tsx", "components/room-section-nav.tsx", "components/doc-page.tsx", "components/game-panel.tsx", "components/install-app.tsx",
   "components/lang-toggle.tsx", "components/replay-export.tsx", "components/room-management.tsx", "components/room-progress.tsx",
   "components/takeover-requests.tsx", "lib/replay.ts", "lib/board-templates.ts",
 ];

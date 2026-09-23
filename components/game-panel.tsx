@@ -96,7 +96,7 @@ export function GamePanel({ room, busy, connected, error, act, onNewGame }: Prop
     if (result) setPending(null);
   }
 
-  return <section className={`game-panel phase-${room.phase}`} aria-label={t("当前对局")}>
+  return <section id="room-game" className={`game-panel phase-${room.phase}`} aria-label={t("当前对局")}>
     <div className="game-topline">
       <div className="game-workspace-title"><span className="game-kicker">THE ROUND TABLE</span><strong>{t("圆桌议事")} <span>{t("第 {n} 局", { n: room.round })}</span></strong></div>
       <span className={`game-phase-chip ${room.phase === "assassination" ? "danger" : ""}`}><stage.Icon size={15} aria-hidden="true" />{stage.label}</span>
@@ -190,7 +190,7 @@ export function GamePanel({ room, busy, connected, error, act, onNewGame }: Prop
 
     {latestLakeCheck&&<div className="lake-private-result"><LockKeyhole size={17}/><div><small>{t("仅你可见 · 湖中仙女查验")}</small><strong>{latestLakeCheck.side==="good"?t("{n} 号 · {name} 属于正义阵营",{n:latestLakeCheck.targetSeat,name:playerName(latestLakeCheck.targetSeat)}):t("{n} 号 · {name} 属于邪恶阵营",{n:latestLakeCheck.targetSeat,name:playerName(latestLakeCheck.targetSeat)})}</strong></div></div>}
 
-    <details className="game-history" open={room.phase === "finished" ? true : undefined}>
+    <details id="room-log" className="game-history" open={room.phase === "finished" ? true : undefined}>
       <summary><span className="history-title"><History size={18} aria-hidden="true" /><span>{t("对局记录")}</span></span><small>{t("{p} 次表决 · {q} 次任务", { p: game.proposals.length, q: game.quests.length })}</small><ChevronDown className="history-chevron" size={17} aria-hidden="true" /></summary>
       {!game.proposals.length ? <p className="history-empty">{t("完成第一次组队表决后，记录会显示在这里。")}</p> : <><p className="history-hint"><ArrowLeftRight size={15} aria-hidden="true" />{t("左右滑动，查看每位玩家的表决。")}</p><div className="history-scroll" tabIndex={0} role="region" aria-label={t("组队投票历史，可左右滚动")}><table><caption className="sr-only">{t("每次组队的队长、队员及逐人表决结果")}</caption><thead><tr><th>{t("任务 / 提议")}</th><th>{t("队长")}</th><th>{t("队员")}</th>{room.players.map(player => <th key={player.id} title={player.name}>{t("{n} 号", { n: player.seat })}</th>)}<th>{t("结果")}</th></tr></thead><tbody>{game.proposals.map(proposal => <tr key={proposal.id}><th>{proposal.quest} / {proposal.attempt}</th><td>{t("{n} 号", { n: proposal.leaderSeat })}</td><td>{proposal.team.join(t("、"))}</td>{room.players.map(player => {
         const vote = proposal.votes.find(item => item.seat === player.seat);

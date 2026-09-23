@@ -8,6 +8,7 @@ import "./management.css";
 import "./progress.css";
 import "./recovery.css";
 import "./docs.css";
+import "./mobile.css";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = serverT(await serverLang());
@@ -32,6 +33,8 @@ export async function generateMetadata(): Promise<Metadata> {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  // Lets the page use the full screen on notched phones; CSS pads the safe areas.
+  viewportFit: "cover",
   themeColor: "#0c171a",
 };
 

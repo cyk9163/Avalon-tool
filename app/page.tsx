@@ -16,6 +16,7 @@ import { RecoveryCodeCard, SeatRecovery } from "@/components/device-recovery";
 import { TakeoverAlert, TakeoverRequests } from "@/components/takeover-requests";
 import { EarlyAssassination } from "@/components/early-assassination";
 import { PlayerNotesPanel } from "@/components/player-notes";
+import { RoomSectionNav } from "@/components/room-section-nav";
 import { useRoomLive } from "@/lib/use-room-live";
 import { LIVE_FALLBACK_POLL_MS } from "@/lib/live";
 import { BUILT_IN_TEMPLATES, MAX_SAVED_TEMPLATES, MAX_TEMPLATE_NAME, fillCustomRoles, loadSavedTemplates, newTemplateId, sameBoard, storeSavedTemplates, templateFits, templateMinimum, type BoardTemplate } from "@/lib/board-templates";
@@ -303,19 +304,20 @@ export default function Home(){
         <p className="privacy-note"><Shield size={14}/>{t("身份由系统私密分发，房主也无法提前查看。")}</p>
       </section>
     </div> : <section className="room-page">
-      <div className="room-heading">
+      <div className={`room-heading${room.game&&room.phase!=="finished"?" compact":""}`}>
         <div className="room-heading-copy"><span className="eyebrow">{room.phase==="lobby"?"GATHER AROUND":room.phase==="finished"?"THE STORY IS TOLD":"AT THE ROUND TABLE"}</span><h1>{room.phase==="lobby"?t("圆桌已就位。"):room.phase==="finished"?t("这一局，值得复盘。"):room.game?t("线索，就在每一票里。"):t("守好你的秘密。")}</h1><div className="room-meta"><span>{t("{n} 人",{n:room.capacity})}</span><span>{t(PRESETS[room.preset].name)}</span><span>{t("第 {n} 局",{n:room.round})}</span></div></div>
         <button className="room-invite" onClick={()=>setShare(true)} aria-label={t("邀请朋友，房间码 {code}",{code:room.code})}><span><small>{t("房间码")}</small><strong>{room.code}</strong></span><QrCode size={23}/><span className="invite-caption">{t("邀请入座")}<ArrowRight size={13}/></span></button>
       </div>
       {!connected&&<div className="connection-banner" role="status"><RefreshCw size={17}/><span>{t("连接暂时中断，座位和身份保存在服务器上，恢复网络后自动同步。换了设备可以用恢复码回到座位。")}</span><button onClick={()=>void load(room.code).catch(()=>setConnected(false))}>{t("立即重试")}</button></div>}
       {membershipNotice&&<div className="membership-notice dismissible" role="status"><p>{t(membershipNotice.text,membershipNotice.vars)}</p><button type="button" aria-label={t("关闭提示")} onClick={()=>setMembershipNotice(null)}>×</button></div>}
       {room.phase==="lobby"&&room.resetReason==="abort"&&<p className="membership-notice" role="status">{t("上一局已由房主作废，身份和记录已清除。玩家与座位已保留，请重新准备；需要补位时可由房主移除离场玩家。")}</p>}
+      {room.game&&<RoomSectionNav showNotes={!!room.meId} connected={connected} live={live}/>}
       <TakeoverAlert room={room} busy={busy} connected={connected} act={act}/>
       <TakeoverRequests room={room} busy={busy} connected={connected} act={act}/>
       <RoomProgress room={room} connected={connected} live={live}/>
       <GamePanel key={`${room.round}:${room.game?.turnId??"pregame"}`} room={room} busy={busy} connected={connected} error={error} act={act} onNewGame={back}/>
       <PlayerNotesPanel room={room}/>
-      <details className={`room-details ${room.game?"in-game":""}`} open={!room.game}>
+      <details id="room-identity" className={`room-details ${room.game?"in-game":""}`} open={!room.game}>
         <summary><span><LockKeyhole size={17}/>{me?t("我的身份与圆桌座位"):t("圆桌座位与角色配置")}</span><ChevronDown size={18}/></summary>
         <div className="room-layout">
           <section className="table-panel room-table">

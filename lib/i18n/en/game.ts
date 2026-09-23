@@ -1,5 +1,10 @@
 // English entries keyed by the Chinese source text (game).
 export const GAME: Record<string, string> = {
+  "对局": "Game",
+  "我的身份": "My role",
+  "笔记": "Notes",
+  "记录": "Log",
+  "房间分区": "Room sections",
   "兰斯洛特忠诚牌": "Lancelot loyalty cards",
   "第 {n} 轮": "Round {n}",
   "转换": "Switch",

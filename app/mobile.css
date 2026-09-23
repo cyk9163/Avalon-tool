@@ -1,0 +1,78 @@
+/* v1.4 mobile interaction polish — presentation only, no game logic.
+   Patterns follow common mobile guidance: primary actions in the thumb zone,
+   44px touch targets, sticky section navigation, safe-area padding. */
+
+button, a, summary, label, [role="button"], [role="radio"] { -webkit-tap-highlight-color: transparent; }
+
+/* Notched phones: the viewport now covers the whole screen (viewport-fit=cover). */
+body { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); }
+
+/* Touch devices: bigger targets and a visible press state. */
+@media (hover: none) and (pointer: coarse) {
+  button:not(:disabled):active, .player-option:not(:disabled):active, .count-option:active, .preset-choice:active { transform: scale(.98); transition: transform .08s ease-out; }
+  .mark-sides button, .player-notes-controls select { min-height: 44px; }
+  .template-delete { width: 40px; height: 40px; top: 4px; right: 2px; }
+  .lang-toggle { min-height: 44px; }
+  .text-button { min-height: 44px; }
+  .history-scroll { -webkit-overflow-scrolling: touch; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; scroll-behavior: auto !important; }
+  button:active { transform: none !important; }
+}
+
+/* Section tabs exist for phones only. */
+.room-section-nav { display: none; }
+
+@media (max-width: 720px) {
+  /* During a game the slogan heading gives way to the game itself. */
+  .room-heading.compact { align-items: center; margin-bottom: 12px; }
+  .room-heading.compact .eyebrow, .room-heading.compact h1 { display: none; }
+  .room-heading.compact .room-meta { margin: 0; }
+  .room-heading.compact .room-invite { padding: 7px 12px; }
+  .room-heading.compact .room-invite strong { font-size: 17px; }
+  .room-heading.compact .invite-caption { display: none; }
+  .room-page:has(.room-heading.compact) { padding-top: 14px; }
+  /* In a game the section tabs (with their connection dot) replace the setup stepper. */
+  .room-page:has(.room-section-nav) .room-progress--playing { display: none; }
+  .room-section-status { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 6px; margin-left: auto; padding: 0 4px 0 8px; font-size: 12px; color: var(--progress-gold, #dbc18a); }
+  .room-section-status i { width: 8px; height: 8px; border-radius: 50%; background: #7f928b; }
+  .room-section-status.live i { background: var(--success); box-shadow: 0 0 0 3px #9bcab726; }
+  .room-section-status.offline i { background: var(--primary); }
+  .game-topline .game-kicker { display: none; }
+
+  /* Sticky section tabs: game · my role · notes · log. */
+  .room-section-nav {
+    position: sticky; top: 0; z-index: 30;
+    display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none;
+    margin: 0 -20px 12px; padding: calc(8px + env(safe-area-inset-top)) 20px 8px;
+    background: #0c171aeb; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid #b6c9ba1f;
+  }
+  .room-section-nav::-webkit-scrollbar { display: none; }
+  .room-section-nav button {
+    flex: 1 0 auto; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    min-height: 40px; padding: 0 12px; border-radius: 999px; border: 1px solid transparent;
+    background: transparent; color: #a4b5b2; font-size: 13px; font-weight: 500; white-space: nowrap;
+  }
+  .room-section-nav button.active { background: #dbc18a1a; border-color: #dbc18a55; color: var(--primary); }
+  #room-game, #room-identity, #room-notes, #room-log { scroll-margin-top: calc(68px + env(safe-area-inset-top)); }
+
+  /* Primary actions stay in the thumb zone while their card is on screen. */
+  .game-action-footer, .game-action .vote-actions {
+    position: sticky; bottom: 0; z-index: 10;
+    margin-bottom: -4px; padding: 12px 0 calc(12px + env(safe-area-inset-bottom));
+    background: #192e31; box-shadow: 0 -14px 18px -6px #192e31;
+  }
+  .game-action > .primary-button, .game-action.lake-action .primary-button, .game-action.assassination .assassination-button {
+    position: sticky; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 10;
+    box-shadow: 0 8px 24px #0009, 0 -10px 18px -4px #192e31;
+  }
+
+  /* One consistent rhythm for the collapsible sections under the game. */
+  .room-page > .player-notes, .room-page > .room-details.in-game, .room-page > .room-management { margin-top: 12px; margin-bottom: 0; }
+  .room-details.in-game > summary, .player-notes > summary { min-height: 56px; padding: 14px 16px; font-size: 14px; font-weight: 600; border-radius: 16px; }
+  .player-notes { border-radius: 16px; }
+  .room-page { padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
+}

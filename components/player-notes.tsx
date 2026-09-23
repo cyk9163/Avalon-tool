@@ -23,7 +23,7 @@ export function PlayerNotesPanel({ room }: { room: RoomView }) {
   const boardRoles = [...new Set(room.roles)];
   const marked = others.filter(player => notes.marks[player.seat]?.side || notes.notes[player.seat]).length;
   return (
-    <details className="player-notes">
+    <details id="room-notes" className="player-notes">
       <summary>
         <span className="player-notes-title"><NotebookPen size={18} aria-hidden="true" /><span>{t("我的推理笔记")}</span></span>
         <small>{notes.draft ? t("已标记 {n} / {total} 人 · 有发言草稿", { n: marked, total: others.length }) : t("已标记 {n} / {total} 人", { n: marked, total: others.length })}</small>
