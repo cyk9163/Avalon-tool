@@ -90,7 +90,11 @@ test("A rematch preserves the room and roster but removes every old identity, ba
     createdAt: room.createdAt, expiresAt: room.expiresAt, requestId: room.requestId,
     players: room.players.map(({id, key, name, seat}) => ({id, key, name, seat, ready: false, confirmed: false})),
     phase: "lobby", round: 2, resetReason: "rematch",
+    // v1.9: the finished game's public end record stays for the same-room record.
+    history: structuredClone(room.history),
   };
+  assert.equal(room.history.length, 1);
+  assert.ok(!/private-key-|questReceipts|"card"/.test(JSON.stringify(room.history)), "the record holds no keys or card receipts");
   act(room, 1, "rematch");
   assert.deepEqual(room, expected);
   for (const person of room.players) {

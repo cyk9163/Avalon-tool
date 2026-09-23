@@ -435,3 +435,31 @@
   .reveal-ballots { margin-top: 14px; }
   .room-section-nav button.your-turn::after { animation: none; }
 }
+
+/* v1.9 same-room record */
+.room-record { margin-top: 18px; padding: 16px; border: 1px solid #314a49; border-radius: 16px; background: #ffffff04; }
+.room-record-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; color: #9fb4ac; font-size: 12px; }
+.room-record-title { display: inline-flex; align-items: center; gap: 6px; color: #ddcca8; font-size: 14px; font-weight: 600; }
+.room-record-table-wrap { margin-top: 10px; }
+.room-record-table { width: 100%; table-layout: fixed; border-collapse: collapse; color: #c2cfc3; font-size: 12px; text-align: center; font-variant-numeric: tabular-nums; }
+.room-record-table th, .room-record-table td { padding: 8px 2px; border-bottom: 1px solid #ffffff0d; font-weight: 500; }
+.room-record-table thead th { color: #9fb4ac; font-size: 11px; font-weight: 400; }
+.room-record-table th:first-child { width: 32%; text-align: left; padding-left: 4px; }
+.room-record-table tbody th { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.room-record-table tbody th b { color: #dfc593; margin-right: 3px; }
+.room-record-table tr.mine th, .room-record-table tr.mine td { color: var(--primary); }
+.room-record-games { display: grid; gap: 4px; margin: 10px 0 0; padding: 0; list-style: none; font-size: 12px; }
+.room-record-games li { display: flex; gap: 10px; align-items: baseline; color: #9fb4ac; }
+.room-record-games strong { font-weight: 600; }
+
+/* v1.9 tappable role names */
+.role-info-button { font: inherit; cursor: pointer; text-decoration: underline dotted #ffffff40; text-underline-offset: 3px; }
+button.role-chip { font-size: 11px; }
+.revealed-role-name { background: none; border: 0; padding: 0; color: inherit; font-weight: inherit; }
+.role-info-dialog .side-label { justify-self: start; align-self: flex-start; width: auto; }
+.role-info-facts { display: grid; gap: 10px; margin: 14px 0 6px; }
+.role-info-facts div { padding: 10px 12px; border-radius: 10px; background: #ffffff06; border: 1px solid #ffffff0d; }
+.role-info-facts dt { display: flex; align-items: center; gap: 6px; color: #9fb4ac; font-size: 12px; }
+.role-info-facts dd { margin: 4px 0 0; color: var(--foreground); font-size: 14px; line-height: 1.6; }
+.role-info-note { display: flex; align-items: center; gap: 6px; margin: 4px 0 0; color: #9fb4ac; font-size: 11px; }
+@media (pointer: coarse) { button.role-chip { min-height: 36px; padding: 6px 11px; } }

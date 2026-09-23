@@ -1,5 +1,10 @@
 // English entries keyed by the Chinese source text (room).
 export const ROOM: Record<string, string> = {
+  "保存图片": "Save image",
+  "复盘图片已生成。": "Recap image ready.",
+  "这个浏览器无法生成图片，请改用复制文字。": "This browser can't make the image. Copy the text instead.",
+  "金框：在车上 · 金点：队长": "Gold frame: on the team · gold dot: leader",
+  "圆桌 · 阿瓦隆助手": "Round Table · Avalon companion",
   "【玩家统计】": "[Player stats]",
   "{player}：当队长 {led} 次 · 被选上车 {picked} 次 · 执行任务 {played} 次 · 赞成率 {rate}": "{player}: led {led} · picked {picked} · went on {played} quests · approved {rate}",
   "  出牌：{cards}": "  Cards: {cards}",

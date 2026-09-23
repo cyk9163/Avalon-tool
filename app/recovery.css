@@ -71,9 +71,12 @@
 }
 
 /* On phones .room-side uses display: contents with explicit grid rows;
-   the recovery card takes its own row after the line-up card. */
+   every card needs its own row, or the grid grows a second column.
+   Line-up 3, this game's rules 4 (v1.6), room record 5 (v1.9), recovery 6. */
 @media (max-width: 720px) {
-  .config-card.recovery-card { grid-row: 4; }
+  .config-card.rules-card { grid-row: 4; }
+  .room-side > .room-record { grid-row: 5; margin-top: 0; }
+  .config-card.recovery-card { grid-row: 6; }
 }
 
 /* Keep the host tools visually separate from the seat details above them. */

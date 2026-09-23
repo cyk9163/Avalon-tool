@@ -1,6 +1,6 @@
 # 圆桌 · 阿瓦隆助手
 
-面对面玩阿瓦隆的手机网页工具。当前为 v1.8：房主 Key 验证、5–10 人建房、官方预设与自定义板子、扩展角色、湖中仙女、扫码入座、私密身份、完整投票与任务、刺杀、复盘、同房再开、房主移交、移出玩家、中途作废、换设备恢复（恢复码或房主批准）、带口令的邀请链接，以及添加到手机主屏幕。v0.7 起具备安全响应头、结构化日志、健康检查、定时清理和完整 CI；v0.9 起房间变化实时推送到每台手机，并有独立的 staging 环境；v0.10 起有规则教学页（`/rules`）和隐私说明页（`/privacy`）；v0.11 起自定义板子可以套用或保存模板，结局后可以导出复盘文字；v0.12 起运营者可以用单独的管理员 Key 在 `/admin` 查看汇总统计；v1.0 起全站支持中文和英文；v1.1 起玩家可以在对局中给他人做私密标记和备注；v1.2 起本站固定规则为坏人（奥伯伦除外）互相知道具体角色、刺客可以随时出刀一次；v1.6 起对局以圆桌为主视图，队长先亮车、可改车再发起表决；v1.7 起对局记录以投票矩阵和玩家统计呈现，并有 iPhone（WebKit）与 Android（Chromium）浏览器自动化测试；v1.8 起选队时有发言顺序和软计时，轮到你操作时标签标题、震动和角标会提醒，表决和任务结果有揭晓动画。
+面对面玩阿瓦隆的手机网页工具。当前为 v1.9：房主 Key 验证、5–10 人建房、官方预设与自定义板子、扩展角色、湖中仙女、扫码入座、私密身份、完整投票与任务、刺杀、复盘、同房再开、房主移交、移出玩家、中途作废、换设备恢复（恢复码或房主批准）、带口令的邀请链接，以及添加到手机主屏幕。v0.7 起具备安全响应头、结构化日志、健康检查、定时清理和完整 CI；v0.9 起房间变化实时推送到每台手机，并有独立的 staging 环境；v0.10 起有规则教学页（`/rules`）和隐私说明页（`/privacy`）；v0.11 起自定义板子可以套用或保存模板，结局后可以导出复盘文字；v0.12 起运营者可以用单独的管理员 Key 在 `/admin` 查看汇总统计；v1.0 起全站支持中文和英文；v1.1 起玩家可以在对局中给他人做私密标记和备注；v1.2 起本站固定规则为坏人（奥伯伦除外）互相知道具体角色、刺客可以随时出刀一次；v1.6 起对局以圆桌为主视图，队长先亮车、可改车再发起表决；v1.7 起对局记录以投票矩阵和玩家统计呈现，并有 iPhone（WebKit）与 Android（Chromium）浏览器自动化测试；v1.8 起选队时有发言顺序和软计时，轮到你操作时标签标题、震动和角标会提醒，表决和任务结果有揭晓动画；v1.9 起有同房多局战绩、可分享的复盘长图和点角色名即可查看的角色说明卡。
 
 本项目包含完整前后端源码、数据库结构、迁移、测试和部署配置。独立部署到 Cloudflare Workers + D1，不依赖 ChatGPT、Codex 或 Sites 账号；使用时不调用 AI API。
 
@@ -192,6 +192,7 @@ git push origin main
 - `components/game-panel.tsx`、`app/game.css`：选队、表决、私密任务牌、结局与对局记录。
 - `components/vote-matrix.tsx`、`lib/seat-stats.ts`：投票矩阵与玩家统计（复盘文字共用统计）。
 - `components/speech-bar.tsx`：发言顺序与计时；`lib/turn.ts`、`components/turn-reminder.tsx`：轮到你操作的提醒；`components/reveal-overlay.tsx`：表决与任务结果的揭晓动画。
+- `lib/room-record.ts`、`components/room-record.tsx`：同房战绩；`lib/replay-image.ts`：复盘长图（本机 canvas 绘制）；`lib/role-info.ts`、`components/role-info.tsx`：角色说明卡。
 - `e2e/`、`playwright.config.ts`：手机浏览器自动化测试。
 - `components/room-management.tsx`、`app/management.css`：房主移交、移出玩家及中途作废。
 - `components/install-app.tsx`、`app/pwa.css`、`public/manifest.webmanifest`、`public/sw.js`：主屏幕安装与断网提示。

@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { expectNoHorizontalScroll, startedGame } from "./helpers";
+import { expectNoHorizontalScroll, Player, startedGame, TEST_HOST_KEY } from "./helpers";
 
 const seatButton = (page: Page, seat: number) =>
   page.locator("#room-game .game-table").getByRole("button", { name: new RegExp(`^${seat} 号`) });
@@ -145,5 +145,28 @@ test("a resolved team vote is revealed on every phone and can be skipped", async
     await expect(overlay).toBeHidden();
   } finally {
     await game.close();
+  }
+});
+
+test("tapping a role name opens what that role sees, who sees it and its cards", async ({ browser }) => {
+  const context = await browser.newContext();
+  try {
+    await context.request.get("/api/room?session=1");
+    const host = new Player(context, 1);
+    const { code } = await host.call({ action: "create", name: "小明", capacity: 5, preset: "classic", requestId: crypto.randomUUID(), hostKey: TEST_HOST_KEY });
+    const page = await context.newPage();
+    await page.goto(`/?room=${code}`);
+    // Every lobby card spans the full phone width (v1.6 rules card once pushed the grid into two columns).
+    await expect(page.locator(".rules-card")).toBeVisible();
+    const widths = await page.locator(".room-layout > .room-table, .room-side > *").evaluateAll(cards => cards.map(card => card.getBoundingClientRect().width));
+    const layout = await page.locator(".room-layout").evaluate(element => element.getBoundingClientRect().width);
+    for (const width of widths) expect(width).toBeGreaterThan(layout - 2);
+    await page.locator(".config-card").getByRole("button", { name: "查看角色说明：梅林" }).click();
+    const dialog = page.getByRole("dialog");
+    await expect(dialog).toContainText("除莫德雷德外的所有邪恶玩家");
+    await expect(dialog).toContainText("只能出成功");
+    await expectNoHorizontalScroll(page);
+  } finally {
+    await context.close();
   }
 });

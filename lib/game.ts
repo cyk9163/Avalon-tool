@@ -208,7 +208,17 @@ export interface Room {
   inviteToken?: string;
   takeovers?: TakeoverRequest[];
   recoveries?: RecoveryRecord[];
+  // Finished games in this room (v1.9), newest last, for the same-room record.
+  history?: RoundRecord[];
 }
+export interface RoundRecord {
+  round: number;
+  winner: "good" | "evil";
+  reason: GameResult["reason"];
+  // Final side: Lancelots end on whichever side the loyalty cards left them.
+  players: { id: string; name: string; seat: number; role: Role; side: "good" | "evil" }[];
+}
+const MAX_HISTORY = 30;
 export const ROOM_SCHEMA_VERSION = 2;
 export const TAKEOVER_TTL_MS = 15 * 60 * 1000;
 // The seat owner's current device is warned and can object during this window;
@@ -252,6 +262,9 @@ export interface RoomView {
   // Requests to move *my* seat to another device: shown so I can object.
   takeoversOfMySeat: { id: string; createdAt: number; approvableAt: number; verifyCode: string }[];
   recoveries: { seat: number; method: "code" | "host"; at: number }[];
+  // Earlier finished games in this room that I played in (v1.9). Roles are
+  // only ever shown to people who were in that game, as at its end.
+  history: RoundRecord[];
 }
 
 export function randomInt(max: number): number {
@@ -496,6 +509,8 @@ export function roomView(room: Room, key: string, version: number, invite?: stri
     takeoversOfMySeat: me ? takeovers.filter(request => request.playerId === me.id)
       .map(({ id, createdAt, verifyCode }) => ({ id, createdAt, approvableAt: createdAt + TAKEOVER_WAIT_MS, verifyCode })) : [],
     recoveries: (room.recoveries ?? []).map(({ seat, method, at }) => ({ seat, method, at })),
+    history: me ? (room.history ?? []).filter(record => record.players.some(player => player.id === me.id))
+      .map(({ round, winner, reason, players }) => ({ round, winner, reason, players: players.map(({ id, name, seat, role, side }) => ({ id, name, seat, role, side })) })) : [],
   };
 }
 
@@ -538,6 +553,15 @@ function newTeamTurn(room: Room, game: GameState): void {
 
 function finishGame(room: Room, game: GameState, result: GameResult): void {
   game.result = result;
+  const round = room.round ?? 1;
+  if (!(room.history ?? []).some(record => record.round === round)) {
+    room.history = [...(room.history ?? []), {
+      round, winner: result.winner, reason: result.reason,
+      players: room.players.filter(player => player.role).map(player => ({
+        id: player.id, name: player.name, seat: player.seat, role: player.role!, side: currentSide(room, player),
+      })).sort((a, b) => a.seat - b.seat),
+    }].slice(-MAX_HISTORY);
+  }
   game.teamVotes = {};
   game.questVotes = {};
   room.phase = "finished";
