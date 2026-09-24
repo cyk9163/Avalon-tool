@@ -1,11 +1,12 @@
 // Request identity and network budgets shared by the room API and the live
 // WebSocket gateway, so both entry points enforce the same limits.
 import {GameError} from "./game";
+import {soloDeviceOverride} from "./solo";
 import {getRoom,rateLimit,rateLimited} from "./room-store";
 // Failed lookups of unknown room codes, per client IP: blunts code enumeration.
 export const LOOKUP_MISSES={max:30,windowMs:600000};
 export async function hash(text:string){return Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256",new TextEncoder().encode(text)))).map(x=>x.toString(16).padStart(2,"0")).join("");}
-export function deviceToken(request:Request){const match=request.headers.get("cookie")?.match(/(?:^|;\s*)avalon_device=([a-f0-9]{64})(?:;|$)/);return match?.[1];}
+export function deviceToken(request:Request){return soloDeviceOverride(request)??request.headers.get("cookie")?.match(/(?:^|;\s*)avalon_device=([a-f0-9]{64})(?:;|$)/)?.[1];}
 /** SHA-256 of the device cookie, or "" for a visitor without one. */
 export async function deviceKey(request:Request){const current=deviceToken(request);return current?await hash(current):"";}
 // Network budgets use the client IP Cloudflare reports. The local dev server

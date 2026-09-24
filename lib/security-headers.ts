@@ -1,6 +1,7 @@
 // Baseline browser security headers for every Worker response (pages and API).
 // Static files served straight from Workers Assets get the same policy from
 // public/_headers; keep the two in sync (tests/security.test.mjs checks this).
+import {isSoloHost} from "./solo.ts";
 
 const BASE_DIRECTIVES = [
   "default-src 'self'",
@@ -53,9 +54,15 @@ export function applySecurityHeaders(request: Request, response: Response, dev =
   // Protocol-switch responses cannot be re-wrapped.
   if (response.status === 101) return response;
   const secure = new URL(request.url).protocol === "https:";
+  const headers = securityHeaders({ dev, secure });
+  const localDesk = isSoloHost(new URL(request.url).hostname);
+  if (localDesk) {
+    headers["Content-Security-Policy"] = headers["Content-Security-Policy"].replace("frame-ancestors 'none'", "frame-ancestors 'self'");
+    headers["X-Frame-Options"] = "SAMEORIGIN";
+  }
   const wrapped = new Response(response.body, response);
-  for (const [name, value] of Object.entries(securityHeaders({ dev, secure }))) {
-    if (!wrapped.headers.has(name)) wrapped.headers.set(name, value);
+  for (const [name, value] of Object.entries(headers)) {
+    if (!wrapped.headers.has(name) || (localDesk && (name === "Content-Security-Policy" || name === "X-Frame-Options"))) wrapped.headers.set(name, value);
   }
   return wrapped;
 }

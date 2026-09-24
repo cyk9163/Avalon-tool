@@ -24,6 +24,8 @@ test("pages and API responses carry the security baseline without losing their o
   const local = applySecurityHeaders(new Request("http://localhost:5173/"), new Response("ok"), true);
   assert.equal(local.headers.get("strict-transport-security"), null, "HSTS only over HTTPS");
   assert.match(local.headers.get("content-security-policy"), /unsafe-eval/);
+  assert.match(local.headers.get("content-security-policy"), /frame-ancestors 'self'/);
+  assert.equal(local.headers.get("x-frame-options"), "SAMEORIGIN");
   assert.ok(!local.headers.get("content-security-policy").includes("upgrade-insecure-requests"));
 });
 

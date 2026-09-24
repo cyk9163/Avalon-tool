@@ -35,8 +35,15 @@ import { useI18n } from "@/lib/i18n/react";
 import { msg, type Vars } from "@/lib/i18n/core";
 import { LangToggle } from "@/components/lang-toggle";
 import { HOST_KEY_LENGTH, formatHostKey, formattedCaret, hostKeyCharacters, hostKeyForSubmit } from "@/lib/host-key-input";
+import { isSoloHost } from "@/lib/solo";
 
 type Mode="create"|"join";
+function roomPath(code:string){
+  const params=new URLSearchParams(location.search),solo=params.get("solo");
+  if(!solo||!/^[a-f0-9]{64}$/.test(solo))return `/?room=${code}`;
+  const next=new URLSearchParams({room:code,solo,soloSeat:params.get("soloSeat")??"",soloName:params.get("soloName")??""});
+  return `/?${next.toString()}`;
+}
 // A notice keeps its Chinese source text and values, so it re-renders in the current language.
 type Notice={text:string;vars?:Vars}|null;
 
@@ -54,6 +61,8 @@ export default function Home(){
   const [booting,setBooting]=useState(true);
   const [share,setShare]=useState(false),[qrImage,setQrImage]=useState<{url:string;data:string}|null>(null),[copied,setCopied]=useState(false),[reveal,setReveal]=useState(false),[seen,setSeen]=useState(false),[confirmStart,setConfirmStart]=useState(false),[confirmLeave,setConfirmLeave]=useState(false),[help,setHelp]=useState(false);
   const currentCode=useRef(""),createId=useRef(""),latest=useRef<RoomView|null>(null),busyRef=useRef(false);
+  // Local solo desk: each *.localhost phone joins its own seat. Never set on a public host.
+  const soloJoin=useRef<{seat:number;name:string}|null>(null),soloTries=useRef(0);
   // v1.8: tab title, buzz and badge when it is this player's move.
   const turn=room?myTurn(room):null;
   useTurnReminder(turn);
@@ -81,6 +90,11 @@ export default function Home(){
   const load=useCallback(async(target:string)=>{const data=await request(`/api/room?code=${encodeURIComponent(target)}`,undefined,target);accept(data);return data as RoomView;},[accept]);
   const live=useRoomSync(room,goneCode,currentCode,latest,load,setError,setConnected,setGoneCode,setReveal);
   useEffect(()=>{
+    if(isSoloHost(location.hostname)){
+      const pending=new URLSearchParams(location.search);
+      const seat=Number(pending.get("soloSeat")),soloName=pending.get("soloName")??"";
+      if(Number.isInteger(seat)&&seat>=1&&seat<=10&&soloName)soloJoin.current={seat,name:soloName.slice(0,12)};
+    }
     let cancelled=false;
     ensureSession().then(async()=>{
       if(cancelled)return;setSessionReady(true);
@@ -88,7 +102,7 @@ export default function Home(){
       const params=new URLSearchParams(location.search),target=params.get("room")||saved;
       if(/^\d{6}$/.test(target)){
         rememberInvite(target,params.get("invite"));
-        if(params.has("invite"))history.replaceState(null,"",`/?room=${target}`);
+        if(params.has("invite")||params.has("solo"))history.replaceState(null,"",roomPath(target));
         currentCode.current=target;setCode(target);setMode("join");try{await load(target);}catch(e){if(!cancelled)setError((e as Error).message);}
       }
     }).catch(()=>{if(!cancelled)setError(msg("暂时无法连接圆桌。请检查网络后刷新页面。"));}).finally(()=>{if(!cancelled)setBooting(false);});
@@ -120,7 +134,7 @@ export default function Home(){
       }
       accept(data);
       setDelivery("saved");
-      if(data.meId){history.replaceState(null,"",`/?room=${data.code}`);try{localStorage.setItem("avalon:last-room",data.code);if(typeof extra.name==="string"||action==="create")localStorage.setItem("avalon:nickname",String(extra.name||name));}catch{}}
+      if(data.meId){history.replaceState(null,"",roomPath(data.code));try{localStorage.setItem("avalon:last-room",data.code);if(typeof extra.name==="string"||action==="create")localStorage.setItem("avalon:nickname",String(extra.name||name));}catch{}}
       return data;
     }catch(e){
       const failure=e as Error&{status?:number};
@@ -130,6 +144,13 @@ export default function Home(){
     }
     finally{busyRef.current=false;setBusy(false);}
   },[accept,name,load]);
+  useEffect(()=>{
+    const pending=soloJoin.current;
+    if(!pending||!room||room.meId||room.phase!=="lobby"||busy||soloTries.current>=5)return;
+    if(room.players.some(player=>player.seat===pending.seat))return;
+    const timer=window.setTimeout(()=>{soloTries.current+=1;void act("join",{seat:pending.seat,name:pending.name});},pending.seat*150);
+    return()=>window.clearTimeout(timer);
+  },[room,act,busy]);
   const lookup=async()=>{
     if(!/^\d{6}$/.test(code)){setError(msg("请输入 6 位房间码。"));return;}
     setBusy(true);setError("");setMembershipNotice(null);currentCode.current=code;latest.current=null;

@@ -2,8 +2,18 @@
 
 import type { RoomView } from "@/lib/game";
 import { msg } from "@/lib/i18n/core";
+import { isSoloHost } from "@/lib/solo";
 
 let sessionBootstrap: Promise<unknown> | null = null;
+let soloDevice: string | null = null;
+
+function soloHeader(): Record<string, string> {
+  if (!soloDevice && typeof location !== "undefined" && isSoloHost(location.hostname)) {
+    const token = new URLSearchParams(location.search).get("solo");
+    if (token && /^[a-f0-9]{64}$/.test(token)) soloDevice = token;
+  }
+  return soloDevice ? { "X-Avalon-Solo": soloDevice } : {};
+}
 
 export function ensureSession() {
   if (!sessionBootstrap) {
@@ -34,7 +44,7 @@ export function inviteFor(code: string) {
 
 export async function request<T = RoomView>(path: string, body?: Record<string, unknown>, roomCode?: string): Promise<T> {
   const token = roomCode ? inviteFor(roomCode) : null;
-  const headers: Record<string, string> = { ...(body ? { "Content-Type": "application/json" } : {}), ...(token ? { "X-Avalon-Invite": token } : {}) };
+  const headers: Record<string, string> = { ...soloHeader(), ...(body ? { "Content-Type": "application/json" } : {}), ...(token ? { "X-Avalon-Invite": token } : {}) };
   const response = await fetch(path, { method: body ? "POST" : "GET", credentials: "same-origin", cache: "no-store", headers, body: body ? JSON.stringify(body) : undefined, signal: AbortSignal.timeout(15000) });
   let result: unknown;
   try { result = await response.json(); } catch { throw new Error(msg("服务暂时不可用，请稍后重试。")); }

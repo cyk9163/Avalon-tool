@@ -20,6 +20,14 @@ export const HOME: Record<string, string> = {
   "读取当前房间的公开座位与准备状态，不返回任何玩家身份或私密线索。": "Reads the current room's public seats and ready status. Never returns any player's role or private clues.",
 
   // Header, splash, landing
+  "一个人测试整桌": "Test a full table alone",
+  "每个窗口是一个独立座位。你可以在不同窗口里看身份、投票、出牌和复盘。": "Each window is its own seat. Open them to check roles, vote, play cards and replay.",
+  "一个人测试只在本地开发服务器上可用。": "Solo testing is only available on the local dev server.",
+  "正在摆桌子…": "Setting the table…",
+  "摆好一桌": "Set a table",
+  "再摆一桌": "Set another table",
+  "本地测试接口不可用。": "The local test endpoint is unavailable.",
+  "建房失败。": "Couldn't create the room.",
   "面对面，才有意思": "Better face to face",
   "使用说明": "How it works",
   "圆桌正在就位": "Setting the table",

@@ -1,2 +1,2 @@
 // Keep in step with package.json "version" (tests/security.test.mjs checks it).
-export const APP_VERSION = "1.16.0";
+export const APP_VERSION = "1.17.0";

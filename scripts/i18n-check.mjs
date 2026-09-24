@@ -7,7 +7,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 export const UI_FILES = [
-  "app/page.tsx", "app/layout.tsx", "app/admin/page.tsx", "app/rules/page.tsx", "app/privacy/page.tsx", "app/me/page.tsx",
+  "app/page.tsx", "app/layout.tsx", "app/admin/page.tsx", "app/rules/page.tsx", "app/privacy/page.tsx", "app/me/page.tsx", "app/solo/page.tsx",
   "components/device-recovery.tsx", "components/early-assassination.tsx", "components/player-notes.tsx", "components/room-section-nav.tsx", "components/game-table.tsx", "components/vote-matrix.tsx", "components/speech-bar.tsx", "components/reveal-overlay.tsx", "lib/turn.ts", "lib/guide.ts", "components/guide-hint.tsx", "components/theme-toggle.tsx", "components/room-record.tsx", "components/big-screen.tsx", "app/screen/page.tsx", "components/role-info.tsx", "lib/role-info.ts", "lib/replay-image.ts", "lib/highlights.ts", "components/rules-card.tsx", "components/doc-page.tsx", "components/game-panel.tsx", "components/install-app.tsx",
   "components/lang-toggle.tsx", "components/replay-export.tsx", "components/replay-timeline.tsx", "components/personal-record.tsx", "components/push-toggle.tsx", "components/seat-table.tsx", "components/help-dialog.tsx", "lib/room-client.ts", "components/room-management.tsx", "components/room-progress.tsx",
   "components/takeover-requests.tsx", "lib/replay.ts", "lib/board-templates.ts",

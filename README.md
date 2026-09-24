@@ -62,6 +62,8 @@ npm run dev
 
 打开 http://localhost:5173 。本地数据库为空，使用页面创建测试房间即可。本地开发无需 Cloudflare 登录，也不会修改线上数据。本地建房使用公开测试 Key `AVL-TEST-KEYS-2345-6789`；这是本地测试值，不能在正式站点使用。Windows、macOS、Linux 使用相同命令。
 
+一个人测整桌：先运行上面的开发服务器，再打开 http://127.0.0.1:5173/solo 。选人数和板子后点「摆好一桌」，每个窗口是一个座位。窗口用只在本机生效的设备编号区分身份、投票和任务牌。正式站点会忽略这个编号。迷雾局至少 7 人，全角色局要 10 人。
+
 `package-lock.json` 固定依赖版本，请提交到 GitHub。`node_modules`、构建产物、本地房间数据库和登录凭据不提交；安装依赖后会自动生成所需文件。Windows 本机若 npm 命令本身有路径问题，可直接运行 `node scripts/run-framework.mjs dev` 或 `node scripts/wrangler.mjs ...`。
 
 ## 验证

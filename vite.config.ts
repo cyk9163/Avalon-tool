@@ -22,6 +22,9 @@ export default defineConfig(async () => {
 
   return {
     server: {
+      host: "127.0.0.1",
+      // s1.localhost, s2.localhost, … each get a separate device cookie.
+      allowedHosts: [".localhost"],
       ...(isCodexSeatbeltSandbox ? { watch: { useFsEvents: false, usePolling: true } } : {}),
     },
     plugins: [
