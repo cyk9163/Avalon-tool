@@ -9,13 +9,13 @@ test("every Chinese interface text and server message has an English entry", asy
   assert.deepEqual(problems, [], `${problems.length} translation problem(s):\n${problems.slice(0, 40).join("\n")}`);
 });
 
-test("language choice: cookie first, then the browser, Chinese for zh", () => {
+test("language choice: a saved choice wins, otherwise Chinese", () => {
   assert.equal(pickLang("en", "zh-CN"), "en");
   assert.equal(pickLang("zh", "en-US"), "zh");
   assert.equal(pickLang(undefined, "zh-TW,zh;q=0.9,en;q=0.8"), "zh");
-  assert.equal(pickLang(undefined, "en-GB,en;q=0.9"), "en");
-  assert.equal(pickLang(undefined, "ja-JP"), "en");
-  assert.equal(pickLang("fr", ""), "zh", "unknown cookie values are ignored; no header means Chinese");
+  assert.equal(pickLang(undefined, "en-GB,en;q=0.9"), "zh");
+  assert.equal(pickLang(undefined, "ja-JP"), "zh");
+  assert.equal(pickLang("fr", ""), "zh", "unknown cookie values are ignored");
   assert.equal(pickLang(null, null), "zh");
   assert.equal(pickLang(undefined, "*"), "zh");
   assert.equal(pickLang(undefined, "*;q=0.5"), "zh");

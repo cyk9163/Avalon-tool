@@ -31,13 +31,10 @@ export function translate(lang: Lang, zh: string, vars?: Vars): string {
   return format(lang === "en" ? EN[zh] ?? zh : zh, vars);
 }
 
-/** Explicit choice from the cookie wins; otherwise Chinese for zh browsers and English for everyone else. */
-export function pickLang(cookie: string | null | undefined, acceptLanguage: string | null | undefined): Lang {
+/** The saved choice wins. With no choice, the interface is Chinese, whatever the browser language is. */
+export function pickLang(cookie: string | null | undefined, _acceptLanguage?: string | null): Lang {
   if (cookie === "zh" || cookie === "en") return cookie;
-  const first = (acceptLanguage ?? "").split(",")[0]?.trim().toLowerCase() ?? "";
-  // No preference (missing or "*") keeps the default language, Chinese.
-  if (!first || first.startsWith("*") || first.startsWith("zh")) return "zh";
-  return "en";
+  return "zh";
 }
 
 // Longest fixed text first, so a specific message wins over a generic one.

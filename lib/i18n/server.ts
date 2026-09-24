@@ -1,4 +1,4 @@
-// Language for server-rendered pages: the saved choice, else the browser's.
+// Language for server-rendered pages: the saved choice, otherwise Chinese.
 import { cookies, headers } from "next/headers";
 import { LANG_COOKIE, pickLang, translate, type Lang, type Vars } from "./core";
 
