@@ -132,6 +132,10 @@ body { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-ins
   min-height: 40px;
   padding: 0;
 }
+.app-shell.is-room .theme-toggle {
+  display: grid;
+  place-items: center;
+}
 .app-shell.is-room .board-rules-button,
 .app-shell.is-room .lang-toggle:not(.theme-toggle) {
   min-height: 40px;
