@@ -290,13 +290,24 @@
 .player-notes-controls select { flex: 1 1 140px; min-width: 0; min-height: 36px; padding: 0 10px; border-radius: 9px; border: 1px solid var(--border); background: #0c171a; color: var(--foreground); font-size: 14px; }
 .player-notes-list textarea { width: 100%; min-height: 38px; padding: 8px 10px; border-radius: 9px; border: 1px solid var(--border); background: #0c171a; color: var(--foreground); font: 16px/1.5 inherit; resize: vertical; }
 .player-notes-list textarea::placeholder { color: #7f928b; }
-.player-notes-footer { display: flex; justify-content: flex-end; padding: 6px 14px 14px; font-size: 13px; color: #c9d4cc; }
+.player-notes-footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-shrink: 0; padding: 8px 0 0; font-size: 13px; color: #c9d4cc; }
 .player-notes-footer span { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .player-draft { display: grid; gap: 6px; margin: 0 12px 12px; padding: 12px; border-radius: 12px; background: #dbc18a0d; border: 1px solid #dbc18a33; }
 .player-draft > span { font-size: 13px; font-weight: 600; color: var(--primary); }
 .player-draft textarea { width: 100%; min-height: 72px; padding: 8px 10px; border-radius: 9px; border: 1px solid var(--border); background: #0c171a; color: var(--foreground); font: 16px/1.5 inherit; resize: vertical; }
 .player-draft textarea::placeholder { color: #7f928b; }
 .player-draft small { justify-self: end; color: #93a59e; font-size: 11px; font-variant-numeric: tabular-nums; }
+.player-notes-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-shrink: 0; }
+.notes-edit { width: auto; min-height: 40px; padding: 8px 14px; }
+.notes-preview { flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; margin: 8px 0 0; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--border); background: #0c171a; color: var(--foreground); white-space: pre-wrap; overflow-wrap: anywhere; font-size: 15px; line-height: 1.65; }
+.notes-preview-empty { margin: 0; color: #93a59e; }
+.notes-editor[data-slot="dialog-content"] { inset: 0 !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important; translate: none !important; transform: none !important; width: 100% !important; max-width: none !important; height: 100dvh !important; max-height: 100dvh !important; border-radius: 0; display: flex; flex-direction: column; gap: 10px; padding: max(12px, env(safe-area-inset-top)) 16px max(12px, env(safe-area-inset-bottom)); }
+.notes-editor-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.notes-editor-bar .primary-button { width: auto; min-width: 88px; }
+.notes-editor textarea { flex: 1; min-height: 0; width: 100%; resize: none; padding: 12px; border-radius: 12px; border: 1px solid var(--border); background: #0c171a; color: var(--foreground); font: 16px/1.65 inherit; }
+.notes-editor textarea::placeholder { color: #7f928b; }
+.notes-editor small { align-self: flex-end; color: #93a59e; font-size: 12px; font-variant-numeric: tabular-nums; }
+.notes-editor [data-slot="dialog-description"] { margin: 0; color: #93a59e; font-size: 12px; line-height: 1.5; }
 /* v1.3 Lancelot loyalty track (public) */
 .loyalty-track { display: grid; gap: 6px; margin: 10px 0 0; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--border); background: #ffffff05; }
 .loyalty-title { font-size: 12px; font-weight: 600; color: #c9d4cc; }

@@ -250,3 +250,10 @@
 .is-lobby .table-slot { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; container-type: size; }
 .is-lobby .table-slot .roundtable { width: min(100cqw, 100cqh); max-width: 100%; max-height: 100%; height: auto; margin: 0; }
 .is-lobby .lobby-ready, .is-lobby .text-fold, .is-lobby .table-caption, .is-lobby .membership-notice { flex-shrink: 0; }
+.app-shell:has(.is-notes) { height: 100dvh; overflow: hidden; display: flex; flex-direction: column; }
+.app-shell:has(.is-notes) > * { flex-shrink: 0; }
+.is-notes { flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; padding-top: 8px; padding-bottom: 8px; }
+.is-notes .room-panel-nav, .is-notes .room-progress, .is-notes .action-dock, .is-notes .connection-banner, .is-notes .membership-notice { flex-shrink: 0; }
+.is-notes .room-fit, .is-notes .room-fit > div:not([hidden]) { flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
+.is-notes .player-notes { flex: 1; min-height: 0; margin: 0; display: flex; flex-direction: column; overflow: hidden; border: 0; background: transparent; }
+.is-notes .action-dock { margin-bottom: 0; }
