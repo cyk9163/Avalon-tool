@@ -62,7 +62,6 @@ export function GamePanel({ room, busy, connected, error, act, onNewGame }: Prop
   const [selection, setSelection] = useState<number[]>(() => room.game?.draftTeam ?? []);
   const [target, setTarget] = useState<number | null>(null);
   const [pending, setPending] = useState<Pending | null>(null);
-  const [showCopy, setShowCopy] = useState(false);
   const blocked = busy || !connected;
   const feedback = !connected ? t("连接暂时中断，恢复后可以继续提交。") : ts(error);
   const me = room.players.find(player => player.id === room.meId);
@@ -106,11 +105,11 @@ export function GamePanel({ room, busy, connected, error, act, onNewGame }: Prop
     if (result) setPending(null);
   }
 
-  return <section id="room-game" className={`game-panel phase-${room.phase}${showCopy ? " copy-open" : ""}`} aria-label={t("当前对局")}>
+  return <section id="room-game" className={`game-panel phase-${room.phase}`} aria-label={t("当前对局")}>
     <div className="game-topline">
       <div className="game-workspace-title"><span className="game-kicker">THE ROUND TABLE</span><strong>{t("圆桌议事")} <span>{t("第 {n} 局", { n: room.round })}</span></strong></div>
       <div className="game-topline-actions">
-        <button type="button" className="text-button" aria-expanded={showCopy} onClick={() => setShowCopy(open => !open)}>{showCopy ? t("收起说明") : t("说明")}</button>
+        <EarlyAssassination room={room} busy={busy} connected={connected} act={act} />
         {room.phase !== "team" && <span className={`game-phase-chip ${room.phase === "assassination" ? "danger" : ""}`}><stage.Icon size={15} aria-hidden="true" />{stage.label}</span>}
       </div>
     </div>
@@ -118,7 +117,6 @@ export function GamePanel({ room, busy, connected, error, act, onNewGame }: Prop
       <div className="game-score-side good"><Shield size={19} aria-hidden="true" /><span>{t("正义任务")}</span><div className="score-dots" aria-hidden="true">{[1, 2, 3].map(point => <i key={point} className={point <= goodWins ? "filled" : ""} />)}</div><strong>{goodWins}<small>/ 3</small></strong></div>
       <div className="game-score-side evil"><Swords size={19} aria-hidden="true" /><span>{t("邪恶任务")}</span><div className="score-dots" aria-hidden="true">{[1, 2, 3].map(point => <i key={point} className={point <= evilWins ? "filled" : ""} />)}</div><strong>{evilWins}<small>/ 3</small></strong></div>
     </div>
-    <EarlyAssassination room={room} busy={busy} connected={connected} act={act} />
     {room.phase !== "finished" && <div className="game-table-wrap">
       <GameTable room={room} game={game} selection={selection} onToggle={room.phase === "team" && leader && !blocked ? toggleSeat : undefined} marks={notes.marks} onMark={room.meId && !blocked ? (seat, mark) => setMark(seat, mark) : undefined} />
       <LeaderOrder room={room} game={game} />
@@ -203,7 +201,7 @@ export function GamePanel({ room, busy, connected, error, act, onNewGame }: Prop
 
     {latestLakeCheck&&<div className="lake-private-result"><LockKeyhole size={17}/><div><small>{t("仅你可见 · 湖中仙女查验")}</small><strong>{latestLakeCheck.side==="good"?t("{n} 号 · {name} 属于正义阵营",{n:latestLakeCheck.targetSeat,name:playerName(latestLakeCheck.targetSeat)}):t("{n} 号 · {name} 属于邪恶阵营",{n:latestLakeCheck.targetSeat,name:playerName(latestLakeCheck.targetSeat)})}</strong></div></div>}
 
-    <details id="room-log" className="game-history" open={showCopy && room.phase === "finished" ? true : undefined}>
+    <details id="room-log" className="game-history">
       <summary><span className="history-title"><History size={18} aria-hidden="true" /><span>{t("对局记录")}</span></span><small>{t("{p} 次表决 · {q} 次任务", { p: game.proposals.length, q: game.quests.length })}</small><ChevronDown className="history-chevron" size={17} aria-hidden="true" /></summary>
       {!game.proposals.length ? <p className="history-empty">{t("完成第一次组队表决后，记录会显示在这里。")}</p> : <VoteMatrix room={room} game={game} />}
       {game.quests.length > 0 && <div className="quest-history">{game.quests.map(quest => { const cards = game.questCards?.find(item => item.quest === quest.quest)?.cards; return <div key={quest.quest}><span>{t("任务 {n}", { n: quest.quest })}</span><span>{seatsLabel(quest.team)}</span><strong className={quest.success ? "vote-yes" : "vote-no"}>{quest.success ? t("成功") : t("失败")} · {t("{s} 张成功 · {f} 张失败", { s: quest.team.length - quest.failCount, f: quest.failCount })}</strong>{cards && cards.length > 0 && <span className="quest-cards">{cards.map(({ seat, card }) => <span key={seat} className={card === "fail" ? "vote-no" : "vote-yes"}>{t("{n} 号 · {name}：{card}", { n: seat, name: playerName(seat), card: card === "fail" ? t("失败") : t("成功") })}</span>)}</span>}</div>; })}</div>}

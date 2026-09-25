@@ -292,6 +292,7 @@
 :root[data-theme="light"] .replay-export { border-top: 1px solid #3040341f; }
 :root[data-theme="light"] .replay-fallback { color: var(--foreground); background: #f0f4f6; border: 1px solid var(--border); }
 :root[data-theme="light"] .history-tally { color: #41504a; }
+:root[data-theme="light"] .early-strike-open { border: 1px solid #cbbdbb; background: #80403914; color: #804039; }
 :root[data-theme="light"] .early-strike-seats button { border: 1px solid var(--border); background: #16161606; color: var(--foreground); }
 :root[data-theme="light"] .early-strike-seats button span { color: #41504a; }
 :root[data-theme="light"] .early-strike-seats button.selected { border-color: var(--danger); background: #80403914; box-shadow: inset 3px 0 var(--danger); }

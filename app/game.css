@@ -252,8 +252,9 @@
 /* v1.0: approve/reject tally under each team-vote result */
 .history-tally { display: block; margin-top: 3px; font-size: 11px; color: #9fb0aa; white-space: nowrap; font-variant-numeric: tabular-nums; }
 /* v1.0 anytime assassination (assassin's private identity card only) */
-.early-strike { display: grid; gap: 6px; margin-top: 12px; }
-.early-strike-open { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.early-strike { display: contents; }
+.early-strike-open { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 36px; padding: 0 12px; border-radius: 999px; border: 1px solid #79534e; background: #e9a59c14; color: #e9a59c; font-size: 13px; font-weight: 650; }
+.early-strike-open:disabled { opacity: .45; }
 .early-strike-seats { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; margin: 14px 0; }
 .early-strike-seats button { display: grid; gap: 2px; padding: 10px 8px; border-radius: 10px; border: 1px solid var(--border); background: #ffffff06; color: var(--foreground); text-align: left; min-height: 56px; }
 .early-strike-seats button span { font-size: 12px; color: #9fb0aa; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

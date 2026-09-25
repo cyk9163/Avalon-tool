@@ -10,11 +10,7 @@ import { MarkTag } from "@/components/player-notes";
 
 const PLAY_PHASES = ["team", "vote", "quest", "lake"];
 
-/**
- * The assassin's one-time strike (house rule: at any point of play). Rendered only
- * on the assassin's own device, inside the private (collapsed) identity area,
- * so a glance at the screen does not give the role away.
- */
+/** The assassin's one-time strike, shown only on that player's device in the game header. */
 export function EarlyAssassination({ room, busy, connected, act }: {
   room: RoomView; busy: boolean; connected: boolean;
   act: (action: string, input?: Record<string, unknown>) => Promise<RoomView | null>;
@@ -39,8 +35,7 @@ export function EarlyAssassination({ room, busy, connected, act }: {
   };
   return (
     <div className="early-strike">
-      <button type="button" className="secondary-button wide early-strike-open" disabled={busy || !connected || !me} onClick={() => setOpen(true)}><Swords size={17} />{t("出刀刺杀")}</button>
-      <p className="action-note">{t("本局规则：刺客可以随时出刀，但只有一次。刺中梅林邪恶立即获胜，刺错正义立即获胜。")}</p>
+      <button type="button" className="early-strike-open" disabled={busy || !connected || !me} onClick={() => setOpen(true)}><Swords size={15} />{t("出刀刺杀")}</button>
       <Dialog open={open} onOpenChange={value => { if (!value) close(); }}>
         <DialogContent className="early-strike-dialog">
           <DialogTitle>{t("选择你认为是梅林的人")}</DialogTitle>
