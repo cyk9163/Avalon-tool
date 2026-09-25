@@ -98,7 +98,38 @@ body { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-ins
     display: flex;
     flex-direction: column;
   }
-  .app-shell.is-room > .topbar { flex-shrink: 0; height: 64px; }
+  .app-shell.is-room > .topbar {
+    flex-shrink: 0;
+    height: 64px;
+    justify-content: space-between;
+    gap: 0;
+    min-width: 0;
+  }
+  .app-shell.is-room > .topbar .header-right { display: contents; }
+  .app-shell.is-room .brand-icon,
+  .app-shell.is-room .board-rules-button,
+  .app-shell.is-room .lang-toggle,
+  .app-shell.is-room .icon-button,
+  .app-shell.is-room .install-app-button {
+    flex: 0 0 auto;
+    box-sizing: border-box;
+  }
+  .app-shell.is-room .brand-icon,
+  .app-shell.is-room .icon-button,
+  .app-shell.is-room .theme-toggle,
+  .app-shell.is-room .install-app-button {
+    width: 40px;
+    min-width: 40px;
+    height: 40px;
+    min-height: 40px;
+    padding: 0;
+  }
+  .app-shell.is-room .board-rules-button,
+  .app-shell.is-room .lang-toggle:not(.theme-toggle) {
+    min-height: 40px;
+    height: 40px;
+    padding: 0 10px;
+  }
   .app-shell.is-room > .room-page {
     flex: 1;
     min-height: 0;

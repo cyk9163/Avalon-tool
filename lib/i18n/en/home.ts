@@ -43,6 +43,7 @@ export const HOME: Record<string, string> = {
   "面对面，才有意思": "Better face to face",
   "菜单": "Menu",
   "板子与规则": "Board and rules",
+  "规则": "Rules",
   "断线恢复": "Reconnect",
   "进入房间后，可以在这里用恢复码回到原来的座位。": "After you join a room, you can return to your seat from here with a recovery code.",
   "主界面": "Table",

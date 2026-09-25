@@ -51,7 +51,7 @@ export function BoardRulesButton({ room }: { room: RoomView }) {
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
   return <>
-    <button type="button" className="board-rules-button" onClick={() => setOpen(true)}>{t("板子与规则")}</button>
+    <button type="button" className="board-rules-button" onClick={() => setOpen(true)}>{t("规则")}</button>
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="rules-dialog">
         <DialogTitle>{t("板子与规则")}</DialogTitle>
