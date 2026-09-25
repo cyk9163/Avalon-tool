@@ -196,19 +196,3 @@ test("big-screen mode shows the public table live, with no roles and no buttons"
     await game.close();
   }
 });
-
-test("the beginner hint says what to do now and stays off once closed", async ({ browser }) => {
-  const game = await startedGame(browser);
-  try {
-    const page = await game.other.open(game.code);
-    const hint = page.locator(".guide-hint");
-    await expect(hint).toContainText("等队长亮车");
-    await hint.getByRole("button", { name: "关闭新手提示" }).click();
-    await expect(hint).toHaveCount(0);
-    await page.reload();
-    await expect(page.locator(".room-section-status")).toBeVisible();
-    await expect(hint).toHaveCount(0);
-  } finally {
-    await game.close();
-  }
-});

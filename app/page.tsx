@@ -22,7 +22,6 @@ import { myTurn } from "@/lib/turn";
 import { BoardRulesButton } from "@/components/rules-card";
 import { RoomRecord } from "@/components/room-record";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { GuideHint } from "@/components/guide-hint";
 import { Brand, RoleChips, SeatTable as Table } from "@/components/seat-table";
 import { HelpDialog } from "@/components/help-dialog";
 import { ensureSession, rememberInvite, request } from "@/lib/room-client";
@@ -275,7 +274,7 @@ export default function Home(){
       {!connected&&delivery!=="unsent"&&<div className="connection-banner" role="status"><RefreshCw size={17}/><span>{delivery==="saved"?t("正在重连。刚才的操作已经在服务器上，座位和身份也还在。"):t("连接暂时中断，座位和身份保存在服务器上，恢复网络后自动同步。换了设备可以用恢复码回到座位。")}</span><button onClick={()=>void load(room.code).catch(()=>setConnected(false))}>{t("立即重试")}</button></div>}
       {membershipNotice&&<div className="membership-notice dismissible" role="status"><p>{t(membershipNotice.text,membershipNotice.vars)}</p><button type="button" aria-label={t("关闭提示")} onClick={()=>setMembershipNotice(null)}>×</button></div>}
       {room.phase==="lobby"&&room.resetReason==="abort"&&<p className="membership-notice" role="status">{t("上一局已由房主作废，身份和记录已清除。玩家与座位已保留，请重新准备；需要补位时可由房主移除离场玩家。")}</p>}
-      <p className="sr-only" role="status" aria-live="polite">{turn?t(turn):""}</p><GuideHint room={room}/>{room.game&&<RevealOverlay key={room.round} room={room}/>}
+      <p className="sr-only" role="status" aria-live="polite">{turn?t(turn):""}</p>{room.game&&<RevealOverlay key={room.round} room={room}/>}
       <TakeoverAlert room={room} busy={busy} connected={connected} act={act}/>
       <TakeoverRequests room={room} busy={busy} connected={connected} act={act}/>
       <RoomProgress room={room} connected={connected} live={live}/>

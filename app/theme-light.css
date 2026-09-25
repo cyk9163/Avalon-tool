@@ -429,10 +429,6 @@
   :root[data-theme="light"] .vote-matrix td.on-team::before, :root[data-theme="light"] .reveal-ballot, :root[data-theme="light"] .speech-order li.current { border-color: CanvasText; }
   :root[data-theme="light"] .speech-order li.current { background: Highlight; color: HighlightText; }
 }
-:root[data-theme="light"] .guide-hint { border: 1px solid #6b510f44; background: #6b510f0d; color: #2c2718; }
-:root[data-theme="light"] .guide-hint > svg { color: var(--primary); }
-:root[data-theme="light"] .guide-hint-close { border: 0; background: none; color: #3c4e48; }
-:root[data-theme="light"] .guide-switch input { accent-color: var(--primary); }
 /* from app/pwa.css */
 :root[data-theme="light"] .install-app-button {
   border: 1px solid var(--border);
