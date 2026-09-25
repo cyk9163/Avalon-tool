@@ -112,7 +112,7 @@ test("losing the network shows reconnecting and the room recovers by itself", as
 });
 
 test("speaking turns pass round the table and the tab title tells whose move it is", async ({ browser }) => {
-  const game = await startedGame(browser);
+  const game = await startedGame(browser, { turnSpeech: true });
   try {
     const leaderPage = await game.leader.open(game.code);
     const otherPage = await game.other.open(game.code);   // the next seat speaks second

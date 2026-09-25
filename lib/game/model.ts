@@ -191,6 +191,9 @@ export interface Room {
   preset: Preset;
   customRoles?: Role[];
   ladyOfLake?: boolean;
+  // When false, the table talks in person: the leader shows a team and calls the vote.
+  // Omitted on rooms created before this option, which keep the speaking order.
+  turnSpeech?: boolean;
   phase: RoomPhase;
   hostId: string;
   hostRevision?: number;
@@ -241,6 +244,7 @@ export interface RoomView {
   preset: Preset;
   roles: Role[];
   ladyOfLake: boolean;
+  turnSpeech: boolean;
   phase: RoomPhase;
   hostId: string;
   hostRevision: number;

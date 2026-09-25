@@ -166,6 +166,8 @@ export const SERVER: Record<string, string> = {
   "操作太频繁，请稍后再试。": "Too many actions. Please try again in a moment.",
   "湖中仙女配置无效。": "Invalid Lady of the Lake setting.",
   "湖中仙女仅支持 7 人及以上的自定义板子。": "The Lady of the Lake is only available on custom boards with 7 or more players.",
+  "发言方式无效。": "Invalid speaking setting.",
+  "这间房间是线下讨论，不需要轮流点结束发言。": "This room is talking in person, so nobody has to tap to end a turn.",
   "创建请求无效，请刷新重试。": "Invalid create request. Please refresh and try again.",
   "今天建立的房间有点多，请先使用已有房间。": "A lot of rooms have been created today. Please use an existing room for now.",
   "暂时无法建立房间，请重试。": "Couldn't create a room right now. Please try again.",

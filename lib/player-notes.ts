@@ -12,6 +12,22 @@ export type Side = "good" | "evil";
 export type Mark = { side?: Side; role?: Role };
 export type PlayerNotes = { marks: Record<number, Mark>; notes: Record<number, string>; draft: string };
 
+/** One character shown on the corner of a seat. Each role on a board gets its own character. */
+export const MARK_GLYPH: Record<Role, string> = {
+  merlin: "梅", percival: "派", loyal: "忠", goodLancelot: "正", cleric: "牧",
+  assassin: "刺", morgana: "娜", mordred: "德", oberon: "奥", evilLancelot: "邪",
+  lunatic: "疯", brute: "蛮", revealer: "揭", minion: "爪",
+};
+
+export function markGlyph(mark: Mark): string {
+  if (mark.role && MARK_GLYPH[mark.role]) return MARK_GLYPH[mark.role];
+  return mark.side === "evil" ? SIDE_GLYPH.evil : SIDE_GLYPH.good;
+}
+
+export const SIDE_GLYPH: Record<Side, string> = { good: "好", evil: "坏" };
+/** Shown on a seat while the leader is picking a team, so the corner stays a mark button. */
+export const MARK_CORNER = "标";
+
 export const MAX_NOTE_LENGTH = 300;
 export const MAX_DRAFT_LENGTH = 600;
 const PREFIX = "avalon:notes:";

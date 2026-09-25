@@ -19,7 +19,12 @@ export function guideHint(room: Pick<RoomView, "phase" | "players" | "meId" | "g
     case "team": {
       const speech = game.speech;
       if (speech && speech.index < speech.order.length && speech.order[speech.index] === me.seat) return { text: msg("轮到你发言：说说你怀疑谁、想让谁上车，说完点「我说完了」。") };
-      if (game.leaderSeat === me.seat) return { text: msg("你是队长：先在圆桌上点选 {n} 人并「亮车」，听大家发言后可以改车，最后「发起表决」。"), vars: { n: game.teamSize } };
+      if (game.leaderSeat === me.seat) return speech
+        ? { text: msg("你是队长：先在圆桌上点选 {n} 人并「亮车」，听大家发言后可以改车，最后「发起表决」。"), vars: { n: game.teamSize } }
+        : { text: msg("你是队长：在圆桌上点选 {n} 人并「亮车」，讨论完直接「发起表决」。"), vars: { n: game.teamSize } };
+      if (!speech) return game.draftTeam.length
+        ? { text: msg("队长亮车了：面对面讨论，然后等队长发起表决。") }
+        : { text: msg("等队长亮车。可以先面对面讨论。") };
       return game.draftTeam.length
         ? { text: msg("队长亮车了：想想这些人里有没有坏人，轮到你时说出你的看法。") }
         : { text: msg("听大家发言，等队长亮车。") };

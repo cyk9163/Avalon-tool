@@ -34,7 +34,7 @@ function newTeamTurn(room: Room, game: GameState): void {
   game.leaderSeat = game.leaderSeat % room.capacity + 1;
   game.turnId = crypto.randomUUID();
   delete game.draftTeam;
-  game.speech = { turnId: game.turnId, index: 0, startedAt: Date.now() };
+  startSpeech(room, game);
   game.team = [];
   game.teamVotes = {};
   game.questVotes = {};
@@ -82,8 +82,17 @@ function beginGame(room: Room, me: Player): void {
     publicReveals: [],
     ...(room.players.some(player => player.role === "goodLancelot") ? { loyalty: shuffle<LoyaltyCard>(["keep", "keep", "keep", "switch", "switch"]).slice(0, 3) } : {}),
   };
-  room.game.speech = { turnId: room.game.turnId, index: 0, startedAt: Date.now() };
+  startSpeech(room, room.game);
   room.phase = "team";
+}
+
+/** Turn-by-turn speaking is optional. Rooms that leave it off discuss out loud and vote after the leader shows a team. Older rooms omit the flag and keep the speaking order. */
+function startSpeech(room: Room, game: GameState): void {
+  if (room.turnSpeech === false) {
+    delete game.speech;
+    return;
+  }
+  game.speech = { turnId: game.turnId, index: 0, startedAt: Date.now() };
 }
 
 /**
@@ -93,6 +102,7 @@ function beginGame(room: Room, me: Player): void {
  * `index` makes a repeated "next" harmless.
  */
 function speech(room: Room, game: GameState, me: Player, input: Record<string, unknown>): void {
+  if (room.turnSpeech === false) throw new GameError("这间房间是线下讨论，不需要轮流点结束发言。", 400);
   const turnId = requireTurnId(input.turnId);
   requireCurrentTurn(room, game, turnId, "team");
   const chair = me.seat === game.leaderSeat || me.id === room.hostId;

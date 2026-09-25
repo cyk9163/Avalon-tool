@@ -80,6 +80,18 @@ test("the leader or host sets the timer, which carries over to later turns", () 
   assert.equal(next.seconds, 120);
 });
 
+test("an in-person room skips the speaking order and votes after the team is shown", () => {
+  const room = sample();
+  room.turnSpeech = false;
+  act(room, 1, "begin");
+  assert.equal(game(room).speech, null);
+  assert.equal(view(room, 1).turnSpeech, false);
+  const {turnId} = game(room);
+  assertUnchanged(room, () => act(room, 5, "speech", {turnId, step: "next", index: 0}));
+  act(room, 5, "propose", {turnId, team: [1, 2]});
+  assert.equal(room.phase, "vote");
+});
+
 test("myTurn names the move each player owes", () => {
   const room = begin();
   const {turnId} = game(room);

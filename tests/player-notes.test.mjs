@@ -1,8 +1,17 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {MAX_DRAFT_LENGTH, MAX_NOTE_LENGTH, notesKey, sanitizeNotes} from "../lib/player-notes.ts";
+import {MAX_DRAFT_LENGTH, MAX_NOTE_LENGTH, MARK_GLYPH, markGlyph, notesKey, sanitizeNotes} from "../lib/player-notes.ts";
 
 const board = ["merlin", "percival", "loyal", "assassin", "morgana"];
+
+test("each mark is a single distinct character", () => {
+  const glyphs = Object.values(MARK_GLYPH);
+  assert.equal(new Set(glyphs).size, glyphs.length);
+  for (const glyph of glyphs) assert.equal([...glyph].length, 1);
+  assert.equal(markGlyph({side: "good"}), "好");
+  assert.equal(markGlyph({side: "evil"}), "坏");
+  assert.equal(markGlyph({role: "merlin", side: "good"}), "梅");
+});
 
 test("notes are kept per room and per game", () => {
   assert.equal(notesKey("123456", 1), "avalon:notes:123456:1");

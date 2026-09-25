@@ -32,7 +32,8 @@ export function translate(lang: Lang, zh: string, vars?: Vars): string {
 }
 
 /** The saved choice wins. With no choice, the interface is Chinese, whatever the browser language is. */
-export function pickLang(cookie: string | null | undefined, _acceptLanguage?: string | null): Lang {
+export function pickLang(cookie: string | null | undefined, acceptLanguage?: string | null): Lang {
+  void acceptLanguage;
   if (cookie === "zh" || cookie === "en") return cookie;
   return "zh";
 }

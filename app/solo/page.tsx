@@ -17,6 +17,7 @@ export default function SoloPage() {
   const { t } = useI18n();
   const [capacity, setCapacity] = useState(5);
   const [preset, setPreset] = useState<Preset>("classic");
+  const [turnSpeech, setTurnSpeech] = useState(false);
   const [table, setTable] = useState<Table | null>(null);
   const [booting, setBooting] = useState(false);
   const [error, setError] = useState("");
@@ -34,7 +35,7 @@ export default function SoloPage() {
         method: "POST",
         credentials: "same-origin",
         headers: { "Content-Type": "application/json", "X-Avalon-Solo": devices[0] },
-        body: JSON.stringify({ action: "create", name: SOLO_NAMES[0], hostKey, capacity, preset, requestId: crypto.randomUUID() }),
+        body: JSON.stringify({ action: "create", name: SOLO_NAMES[0], hostKey, capacity, preset, turnSpeech, requestId: crypto.randomUUID() }),
       });
       const room = await response.json() as RoomView & { error?: string };
       if (!response.ok) throw new Error(room.error || t("建房失败。"));
@@ -69,6 +70,7 @@ export default function SoloPage() {
       {!table && <form className="solo-form" onSubmit={event => { event.preventDefault(); void start(); }}>
         <label>{t("人数")}<select value={capacity} onChange={event => setCapacity(Number(event.target.value))}>{[5, 6, 7, 8, 9, 10].map(count => <option key={count} value={count}>{count}</option>)}</select></label>
         <label>{t("板子")}<select value={preset} onChange={event => setPreset(event.target.value as Preset)}>{(Object.keys(PRESETS) as Preset[]).filter(item => item !== "custom").map(item => <option key={item} value={item}>{t(PRESETS[item].name)}</option>)}</select></label>
+        <label>{t("轮流发言")}<input type="checkbox" checked={turnSpeech} onChange={event => setTurnSpeech(event.target.checked)} /></label>
         <button className="primary-button" type="submit" disabled={booting || capacity < PRESETS[preset].minimum}>{booting ? t("正在摆桌子…") : t("摆好一桌")}</button>
         <p>{t(PRESETS[preset].hint)}</p>
       </form>}

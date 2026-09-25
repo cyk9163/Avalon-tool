@@ -35,7 +35,7 @@ export class Player {
 }
 
 /** Five phones seated, identities confirmed and the first quest begun. */
-export async function startedGame(browser: Browser) {
+export async function startedGame(browser: Browser, options?: { turnSpeech?: boolean }) {
   const players: Player[] = [];
   for (let seat = 1; seat <= 5; seat++) {
     const context = await browser.newContext();
@@ -43,7 +43,7 @@ export async function startedGame(browser: Browser) {
     players.push(new Player(context, seat));
   }
   const [host, ...guests] = players;
-  const { code } = await host.call({ action: "create", name: NAMES[0], capacity: 5, preset: "classic", requestId: crypto.randomUUID(), hostKey: TEST_HOST_KEY });
+  const { code } = await host.call({ action: "create", name: NAMES[0], capacity: 5, preset: "classic", turnSpeech: options?.turnSpeech === true, requestId: crypto.randomUUID(), hostKey: TEST_HOST_KEY });
   for (const guest of guests) await guest.call({ action: "join", code, name: NAMES[guest.seat - 1], seat: guest.seat });
   for (const player of players) await player.call({ action: "ready", code, ready: true });
   await host.call({ action: "start", code });
