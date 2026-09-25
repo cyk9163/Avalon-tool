@@ -267,7 +267,7 @@ export default function Home(){
         <div className="showcase-roster"><div className="alignment-line"><span><i/>{t("{n} 位好人",{n:capacity-EVIL_COUNTS[capacity]})}</span><span><i/>{t("{n} 位坏人",{n:EVIL_COUNTS[capacity]})}</span></div><RoleChips roles={previewRoles}/>{preset==="custom"&&ladyOfLake&&<p className="module-badge">{t("湖中仙女 · 已启用")}</p>}</div>
         <p className="privacy-note"><Shield size={14}/>{t("身份由系统私密分发，房主也无法提前查看。")}</p>
       </section>
-    </div> : <section className="room-page">
+    </div> : <section className={`room-page${room.phase==="lobby"?" is-lobby":""}`}>
       {delivery==="unsent"&&<div className="connection-banner" role="status"><RefreshCw size={17}/><span>{t("上一动作没送出，请再按一次。已经成功的操作不会重复执行。")}</span></div>}
       {!connected&&delivery!=="unsent"&&<div className="connection-banner" role="status"><RefreshCw size={17}/><span>{delivery==="saved"?t("正在重连。刚才的操作已经在服务器上，座位和身份也还在。"):t("连接暂时中断，座位和身份保存在服务器上，恢复网络后自动同步。换了设备可以用恢复码回到座位。")}</span><button onClick={()=>void load(room.code).catch(()=>setConnected(false))}>{t("立即重试")}</button></div>}
       {membershipNotice&&<div className="membership-notice dismissible" role="status"><p>{t(membershipNotice.text,membershipNotice.vars)}</p><button type="button" aria-label={t("关闭提示")} onClick={()=>setMembershipNotice(null)}>×</button></div>}
@@ -287,13 +287,13 @@ export default function Home(){
       {!room.game&&<div className="room-layout">
           <section className="table-panel room-table">
             <div className="table-caption"><span><Users size={16}/>{room.phase==="lobby"?t("按实际座位入座"):t("今晚的同桌")}</span><span>{t("{n} / {count} 人",{n:room.players.length,count:room.capacity})}</span></div>
-            <Table count={room.capacity} room={room} disabled={busy||!sessionReady||!connected||room.phase!=="lobby"} onSeat={seat=>{
+            <div className="table-slot"><Table count={room.capacity} room={room} disabled={busy||!sessionReady||!connected||room.phase!=="lobby"} onSeat={seat=>{
               const taken=room.players.find(p=>p.seat===seat);
               if(me){if(taken&&taken.id!==me.id)setSwapSeat(seat);else void act("seat",{seat});}
               else if(!name.trim())setError(msg("先填写昵称，再选择一个空位。"));
               else if(taken)setError(msg("这个号已经有人。先坐一个空位，再点这个号申请互换。"));
               else void act("join",{seat,name});
-            }}/>
+            }} /></div>
             {room.phase==="lobby"&&room.seatSwapOut&&<p className="membership-notice" role="status">{t("已向 {name} 申请换成 {n} 号。",{name:room.seatSwapOut.name,n:room.seatSwapOut.seat})} <button type="button" className="text-button" disabled={busy||!connected} onClick={()=>void act("swap-cancel")}>{t("取消申请")}</button></p>}
             {room.phase==="lobby"&&room.seatSwapIn.map(ask=><p className="membership-notice" role="status" key={ask.id}>{t("{name} 想和你换号：你到 {from} 号，对方到 {to} 号。",{name:ask.name,from:ask.fromSeat,to:ask.seat})} <button type="button" className="text-button" disabled={busy||!connected} onClick={()=>void act("swap-accept",{requestId:ask.id})}>{t("同意互换")}</button><button type="button" className="text-button subtle" disabled={busy||!connected} onClick={()=>void act("swap-reject",{requestId:ask.id})}>{t("拒绝")}</button></p>)}
             {room.phase==="lobby"&&me&&<div className="lobby-ready">

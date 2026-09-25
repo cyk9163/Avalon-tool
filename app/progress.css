@@ -237,3 +237,16 @@
     transition: none;
   }
 }
+
+.room-progress-slim { margin: 0 0 8px; padding: 0; border: 0; background: transparent; }
+.room-progress-slim-row { display: flex; align-items: center; gap: 10px; }
+.room-progress-slim-row .room-progress-meter-track { flex: 1; margin: 0; }
+.room-progress-slim-row b { flex-shrink: 0; font-size: 14px; font-weight: 650; font-variant-numeric: tabular-nums; color: var(--progress-gold); }
+.app-shell:has(.is-lobby) { height: 100dvh; overflow: hidden; display: flex; flex-direction: column; }
+.is-lobby { flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; padding-top: 8px; padding-bottom: 8px; }
+.is-lobby .room-fit, .is-lobby .room-fit > div:not([hidden]) { flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
+.is-lobby .room-layout { flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; width: 100%; max-width: 520px; margin-inline: auto; }
+.is-lobby .room-table { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+.is-lobby .table-slot { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; container-type: size; }
+.is-lobby .table-slot .roundtable { width: min(100cqw, 100cqh); max-width: 100%; max-height: 100%; height: auto; margin: 0; }
+.is-lobby .lobby-ready, .is-lobby .text-fold, .is-lobby .table-caption, .is-lobby .membership-notice { flex-shrink: 0; }

@@ -126,30 +126,28 @@ function stageSummary(room: RoomView, t: ReturnType<typeof useI18n>["t"]): Stage
 
 export function RoomProgress({ room, connected, live = false }: RoomProgressProps) {
   const { t } = useI18n();
+  void connected;
+  void live;
   const summary = stageSummary(room, t);
   const progress = summary.progress;
   if (!progress) return null;
   const value = Math.max(0, Math.min(progress.value, progress.max));
 
   return (
-    <section className="room-progress" aria-label={t("房间进度")}>
-      <div className="room-progress-meter">
-        <div className="room-progress-meter-caption">
-          <span>{progress.label}</span>
-          <span>{progress.detail}</span>
-          <span className={`room-progress-connection${connected ? (live ? " is-live" : "") : " is-reconnecting"}`} role="status">{connected ? (live ? t("实时") : t("已同步")) : t("重连中")}</span>
-        </div>
+    <section className="room-progress room-progress-slim" aria-label={t("房间进度")}>
+      <div className="room-progress-slim-row">
         <div
           className="room-progress-meter-track"
           role="progressbar"
-          aria-label={progress.label}
+          aria-label={`${value}/${progress.max}`}
           aria-valuemin={0}
           aria-valuemax={progress.max}
           aria-valuenow={value}
-          aria-valuetext={progress.detail}
+          aria-valuetext={`${value}/${progress.max}`}
         >
           <span style={{ width: `${progress.max > 0 ? value / progress.max * 100 : 0}%` }} />
         </div>
+        <b>{value}/{progress.max}</b>
       </div>
     </section>
   );

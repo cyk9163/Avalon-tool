@@ -593,6 +593,8 @@
   background: var(--progress-gold);
 }
 :root[data-theme="light"] .room-progress--playing .room-progress-topline { border-bottom: 0; }
+:root[data-theme="light"] .room-progress-slim { border: 0; background: transparent; }
+:root[data-theme="light"] .room-progress-slim-row b { color: var(--progress-gold); }
 /* from app/recovery.css */
 :root[data-theme="light"] .membership-notice.dismissible button { border: 0;
   background: transparent; color: var(--muted-foreground);
