@@ -218,6 +218,7 @@
 :root[data-theme="light"] .proposed-team > span { color: #44412b; }
 :root[data-theme="light"] .team-member { border: 1px solid #bcc5c1; background: #d4ddd9; color: #263024; }
 :root[data-theme="light"] .team-member b { background: #5d562e; color: #e1e7e6; }
+:root[data-theme="light"] .team-member.seat-only { border: 0; background: transparent; }
 :root[data-theme="light"] .voter-progress > span { border: 1px solid #bac2c1; background: #e3ebec; color: #3c4f49; }
 :root[data-theme="light"] .voter-progress .submitted { color: #1d2c20; border-color: #477156; background: #c4cec9; }
 :root[data-theme="light"] .voter-progress .submitted svg { border: 1px solid #c4cec9; background: #386046; color: #dae4e0; }

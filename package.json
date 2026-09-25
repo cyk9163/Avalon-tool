@@ -1,6 +1,6 @@
 {
   "name": "avalon-roundtable",
-  "version": "1.19.43",
+  "version": "1.19.44",
   "private": true,
   "engines": {
     "node": ">=24"

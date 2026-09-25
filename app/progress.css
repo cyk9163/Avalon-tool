@@ -280,8 +280,13 @@ body:has(.is-lobby), body:has(.is-notes), body:has(.is-identity), body:has(.is-p
 .is-play .game-table-wrap { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; container-type: size; margin: 0; }
 .is-play .game-table { width: min(100cqw, 100cqh); max-width: 100%; max-height: 100%; height: auto; margin: 0; }
 .is-play .phase-vote .proposed-team { margin-top: 10px; margin-bottom: 0; }
+.is-play .phase-quest .proposed-team { margin-top: 8px; margin-bottom: 0; padding: 8px 12px; gap: 10px; }
 .is-play:has(.action-dock) .game-panel { padding-bottom: 8px; }
-.is-play .action-dock { margin: 8px 0; }
+.is-play .action-dock { margin: 8px 0; padding: 10px 12px; gap: 6px; }
+.is-play .action-dock-note { font-size: 12px; line-height: 1.45; }
+.is-play .action-dock .ballot-choice { min-height: 62px; gap: 6px; padding: 8px; }
+.is-play .action-dock .ballot-choice strong { font-size: 18px; }
+.is-play .action-dock .primary-button { min-height: 44px; }
 @media (max-width: 720px) and (orientation: portrait) {
   .app-shell.is-room:has(.is-lobby),
   .app-shell.is-room:has(.is-play),

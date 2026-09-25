@@ -74,6 +74,8 @@
 .proposed-team > div { display: flex; flex-wrap: wrap; gap: 9px; min-width: 0; }
 .team-member { display: inline-flex; align-items: center; min-width: 0; gap: 8px; padding: 6px 11px 6px 6px; border: 1px solid #476359; border-radius: 8px; background: #263d35; color: #d0ddcd; font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
 .team-member b { flex-shrink: 0; display: grid; place-items: center; min-width: 26px; height: 26px; border-radius: 5px; background: #b8b18a; color: #1a2c28; font-size: 12px; font-weight: 500; }
+.team-member.seat-only { padding: 0; border: 0; background: transparent; }
+.team-member.seat-only b { width: 36px; height: 36px; min-width: 36px; border-radius: 50%; font-size: 14px; }
 .voter-progress { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 23px; }
 .voter-progress > span { position: relative; display: grid; place-items: center; width: 37px; height: 37px; border: 1px solid #4c6562; border-radius: 50%; background: #11272a; color: #9db3ab; font-size: 13px; }
 .voter-progress .submitted { color: #d3e7d6; border-color: #789f85; background: #355646; }

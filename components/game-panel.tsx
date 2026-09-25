@@ -140,14 +140,14 @@ export function GamePanel({ room, busy, connected, error, act, onNewGame }: Prop
 
     {room.phase === "team" && <SpeechBar room={room} game={game} blocked={blocked} act={act} />}
 
-    {(room.phase === "vote" || room.phase === "quest") && <div className="proposed-team"><span>{room.phase === "vote" ? t("提议队伍") : t("执行任务")}</span><div>{game.team.map(seat => <span className="team-member" key={seat}><b>{seat}</b>{playerName(seat)}</span>)}</div></div>}
+    {(room.phase === "vote" || room.phase === "quest") && <div className="proposed-team"><span>{room.phase === "vote" ? t("提议队伍") : t("执行任务")}</span><div>{game.team.map(seat => room.phase === "quest" ? <span className="team-member seat-only" key={seat} title={playerName(seat)}><b>{seat}</b></span> : <span className="team-member" key={seat}><b>{seat}</b>{playerName(seat)}</span>)}</div></div>}
 
     {room.phase === "vote" && !(me && game.myTeamVote === null) && <div className="game-action">
       <div className="voter-progress" aria-label={t("已有 {n} 人表决", { n: game.votedSeats.length })}>{room.players.map(player => <span key={player.id} title={game.votedSeats.includes(player.seat) ? t("{n} 号 · {name}：已提交", { n: player.seat, name: player.name }) : t("{n} 号 · {name}：等待表决", { n: player.seat, name: player.name })} className={game.votedSeats.includes(player.seat) ? "submitted" : ""}>{player.seat}{game.votedSeats.includes(player.seat) && <Check size={12} aria-hidden="true" />}</span>)}</div>
       <p className="waiting-note" role="status">{me ? t("你的表决已锁定，等待全员揭晓。") : t("等待房间成员完成表决。")}</p>
     </div>}
 
-    {room.phase === "quest" && <div className="game-action">
+    {room.phase === "quest" && !(onTeam && game.myQuestVote === null) && <div className="game-action">
       <div className="game-action-heading"><span className="step-icon"><LockKeyhole size={24} aria-hidden="true" /></span><div><span className="action-kicker">{t("仅任务队员参与")}</span><h2>{t("秘密投下你的任务牌")}</h2><p>{game.failsRequired === 2 ? t("本任务至少出现 2 张失败牌才会失败。个人任务票始终保密。") : t("只要出现 1 张失败牌，本任务就会失败。个人任务票始终保密。")}</p></div></div>
       <div className="sealed-progress"><LockKeyhole size={28} strokeWidth={1.4} aria-hidden="true" /><p className="ballot-count" role="status"><b>{game.submittedQuestCount}</b> / {game.teamSize}<span>{t("任务票已密封")}</span></p></div>
       <p className="waiting-note" role="status">{onTeam && game.myQuestVote === null ? t("请在屏幕底部提交任务票。") : onTeam ? t("你的任务票已密封，等待其他队员。") : t("本次无需你投任务票，等待队员完成。")}</p>
