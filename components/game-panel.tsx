@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Eye, ArrowRight, Check, ChevronDown, CircleDashed, Crown, Flag, History, LockKeyhole, RotateCcw, Shield, Swords, ThumbsDown, ThumbsUp, Trophy, Users, Waves, X } from "lucide-react";
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { Eye, ArrowRight, Check, ChevronDown, CircleDashed, Crown, Flag, History, LockKeyhole, RotateCcw, Shield, Swords, ThumbsUp, Trophy, Users, Waves, X } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { ROLES, type GameView, type Role, type RoomView } from "@/lib/game";
 import { ReplayExport } from "@/components/replay-export";
@@ -63,28 +62,10 @@ export function GamePanel({ room, busy, connected, error, act, onNewGame }: Prop
   const [selection, setSelection] = useState<number[]>(() => room.game?.draftTeam ?? []);
   const [target, setTarget] = useState<number | null>(null);
   const [pending, setPending] = useState<Pending | null>(null);
-  const [ballotOpen, setBallotOpen] = useState(false);
-  const [card, setCard] = useState<"success" | "fail" | null>(null);
   const blocked = busy || !connected;
   const feedback = !connected ? t("连接暂时中断，恢复后可以继续提交。") : ts(error);
   const me = room.players.find(player => player.id === room.meId);
   const game = room.game;
-
-  // A task ballot is private: backgrounding the page closes and clears its draft.
-  useEffect(() => {
-    const hide = () => { setBallotOpen(false); setCard(null); };
-    const visibility = () => { if (document.hidden) hide(); };
-    window.addEventListener("blur", hide);
-    window.addEventListener("pagehide", hide);
-    window.addEventListener("offline", hide);
-    document.addEventListener("visibilitychange", visibility);
-    return () => {
-      window.removeEventListener("blur", hide);
-      window.removeEventListener("pagehide", hide);
-      window.removeEventListener("offline", hide);
-      document.removeEventListener("visibilitychange", visibility);
-    };
-  }, []);
 
   // One local row per finished game. Spectators have no revealed role, so they are skipped.
   useEffect(() => {
@@ -136,9 +117,7 @@ export function GamePanel({ room, busy, connected, error, act, onNewGame }: Prop
   return <section id="room-game" className={`game-panel phase-${room.phase}`} aria-label={t("当前对局")}>
     <div className="game-topline">
       <div className="game-workspace-title"><span className="game-kicker">THE ROUND TABLE</span><strong>{t("圆桌议事")} <span>{t("第 {n} 局", { n: room.round })}</span></strong></div>
-      <div className="game-topline-actions">{room.phase === "quest" && onTeam && game.myQuestVote === null
-        ? <button type="button" className="game-phase-chip action" disabled={blocked} onClick={() => { setCard(null); setBallotOpen(true); }}><stage.Icon size={15} aria-hidden="true" />{t("私密提交任务票")}</button>
-        : <span className={`game-phase-chip ${room.phase === "assassination" ? "danger" : ""}`}><stage.Icon size={15} aria-hidden="true" />{stage.label}</span>}</div>
+      <div className="game-topline-actions"><span className={`game-phase-chip ${room.phase === "assassination" ? "danger" : ""}`}><stage.Icon size={15} aria-hidden="true" />{stage.label}</span></div>
     </div>
     <div className="game-score" aria-label={t("任务比分：正义 {good}，邪恶 {evil}", { good: goodWins, evil: evilWins })}>
       <div className="game-score-side good"><Shield size={19} aria-hidden="true" /><span>{t("正义任务")}</span><div className="score-dots" aria-hidden="true">{[1, 2, 3].map(point => <i key={point} className={point <= goodWins ? "filled" : ""} />)}</div><strong>{goodWins}<small>/ 3</small></strong></div>
@@ -197,16 +176,13 @@ export function GamePanel({ room, busy, connected, error, act, onNewGame }: Prop
       <div className="game-action-heading"><span className="step-icon"><ThumbsUp size={24} aria-hidden="true" /></span><div><span className="action-kicker">{game.myTeamVote === null ? t("每个人都有一票") : t("你的表决已锁定")}</span><h2>{t("这支队伍，值得信任吗？")}</h2><p>{t("全员提交后统一公开结果。需 {n} 人赞成，平票不通过。", { n: Math.floor(room.capacity / 2) + 1 })}</p></div></div>
       <div className="voter-progress" aria-label={t("已有 {n} 人表决", { n: game.votedSeats.length })}>{room.players.map(player => <span key={player.id} title={game.votedSeats.includes(player.seat) ? t("{n} 号 · {name}：已提交", { n: player.seat, name: player.name }) : t("{n} 号 · {name}：等待表决", { n: player.seat, name: player.name })} className={game.votedSeats.includes(player.seat) ? "submitted" : ""}>{player.seat}{game.votedSeats.includes(player.seat) && <Check size={12} aria-hidden="true" />}</span>)}</div>
       <p className="action-note" role="status">{t("已提交 {n} / {total} 票 · 提交后不能改票", { n: game.votedSeats.length, total: room.capacity })}</p>
-      {me && game.myTeamVote === null ? <div className="vote-actions">
-        {[true, false].map(approve => <button key={String(approve)} className={`ballot-choice ${approve ? "approve" : "reject"}`} disabled={blocked} onClick={() => setPending({ action: "vote", input: { turnId: game.turnId, approve }, title: approve ? t("确认赞成这支队伍？") : t("确认反对这支队伍？"), description: t("队员：{seats}。全员提交后，你的投票会公开记入本局记录，提交后不能更改。", { seats: seatsLabel(game.team) }), label: approve ? t("确认赞成") : t("确认反对") })}>{approve ? <ThumbsUp size={23} /> : <ThumbsDown size={23} />}<strong>{approve ? t("赞成") : t("反对")}</strong></button>)}
-      </div> : <p className="waiting-note" role="status">{me ? t("你的表决已锁定，等待全员揭晓。") : t("等待房间成员完成表决。")}</p>}
+      {me && game.myTeamVote === null ? <p className="waiting-note" role="status">{t("请在屏幕底部表决。")}</p> : <p className="waiting-note" role="status">{me ? t("你的表决已锁定，等待全员揭晓。") : t("等待房间成员完成表决。")}</p>}
     </div>}
 
     {room.phase === "quest" && <div className="game-action">
       <div className="game-action-heading"><span className="step-icon"><LockKeyhole size={24} aria-hidden="true" /></span><div><span className="action-kicker">{t("仅任务队员参与")}</span><h2>{t("秘密投下你的任务牌")}</h2><p>{game.failsRequired === 2 ? t("本任务至少出现 2 张失败牌才会失败。个人任务票始终保密。") : t("只要出现 1 张失败牌，本任务就会失败。个人任务票始终保密。")}</p></div></div>
       <div className="sealed-progress"><LockKeyhole size={28} strokeWidth={1.4} aria-hidden="true" /><p className="ballot-count" role="status"><b>{game.submittedQuestCount}</b> / {game.teamSize}<span>{t("任务票已密封")}</span></p></div>
-      {onTeam && game.myQuestVote === null ? <button className="primary-button" disabled={blocked} onClick={() => { setCard(null); setBallotOpen(true); }}><LockKeyhole size={18} />{t("私密提交任务票")}</button>
-        : <p className="waiting-note" role="status">{onTeam ? t("你的任务票已密封，等待其他队员。") : t("本次无需你投任务票，等待队员完成。")}</p>}
+      <p className="waiting-note" role="status">{onTeam && game.myQuestVote === null ? t("请在屏幕底部提交任务票。") : onTeam ? t("你的任务票已密封，等待其他队员。") : t("本次无需你投任务票，等待队员完成。")}</p>
       <p className="action-note">{t("对局中只公布失败牌总数，结局后才公开谁出了哪张牌。")}</p>
     </div>}
 
@@ -254,13 +230,5 @@ export function GamePanel({ room, busy, connected, error, act, onNewGame }: Prop
     <AlertDialog open={!!pending} onOpenChange={open => { if (!open && !busy) setPending(null); }}>
       <AlertDialogContent className="game-confirm-dialog"><AlertDialogTitle>{pending?.title}</AlertDialogTitle><AlertDialogDescription>{pending?.description}</AlertDialogDescription>{feedback && <p className="ballot-error" role="alert">{feedback}</p>}<AlertDialogFooter><AlertDialogCancel disabled={busy}>{t("再想一下")}</AlertDialogCancel><AlertDialogAction disabled={blocked} onClick={event => { event.preventDefault(); void confirmPending(); }}>{busy ? t("正在提交…") : pending?.label}</AlertDialogAction></AlertDialogFooter></AlertDialogContent>
     </AlertDialog>
-    <Dialog open={ballotOpen && room.phase === "quest"} onOpenChange={open => { setBallotOpen(open); if (!open) setCard(null); }}>
-      <DialogContent className="private-ballot-dialog"><span className="private-ballot-label"><LockKeyhole size={15} aria-hidden="true" />{t("仅你可见")}</span><DialogTitle>{t("你的秘密任务票")}</DialogTitle><DialogDescription>{t("先确认周围没有人在看屏幕。选好后点击提交，无法改票。")}</DialogDescription>
-        <div className="vote-actions">{(["success", "fail"] as const).map(value => <button key={value} className={`ballot-choice ${value === "success" ? "approve" : "reject"} ${card === value ? "selected" : ""}`} aria-pressed={card === value} disabled={blocked || !game.allowedQuestCards.includes(value)} onClick={() => setCard(value)}>{value === "success" ? <Shield size={24} /> : <Swords size={24} />}<strong>{value === "success" ? t("成功") : t("失败")}</strong>{card === value && <Check size={17} />}</button>)}</div>
-        <p className="action-note">{game.allowedQuestCards.length===2?t("你可以选择成功或失败。任务票不会关联到你的座位公开。"):game.allowedQuestCards[0]==="fail"?t("疯子参加任务时必须提交失败牌。任务票不会关联到你的座位公开。"):room.identity?.role==="brute"?t("野蛮人在第四、第五次任务只能提交成功牌。任务票不会关联到你的座位公开。"):t("正义阵营只能提交成功牌。任务票不会关联到你的座位公开。")}</p>
-        {feedback && <p className="ballot-error" role="alert">{feedback}</p>}
-        <button className="primary-button" disabled={blocked || card === null} onClick={async () => { const result = await act("quest", { turnId: game.turnId, card }); if (result) { setBallotOpen(false); setCard(null); } }}>{busy ? t("正在密封…") : card ? card === "success" ? t("密封提交「成功」") : t("密封提交「失败」") : t("请先选择任务牌")}<LockKeyhole size={17} /></button>
-      </DialogContent>
-    </Dialog>
   </section>;
 }

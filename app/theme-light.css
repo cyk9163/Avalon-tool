@@ -217,6 +217,9 @@
 :root[data-theme="light"] .voter-progress .submitted { color: #1d2c20; border-color: #477156; background: #c4cec9; }
 :root[data-theme="light"] .voter-progress .submitted svg { border: 1px solid #c4cec9; background: #386046; color: #dae4e0; }
 :root[data-theme="light"] .game-panel .action-note { color: #3d4b49; }
+:root[data-theme="light"] .action-dock { border-top: 1px solid #6b510f55; background: #eaf0eff2; box-shadow: 0 -16px 40px #00000044; }
+:root[data-theme="light"] .action-dock-title { color: #211e17; }
+:root[data-theme="light"] .action-dock-note { color: #2f382e; }
 :root[data-theme="light"] .ballot-choice { border: 2px solid #00673c; background: #75cc97; color: #121a15; }
 :root[data-theme="light"] .ballot-choice.reject { border-color: #873a2d; background: #dcb9b5; color: #1e1816; }
 :root[data-theme="light"] .ballot-choice:hover:not(:disabled) { border-color: #65531f; box-shadow: inset 0 0 0 1px #65531f; }

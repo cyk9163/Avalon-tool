@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/compone
 import { AlertDialog, AlertDialogContent, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
 import { ROLES, PRESETS, rolePool, EVIL_COUNTS, CUSTOM_GOOD_ROLES, CUSTOM_EVIL_ROLES, type Preset, type Role, type RoomView } from "@/lib/game";
 import { GamePanel } from "@/components/game-panel";
+import { ActionDock } from "@/components/action-dock";
 import { InstallApp } from "@/components/install-app";
 import { PushToggle } from "@/components/push-toggle";
 import { RoomManagement } from "@/components/room-management";
@@ -314,6 +315,7 @@ export default function Home(){
 
       </div>
       <div hidden={roomPanel!=="notes"}><PlayerNotesPanel room={room}/></div>
+      <ActionDock key={room.game?.turnId ?? "idle"} room={room} busy={busy} connected={connected} error={error} act={act}/>
       <RoomManagement key={`${room.code}:${room.round}:${room.meId}:${room.hostId}:${room.hostRevision}`} room={room} busy={busy} connected={connected} error={error} act={act}/>
     </section>}
 
