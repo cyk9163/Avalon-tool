@@ -26,7 +26,10 @@ export function SeatTable({ count, room, onSeat, disabled }: { count: number; ro
         : canAsk ? t("{seat} 号座位，{name}，申请互换", { seat, name: player.name })
           : t("{seat} 号座位，{name}", { seat, name: player.name })
       : t("{seat} 号座位，空位", { seat });
-    return <div className="seat-position" key={seat} style={{ left: `${50 + 40 * Math.sin(index * 2 * Math.PI / count)}%`, top: `${50 - 40 * Math.cos(index * 2 * Math.PI / count)}%` }}>
+    const angle = index * 2 * Math.PI / count;
+    const ox = Math.sin(angle);
+    const oy = -Math.cos(angle);
+    return <div className="seat-position" key={seat} style={{ left: `${50 + 36 * ox}%`, top: `${50 + 36 * oy}%`, ["--ox" as string]: ox.toFixed(4), ["--oy" as string]: oy.toFixed(4) }}>
       <button type="button" className={`seat-circle ${player ? "occupied" : ""} ${mine ? "mine" : ""} ${canAsk ? "can-ask" : ""}`} disabled={disabled || !onSeat || (!!player && !canAsk)} onClick={() => onSeat?.(seat)} aria-label={label}>
         <span>{String(seat).padStart(2, "0")}</span>
         {player && (room?.phase === "lobby" ? player.ready : player.confirmed) && <Check className="seat-check" size={14} />}

@@ -250,6 +250,14 @@
 .is-lobby .table-slot { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; container-type: size; }
 .is-lobby .table-slot .roundtable { width: min(100cqw, 100cqh); max-width: 100%; max-height: 100%; height: auto; margin: 0; }
 .is-lobby .lobby-ready, .is-lobby .text-fold, .is-lobby .table-caption, .is-lobby .membership-notice { flex-shrink: 0; }
+.is-solo-embed.app-shell:has(.is-lobby) { height: auto; min-height: 100%; overflow: visible; display: block; }
+.is-solo-embed .is-lobby,
+.is-solo-embed .is-lobby .room-fit,
+.is-solo-embed .is-lobby .room-fit > div:not([hidden]),
+.is-solo-embed .is-lobby .room-layout,
+.is-solo-embed .is-lobby .room-table { display: block; height: auto; overflow: visible; flex: none; }
+.is-solo-embed .is-lobby .table-slot { display: flex; height: auto; min-height: 0; overflow: visible; container-type: normal; }
+.is-solo-embed .is-lobby .table-slot .roundtable { width: min(100%, 260px); height: auto; max-height: none; margin: 8px auto 12px; }
 .app-shell:has(.is-notes) { height: 100dvh; overflow: hidden; display: flex; flex-direction: column; }
 .app-shell:has(.is-notes) > * { flex-shrink: 0; }
 .is-notes { flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; padding-top: 8px; padding-bottom: 8px; }

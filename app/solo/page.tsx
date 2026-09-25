@@ -123,6 +123,7 @@ export default function SoloPage() {
     return `/?${params.toString()}`;
   };
   const phoneBase = publicOrigin || origin;
+  const soloColumns = !table ? 3 : table.capacity <= 4 ? table.capacity : table.capacity <= 6 ? 3 : 4;
   const phoneTarget = table && phoneSeat && phoneBase ? `${phoneBase}${phoneSrc(phoneSeat)}` : "";
   const qr = qrImage?.url === phoneTarget ? qrImage.data : "";
   useEffect(() => {
@@ -155,7 +156,7 @@ export default function SoloPage() {
       {error && <p role="alert">{error}</p>}
       <button className="primary-button" type="submit" disabled={booting || (remote && hostKey.length !== 16) || (preset !== "custom" && capacity < PRESETS[preset].minimum)}>{booting ? t("正在摆桌子…") : t("摆好一桌")}</button>
     </form>}
-    {table && <div className="solo-grid">{Array.from({ length: table.capacity }, (_, index) => {
+    {table && <div className="solo-grid" style={{ ["--solo-cols" as string]: soloColumns }}>{Array.from({ length: table.capacity }, (_, index) => {
       const seat = index + 1;
       const open = phoneSeat === seat;
       return <section key={seat} className="solo-phone">

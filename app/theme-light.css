@@ -162,6 +162,9 @@
 :root[data-theme="light"] .lang-toggle { border: 1px solid #3040342a; background: transparent; color: #2c352e; }
 :root[data-theme="light"] .lang-toggle:hover { border-color: #6b510f66; color: var(--primary); }
 :root[data-theme="light"] .lang-toggle svg { color: var(--primary); }
+@container (max-width: 340px) {
+  :root[data-theme="light"] .live-table .seat-circle { box-shadow: 0 0 0 4px #e5ecea; }
+}
 /* from app/game.css */
 :root[data-theme="light"] .game-panel {
   border: 1px solid #d1d9da;

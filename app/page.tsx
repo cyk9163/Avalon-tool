@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type ChangeEvent } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type ChangeEvent } from "react";
 import Link from "next/link";
 import { ArrowRight, ArrowLeft, Shield, Users, Crown, KeyRound, Check, Copy, QrCode, Eye, EyeOff, RefreshCw, LogOut, LockKeyhole, CircleHelp, Smartphone, LoaderCircle, Bookmark, X, Monitor } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -61,6 +61,7 @@ export default function Home(){
   const currentCode=useRef(""),createId=useRef(""),latest=useRef<RoomView|null>(null),busyRef=useRef(false);
   // Local solo desk: each *.localhost phone joins its own seat. Never set on a public host.
   const soloJoin=useRef<{seat:number;name:string}|null>(null),soloTries=useRef(0);
+  const soloEmbed=useSyncExternalStore(()=>()=>{},()=>new URLSearchParams(location.search).has("solo"),()=>false);
   // v1.8: tab title, buzz and badge when it is this player's move.
   const turn=room?myTurn(room):null;
   useTurnReminder(turn);
@@ -208,7 +209,7 @@ export default function Home(){
     try{void Promise.resolve(context.registerTool({name:"read_roundtable_lobby",title:msg("查看圆桌公开状态"),description:msg("读取当前房间的公开座位与准备状态，不返回任何玩家身份或私密线索。"),inputSchema:{type:"object",properties:{},additionalProperties:false},annotations:{readOnlyHint:true,untrustedContentHint:true},execute(input:unknown){if(!input||typeof input!=="object"||Array.isArray(input)||Object.keys(input).length)throw new Error("This tool takes an empty object.");return safeRead();}},{signal:lifecycle.signal})).catch(()=>{});}catch{}
     return()=>lifecycle.abort();
   },[safeRead]);
-  return <main className={`app-shell ${room ? "is-room" : "is-home"}`}>
+  return <main className={`app-shell ${room ? "is-room" : "is-home"}${soloEmbed ? " is-solo-embed" : ""}`}>
     <header className="topbar">
       <Brand onOpen={()=>setMenu(true)}/>
       <div className="header-right">

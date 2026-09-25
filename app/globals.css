@@ -76,8 +76,8 @@ button svg { flex-shrink: 0; }
 .solo-setup { display: grid; gap: 16px; max-width: 720px; }
 .solo-setup .primary-button { width: auto; min-width: 160px; }
 .solo-code { margin: 0; font-size: 16px; }
-.solo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
-.solo-phone { display: flex; flex-direction: column; min-height: 640px; border: 1px solid #344c46; border-radius: 16px; overflow: hidden; background: #10201e; }
+.solo-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
+.solo-phone { display: flex; flex-direction: column; flex: 0 1 calc((100% - (var(--solo-cols, 3) - 1) * 12px) / var(--solo-cols, 3)); width: calc((100% - (var(--solo-cols, 3) - 1) * 12px) / var(--solo-cols, 3)); min-width: 0; min-height: 720px; border: 1px solid #344c46; border-radius: 16px; overflow: hidden; background: #10201e; }
 .solo-phone-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-right: 4px; }
 .solo-phone h2 { margin: 0; padding: 8px 12px; font-size: 14px; color: #dbc18a; }
 .solo-phone-link { display: grid; justify-items: center; gap: 8px; padding: 0 12px 12px; color: #9fb0aa; font-size: 12px; text-align: center; }
@@ -210,10 +210,10 @@ legend { font-size: 14px; margin-bottom: 11px; color: #354e40; }
 .table-caption > span { display: inline-flex; align-items: center; gap: 7px; }
 .table-caption > span:last-child { color: #91a59a; font-size: 12px; }
 .showcase .table-caption { font-size: 12px; }
-.roundtable { aspect-ratio: 1; position: relative; width: 100%; max-width: 385px; margin: 20px auto 18px; }
+.roundtable { aspect-ratio: 1; position: relative; width: 100%; max-width: 385px; margin: 20px auto 18px; container-type: inline-size; }
 .roundtable::before { content: ""; position: absolute; inset: 12%; border-radius: 50%; border: 1px solid #849d6d5c; background: radial-gradient(ellipse at center,#2b483333,#10292322); box-shadow: inset 0 0 0 14px #9dbc7c04,0 0 0 13px #93b27905,0 0 0 27px #93b27903; }
 .roundtable::after { content: ""; position: absolute; inset: 23%; border-radius: 50%; border: 1px dashed #9cb77d30; pointer-events: none; }
-.table-center { position: absolute; inset: 31% 19%; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #b7aa7b; gap: 12px; text-align: center; }
+.table-center { position: absolute; inset: 31% 19%; z-index: 2; pointer-events: none; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #b7aa7b; gap: 12px; text-align: center; }
 .table-center > span { font-family: Georgia,serif; letter-spacing: 6px; font-size: 24px; padding-left: 6px; }
 .table-center p { font-size: 11px; color: #94aa99; line-height: 1.8; margin: 0; }
 .seat-position { position: absolute; transform: translate(-50%,-50%); width: 62px; text-align: center; z-index: 1; display: grid; justify-items: center; }
@@ -225,6 +225,7 @@ legend { font-size: 14px; margin-bottom: 11px; color: #354e40; }
 .seat-circle.can-ask { cursor: pointer; }
 .seat-check { position: absolute; bottom: -3px; right: -3px; border-radius: 50%; padding: 1px; background: #a9c9a7; color: #203c2d; }
 .seat-name { font-size: 11px; line-height: 1.4; color: #afc1b0; max-width: 75px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 8px; }
+.live-table .seat-name { position: absolute; margin-top: 0; left: calc(50% + var(--ox, 0) * 32px); top: calc(50% + var(--oy, 1) * 32px); transform: translate(-50%, -50%); pointer-events: none; }
 .seat-name.mine { color: var(--primary); }
 .showcase .roundtable { max-width: 300px; margin-top: 10px; margin-bottom: 4px; }
 .showcase .seat-circle { width: 35px; height: 35px; font-size: 12px; border-color: #6f835d; background: #1d332b; box-shadow: 0 0 0 5px #11251f; }
@@ -487,3 +488,11 @@ legend { font-size: 14px; margin-bottom: 11px; color: #354e40; }
 /* The brand's wide tracking suits two Chinese characters, not "Round Table". */
 html[lang="en"] .brand { letter-spacing: .4px; }
 html[lang="en"] .count-option span:empty { display: none; }
+@container (max-width: 340px) {
+  .table-center { gap: 2px; }
+  .table-center > svg { width: 16px; height: 16px; }
+  .table-center > span { font-size: 14px; letter-spacing: 2px; padding-left: 2px; }
+  .table-center p { font-size: 10px; line-height: 1.3; }
+  .live-table .seat-circle { width: 34px; height: 34px; min-width: 34px; min-height: 34px; font-size: 11px; box-shadow: 0 0 0 4px #132623; }
+  .live-table .seat-name { font-size: 9px; max-width: 52px; left: calc(50% + var(--ox, 0) * 24px); top: calc(50% + var(--oy, 1) * 24px); }
+}
