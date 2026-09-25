@@ -268,7 +268,7 @@ export default function Home(){
         <div className="showcase-roster"><div className="alignment-line"><span><i/>{t("{n} 位好人",{n:capacity-EVIL_COUNTS[capacity]})}</span><span><i/>{t("{n} 位坏人",{n:EVIL_COUNTS[capacity]})}</span></div><RoleChips roles={previewRoles}/>{preset==="custom"&&ladyOfLake&&<p className="module-badge">{t("湖中仙女 · 已启用")}</p>}</div>
         <p className="privacy-note"><Shield size={14}/>{t("身份由系统私密分发，房主也无法提前查看。")}</p>
       </section>
-    </div> : <section className={`room-page${room.phase==="lobby"&&roomPanel==="table"?" is-lobby":""}${roomPanel==="notes"?" is-notes":""}${roomPanel==="identity"?" is-identity":""}`}>
+    </div> : <section className={`room-page${(room.phase==="lobby"||room.phase==="ready")&&roomPanel==="table"?" is-lobby":""}${roomPanel==="notes"?" is-notes":""}${roomPanel==="identity"?" is-identity":""}`}>
       {delivery==="unsent"&&<div className="connection-banner" role="status"><RefreshCw size={17}/><span>{t("上一动作没送出，请再按一次。已经成功的操作不会重复执行。")}</span></div>}
       {!connected&&delivery!=="unsent"&&<div className="connection-banner" role="status"><RefreshCw size={17}/><span>{delivery==="saved"?t("正在重连。刚才的操作已经在服务器上，座位和身份也还在。"):t("连接暂时中断，座位和身份保存在服务器上，恢复网络后自动同步。换了设备可以用恢复码回到座位。")}</span><button onClick={()=>void load(room.code).catch(()=>setConnected(false))}>{t("立即重试")}</button></div>}
       {membershipNotice&&<div className="membership-notice dismissible" role="status"><p>{t(membershipNotice.text,membershipNotice.vars)}</p><button type="button" aria-label={t("关闭提示")} onClick={()=>setMembershipNotice(null)}>×</button></div>}
@@ -302,6 +302,11 @@ export default function Home(){
                 ? <button className="primary-button" disabled={busy||!connected} onClick={()=>setConfirmStart(true)}><Shield size={17}/>{t("发身份")}</button>
                 : <button className={me.ready?"secondary-button wide ready-button":"primary-button"} disabled={busy||!connected} onClick={()=>void act("ready",{ready:!me.ready})}>{me.ready?<><Check size={18}/>{t("已准备 · 点击取消")}</>:<>{t("我准备好了")}<Check size={18}/></>}</button>}
               <button className="text-button subtle" onClick={()=>setConfirmLeave(true)} disabled={busy}><LogOut size={15}/>{t("离开房间")}</button>
+            </div>}
+            {room.phase==="ready"&&me&&<div className="lobby-ready">
+              {isHost
+                ? <button className="primary-button" disabled={busy||!connected} onClick={()=>void act("begin")}>{t("开始对局")}<ArrowRight size={18}/></button>
+                : <p className="action-note" role="status">{t("等待房主开始对局")}</p>}
             </div>}
             {room.phase==="lobby"&&<details className="text-fold"><summary>{t("座位与准备")}</summary><p className="table-hint">{me?t("点空位直接换过去。号码已经有人时，点那个号申请互换，对方同意后两人对调。"):t("填写昵称，点击空位加入圆桌。号码已经有人时，先坐空位再申请互换。")}</p><div className="member-list">{room.players.map(p=><div key={p.id}><span className="member-seat">{p.seat}</span><span className="member-name">{p.name||t("已入座")}{p.id===room.meId&&<small>{t("我")}</small>}{p.id===room.hostId&&<Crown size={14} aria-label={t("房主")}/>}</span><span className={`member-status ${p.ready?"done":""}`}>{p.ready&&<Check size={12}/>} {p.ready?t("已准备"):t("未准备")}</span></div>)}</div></details>}
           </section>

@@ -80,16 +80,7 @@ export function GamePanel({ room, busy, connected, error, act, onNewGame }: Prop
   const finalSide = (role: Role) => (role === "goodLancelot" || role === "evilLancelot") && game?.lancelotsSwitched ? (ROLES[role].side === "good" ? "evil" : "good") : ROLES[role].side;
   const seatName = (seat: number) => t("{n} 号 · {name}", { n: seat, name: playerName(seat) });
 
-  if (!game) {
-    if (room.phase !== "ready" || !me) return null;
-    return <section className="game-panel game-start">
-      <div className="game-start-icon"><Crown size={28} aria-hidden="true" /></div>
-      <div><span className="game-kicker">READY AT THE TABLE</span><h2>{t("全员就绪，可以出发了。")}</h2><p>{t("首任队长是")} <strong>{t("{n} 号 · {name}", { n: room.firstLeader ?? "", name: playerName(room.firstLeader ?? 1) })}</strong>{t("。面对面讨论后，由队长提议第一支队伍。")}</p></div>
-      {me.id === room.hostId
-        ? <button className="primary-button" disabled={blocked} onClick={() => void act("begin")}>{t("开始对局")}<ArrowRight size={18} /></button>
-        : <p className="waiting-note" role="status">{t("等待房主开始对局")}</p>}
-    </section>;
-  }
+  if (!game) return null;
 
   const leader = me?.seat === game.leaderSeat;
   const onTeam = !!me && game.team.includes(me.seat);
