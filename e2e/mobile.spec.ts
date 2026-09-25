@@ -68,7 +68,7 @@ test("the identity card toggles open and hides when the app loses focus", async 
     const page = await game.other.open(game.code);
     await page.getByRole("button", { name: "身份牌" }).click();
     const surface = page.locator(".identity-surface");
-    const reveal = surface.getByRole("button", { name: "点击查看" });
+    const reveal = surface.getByText("点击查看");
     await expect(surface).not.toHaveClass(/revealed/);
     await reveal.click();
     await expect(surface).toHaveClass(/revealed/);
