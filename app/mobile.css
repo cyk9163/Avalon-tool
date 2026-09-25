@@ -112,7 +112,12 @@ body { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-ins
   justify-content: space-evenly;
   gap: 8px;
   min-width: 0;
+  flex-wrap: nowrap;
+  overflow: hidden;
 }
+.app-shell.is-room .edition { display: none; }
+.app-shell.is-room .install-app-button span { display: none; }
+.app-shell.is-room .install-app-button { display: grid; place-items: center; }
 .app-shell.is-room > .topbar .header-right { display: contents; }
 .app-shell.is-room .brand-icon,
 .app-shell.is-room .board-rules-button,
