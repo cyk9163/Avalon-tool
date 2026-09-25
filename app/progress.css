@@ -277,8 +277,8 @@ body:has(.is-lobby), body:has(.is-notes), body:has(.is-identity), body:has(.is-p
 .is-play .room-fit, .is-play .room-fit > div:not([hidden]) { flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
 .is-play .game-panel { flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; margin: 0; padding: 12px; }
 .is-play .game-topline, .is-play .game-score, .is-play .quest-context, .is-play .speech-bar, .is-play .proposed-team { flex-shrink: 0; }
-.is-play .game-table-wrap { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; container-type: size; margin: 0; }
-.is-play .game-table { width: min(100cqw, 100cqh); max-width: 100%; max-height: 100%; height: auto; margin: 0; }
+.is-play .game-table-wrap { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; container-type: size; margin: 0; overflow: hidden; padding-block: 4px; box-sizing: border-box; }
+.is-play .game-table { width: auto; height: 100%; max-width: 100%; max-height: 100%; aspect-ratio: 1; margin: 0; flex: 0 0 auto; }
 .is-play .phase-vote .proposed-team { margin-top: 10px; margin-bottom: 0; }
 .is-play .phase-quest .proposed-team { margin-top: 8px; margin-bottom: 0; padding: 8px 12px; gap: 10px; }
 .is-play:has(.action-dock) .game-panel { padding-bottom: 8px; }
@@ -302,7 +302,7 @@ body:has(.is-lobby), body:has(.is-notes), body:has(.is-identity), body:has(.is-p
   .app-shell.is-room .game-score-side > strong { font-size: 22px; gap: 4px; white-space: nowrap; }
   .app-shell.is-room .game-score-side > strong > small { font-size: 12px; }
   .app-shell.is-room .is-play .game-table-wrap { overflow: hidden; }
-  .app-shell.is-room .is-play .game-table { width: min(100cqw, 100cqh); height: min(100cqw, 100cqh); max-width: 100%; max-height: 100%; }
+  .app-shell.is-room .is-play .game-table { width: auto; height: 100%; max-width: 100%; max-height: 100%; }
   .app-shell.is-room .game-table .seat-circle { width: 36px; height: 36px; min-width: 36px; min-height: 36px; }
   .app-shell.is-room .game-table .seat-position { width: 48px; }
   .app-shell.is-room .game-table .seat-name { max-width: 48px; font-size: 10px; }

@@ -331,6 +331,12 @@
 .game-table .table-center { gap: 4px; inset: 28% 12%; }
 .table-center-actions { pointer-events: auto; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-top: 4px; }
 .table-center-actions .secondary-button, .table-center-actions .primary-button { width: auto; min-width: 0; min-height: 36px; padding: 6px 10px; font-size: 13px; }
+@container (max-width: 320px) {
+  .game-table .table-center-actions { gap: 4px; }
+  .game-table .table-center-actions .secondary-button,
+  .game-table .table-center-actions .primary-button { min-height: 28px; padding: 2px 8px; font-size: 12px; }
+  .game-table .table-center { inset: 34% 16%; gap: 2px; }
+}
 .game-table-quest { font-size: 18px; font-weight: 600; color: var(--foreground); letter-spacing: .02em; }
 .game-table .table-center p { font-size: 11px; }
 .game-table-hammer { color: var(--danger) !important; font-weight: 600; }
