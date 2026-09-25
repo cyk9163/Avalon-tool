@@ -287,6 +287,26 @@ body:has(.is-lobby), body:has(.is-notes), body:has(.is-identity), body:has(.is-p
 .is-play .action-dock .ballot-choice { min-height: 62px; gap: 6px; padding: 8px; }
 .is-play .action-dock .ballot-choice strong { font-size: 18px; }
 .is-play .action-dock .primary-button { min-height: 44px; }
+/* A wide monitor still shows the room as a phone column, so the phone's
+   score layout does not apply. Keep the digits intact and the table inside its slot. */
+@media (min-width: 721px) {
+  .app-shell.is-room .score-dots { display: none; }
+  .app-shell.is-room .game-score { gap: 8px; margin-bottom: 8px; }
+  .app-shell.is-room .game-score-side {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 6px;
+    min-height: 48px;
+    padding: 8px 10px;
+  }
+  .app-shell.is-room .game-score-side > span { font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .app-shell.is-room .game-score-side > strong { font-size: 22px; gap: 4px; white-space: nowrap; }
+  .app-shell.is-room .game-score-side > strong > small { font-size: 12px; }
+  .app-shell.is-room .is-play .game-table-wrap { overflow: hidden; }
+  .app-shell.is-room .is-play .game-table { width: min(100cqw, 100cqh); height: min(100cqw, 100cqh); max-width: 100%; max-height: 100%; }
+  .app-shell.is-room .game-table .seat-circle { width: 36px; height: 36px; min-width: 36px; min-height: 36px; }
+  .app-shell.is-room .game-table .seat-position { width: 48px; }
+  .app-shell.is-room .game-table .seat-name { max-width: 48px; font-size: 10px; }
+}
 @media (max-width: 720px) and (orientation: portrait) {
   .app-shell.is-room:has(.is-lobby),
   .app-shell.is-room:has(.is-play),
