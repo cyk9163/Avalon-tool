@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Check, Crown, Mic, Waves } from "lucide-react";
 import { ROLES, type GameView, type Role, type RoomView } from "@/lib/game";
 import { useI18n } from "@/lib/i18n/react";
@@ -13,15 +13,15 @@ import type { TableReplay } from "@/lib/replay-steps";
  * own private marks. During team selection the leader picks seats right here.
  * Presentation only: every choice still goes through the existing actions.
  */
-export function GameTable({ room, game, selection, onToggle, marks, onMark, replay }: {
+export function GameTable({ room, game, selection, onToggle, marks, onMark, replay, center }: {
   room: RoomView;
   game: GameView;
   selection?: number[];
   onToggle?: (seat: number) => void;
   marks: Record<number, Mark>;
   onMark?: (seat: number, mark: Mark | null) => void;
-  // A finished-game replay step. When set, the table shows that moment instead of the live phase.
   replay?: TableReplay;
+  center?: ReactNode;
 }) {
   const { t } = useI18n();
   const [menuSeat, setMenuSeat] = useState<number | null>(null);
@@ -47,7 +47,7 @@ export function GameTable({ room, game, selection, onToggle, marks, onMark, repl
         <strong className="game-table-quest">{t("任务 {n}", { n: questNumber })}</strong>
         {replay?.focus === "lake" ? <p>{t("湖中仙女")}</p> : <p>{t("需要 {n} 人 · 第 {a} 车", { n: teamSize, a: attempt })}</p>}
         {hammer && <p className="game-table-hammer">{t("第三车")}</p>}
-        {picking && <p className="game-table-pick">{t("已选 {n} / {size}", { n: selection?.length ?? 0, size: game.teamSize })}</p>}
+        {center ?? (picking && <p className="game-table-pick">{t("已选 {n} / {size}", { n: selection?.length ?? 0, size: game.teamSize })}</p>)}
       </div>
       {Array.from({ length: count }, (_, index) => {
         const seat = index + 1;

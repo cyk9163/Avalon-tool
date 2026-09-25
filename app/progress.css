@@ -250,8 +250,8 @@
 .is-lobby .table-slot { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; container-type: size; }
 .is-lobby .table-slot .roundtable { width: min(100cqw, 100cqh); max-width: 100%; max-height: 100%; height: auto; margin: 0; }
 .is-lobby .lobby-ready, .is-lobby .text-fold, .is-lobby .table-caption, .is-lobby .membership-notice { flex-shrink: 0; }
-html:has(.is-lobby), html:has(.is-notes), html:has(.is-identity),
-body:has(.is-lobby), body:has(.is-notes), body:has(.is-identity) { height: 100%; overflow: hidden; overscroll-behavior: none; }
+html:has(.is-lobby), html:has(.is-notes), html:has(.is-identity), html:has(.is-play),
+body:has(.is-lobby), body:has(.is-notes), body:has(.is-identity), body:has(.is-play) { height: 100%; overflow: hidden; overscroll-behavior: none; }
 .app-shell:has(.is-notes) { height: 100dvh; overflow: hidden; display: flex; flex-direction: column; }
 .app-shell:has(.is-notes) > * { flex-shrink: 0; }
 .is-notes { flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; padding-top: 8px; padding-bottom: 8px; }
@@ -269,3 +269,12 @@ body:has(.is-lobby), body:has(.is-notes), body:has(.is-identity) { height: 100%;
 .is-identity .identity-surface { flex: 1; height: auto; min-height: 0; margin: 8px 0; overflow: auto; }
 .is-identity .ready-notice { margin-top: 8px; padding-top: 8px; }
 .is-identity .room-record { max-height: 30%; overflow: auto; }
+.app-shell:has(.is-play) { height: 100dvh; overflow: hidden; display: flex; flex-direction: column; }
+.app-shell:has(.is-play) > * { flex-shrink: 0; }
+.is-play { flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; padding-top: 8px; padding-bottom: 8px; }
+.is-play .room-panel-nav, .is-play .room-progress, .is-play .action-dock, .is-play .connection-banner, .is-play .membership-notice { flex-shrink: 0; }
+.is-play .room-fit, .is-play .room-fit > div:not([hidden]) { flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
+.is-play .game-panel { flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; margin: 0; padding: 12px; }
+.is-play .game-topline, .is-play .game-score, .is-play .quest-context, .is-play .speech-bar, .is-play .proposed-team { flex-shrink: 0; }
+.is-play .game-table-wrap { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; container-type: size; margin: 0; }
+.is-play .game-table { width: min(100cqw, 100cqh); max-width: 100%; max-height: 100%; height: auto; margin: 0; }
