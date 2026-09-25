@@ -39,7 +39,7 @@ export function RecoveryCodeCard({ room }: { room: RoomView }) {
           {copied ? <Check size={15} aria-hidden="true" /> : <Copy size={15} aria-hidden="true" />}{copied ? t("已复制") : t("复制")}
         </button>
       </div>
-      <p className="action-note">{t("手机没电或换浏览器时，在新设备打开本房间，选择「我本来就在这桌，换了设备」并输入此码即可回到座位。原设备会立即失效，恢复码用后自动更换。请勿给别人看。")}</p>
+      <p className="action-note">{t("手机没电或换浏览器时，在新设备打开本房间，点左上角皇冠，选择「我本来就在这桌，换了设备」并输入此码即可回到座位。原设备会立即失效，恢复码用后自动更换。请勿给别人看。")}</p>
       {copyFailed && <p className="action-note" role="status">{t("无法复制，请手动记下。")}</p>}
     </> : <p className="action-note">{t("这个房间创建于旧版本，没有恢复码。需要换设备时，可以请房主批准接管你的座位。")}</p>}
   </section>;

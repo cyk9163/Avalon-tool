@@ -141,7 +141,7 @@ export const ROOM: Record<string, string> = {
   "显示": "Show",
   "已复制": "Copied",
   "复制": "Copy",
-  "手机没电或换浏览器时，在新设备打开本房间，选择「我本来就在这桌，换了设备」并输入此码即可回到座位。原设备会立即失效，恢复码用后自动更换。请勿给别人看。": "If your phone dies or you switch browsers, open this room on the new device, choose \"I'm at this table, on a new device\" and enter this code to get your seat back. The old device stops working right away, and a new code is issued after each use. Don't show it to anyone.",
+  "手机没电或换浏览器时，在新设备打开本房间，点左上角皇冠，选择「我本来就在这桌，换了设备」并输入此码即可回到座位。原设备会立即失效，恢复码用后自动更换。请勿给别人看。": "If your phone dies or you switch browsers, open this room on the new device, tap the crown at the top left, choose \"I'm at this table, on a new device\" and enter this code to get your seat back. The old device stops working right away, and a new code is issued after each use. Don't show it to anyone.",
   "无法复制，请手动记下。": "Couldn't copy. Please write it down.",
   "这个房间创建于旧版本，没有恢复码。需要换设备时，可以请房主批准接管你的座位。": "This room was created with an older version and has no recovery code. To switch devices, ask the host to approve taking over your seat.",
   "已请求接管 {seat} 号座位": "Asked to take over Seat {seat}",

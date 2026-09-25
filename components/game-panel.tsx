@@ -16,7 +16,6 @@ import { MarkTag } from "@/components/player-notes";
 import { GameTable } from "@/components/game-table";
 import { SpeechBar } from "@/components/speech-bar";
 import { VoteMatrix } from "@/components/vote-matrix";
-import { RulesButton } from "@/components/rules-card";
 import { usePlayerNotes } from "@/lib/player-notes";
 import { msg } from "@/lib/i18n/core";
 import { useI18n } from "@/lib/i18n/react";
@@ -137,7 +136,7 @@ export function GamePanel({ room, busy, connected, error, act, onNewGame }: Prop
   return <section id="room-game" className={`game-panel phase-${room.phase}`} aria-label={t("当前对局")}>
     <div className="game-topline">
       <div className="game-workspace-title"><span className="game-kicker">THE ROUND TABLE</span><strong>{t("圆桌议事")} <span>{t("第 {n} 局", { n: room.round })}</span></strong></div>
-      <div className="game-topline-actions"><RulesButton room={room} />{room.phase === "quest" && onTeam && game.myQuestVote === null
+      <div className="game-topline-actions">{room.phase === "quest" && onTeam && game.myQuestVote === null
         ? <button type="button" className="game-phase-chip action" disabled={blocked} onClick={() => { setCard(null); setBallotOpen(true); }}><stage.Icon size={15} aria-hidden="true" />{t("私密提交任务票")}</button>
         : <span className={`game-phase-chip ${room.phase === "assassination" ? "danger" : ""}`}><stage.Icon size={15} aria-hidden="true" />{stage.label}</span>}</div>
     </div>

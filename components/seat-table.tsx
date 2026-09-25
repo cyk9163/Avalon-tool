@@ -1,14 +1,13 @@
 "use client";
 
-import Link from "next/link";
 import { Check, Crown, Shield, Swords } from "lucide-react";
 import { ROLES, type Role, type RoomView } from "@/lib/game";
 import { RoleInfoButton } from "@/components/role-info";
 import { useI18n } from "@/lib/i18n/react";
 
-export function Brand({ onHome }: { onHome: () => void }) {
+export function Brand({ onOpen }: { onOpen: () => void }) {
   const { t } = useI18n();
-  return <Link className="brand" href="/" onClick={event => { event.preventDefault(); onHome(); }} aria-label={t("圆桌首页")}><span className="brand-icon"><Crown size={22} /></span><span>{t("圆桌")}<span className="brand-sub">AVALON</span></span></Link>;
+  return <button type="button" className="brand-icon" aria-label={t("菜单")} onClick={onOpen}><Crown size={22} /></button>;
 }
 
 export function RoleChips({ roles }: { roles: Role[] }) {

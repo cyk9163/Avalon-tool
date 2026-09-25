@@ -5,6 +5,8 @@ import { ScrollText } from "lucide-react";
 import Link from "next/link";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import type { RoomView } from "@/lib/game";
+import { EVIL_COUNTS, PRESETS } from "@/lib/game";
+import { RoleChips } from "@/components/seat-table";
 import { msg } from "@/lib/i18n/core";
 import { useI18n } from "@/lib/i18n/react";
 
@@ -43,21 +45,23 @@ export function RulesCard({ room }: { room: RoomView }) {
   );
 }
 
-/** In-game: a compact button that opens the same rules in a dialog. */
-export function RulesButton({ room }: { room: RoomView }) {
+export function BoardRulesButton({ room }: { room: RoomView }) {
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
-  return (
-    <>
-      <button type="button" className="rules-button" onClick={() => setOpen(true)}><ScrollText size={15} aria-hidden="true" />{t("本局规则")}</button>
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="rules-dialog">
-          <DialogTitle>{t("本局规则")}</DialogTitle>
-          <DialogDescription>{t("所有人使用同一套规则；有疑问以这里为准。")}</DialogDescription>
-          <RulesList room={room} />
-          <Link className="rules-dialog-link" href="/rules" onClick={() => setOpen(false)}>{t("完整规则与角色图鉴 →")}</Link>
-        </DialogContent>
-      </Dialog>
-    </>
-  );
+  return <>
+    <button type="button" className="board-rules-button" onClick={() => setOpen(true)}>{t("板子与规则")}</button>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogContent className="rules-dialog">
+        <DialogTitle>{t("板子与规则")}</DialogTitle>
+        <DialogDescription>{t("所有人使用同一套规则；有疑问以这里为准。")}</DialogDescription>
+        <div className="config-heading"><h3>{t("本局阵容")}</h3><span>{t(PRESETS[room.preset].name)}</span></div>
+        <div className="alignment-line"><span><i />{t("{n} 位好人", { n: room.capacity - EVIL_COUNTS[room.capacity] })}</span><span><i />{t("{n} 位坏人", { n: EVIL_COUNTS[room.capacity] })}</span></div>
+        <RoleChips roles={room.roles} />
+        {room.ladyOfLake && <p className="module-badge">{t("湖中仙女 · 已启用")}</p>}
+        <p className="module-badge">{room.turnSpeech ? t("轮流发言 · 已启用") : t("线下讨论 · 亮车后直接表决")}</p>
+        <RulesList room={room} />
+        <Link className="rules-dialog-link" href="/rules" onClick={() => setOpen(false)}>{t("完整规则与角色图鉴 →")}</Link>
+      </DialogContent>
+    </Dialog>
+  </>;
 }

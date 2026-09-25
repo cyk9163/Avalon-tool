@@ -20,13 +20,10 @@ export function PlayerNotesPanel({ room }: { room: RoomView }) {
   const { notes, setDraft, clear } = usePlayerNotes(room.code, room.round, room.roles);
   const [confirmClear, setConfirmClear] = useState(false);
   if (!room.meId) return null;
-  const others = room.players.filter(player => player.id !== room.meId);
-  const marked = others.filter(player => notes.marks[player.seat]?.side).length;
   return (
     <details id="room-notes" className="player-notes">
       <summary>
         <span className="player-notes-title"><NotebookPen size={18} aria-hidden="true" /><span>{t("我的推理笔记")}</span></span>
-        <small>{notes.draft ? t("已标记 {n} / {total} 人 · 有发言草稿", { n: marked, total: others.length }) : t("已标记 {n} / {total} 人", { n: marked, total: others.length })}</small>
         <ChevronDown className="player-notes-chevron" size={17} aria-hidden="true" />
       </summary>
       <p className="player-notes-hint">{t("只保存在这台设备，不会发给服务器或其他玩家；同房再开后换一张新笔记。点圆桌上其他玩家的头像，选一个字标在右上角。")}</p>

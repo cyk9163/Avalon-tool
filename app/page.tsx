@@ -19,7 +19,7 @@ import { PlayerNotesPanel } from "@/components/player-notes";
 import { RevealOverlay } from "@/components/reveal-overlay";
 import { useTurnReminder } from "@/components/turn-reminder";
 import { myTurn } from "@/lib/turn";
-import { RulesCard } from "@/components/rules-card";
+import { BoardRulesButton } from "@/components/rules-card";
 import { RoomRecord } from "@/components/room-record";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { GuideHint } from "@/components/guide-hint";
@@ -57,7 +57,7 @@ export default function Home(){
   // Code of a room the server reported as expired or closed: stop syncing it.
   const [goneCode,setGoneCode]=useState("");
   const [booting,setBooting]=useState(true);
-  const [share,setShare]=useState(false),[qrImage,setQrImage]=useState<{url:string;data:string}|null>(null),[copied,setCopied]=useState(false),[reveal,setReveal]=useState(false),[seen,setSeen]=useState(false),[confirmStart,setConfirmStart]=useState(false),[confirmLeave,setConfirmLeave]=useState(false),[help,setHelp]=useState(false);
+  const [share,setShare]=useState(false),[qrImage,setQrImage]=useState<{url:string;data:string}|null>(null),[copied,setCopied]=useState(false),[reveal,setReveal]=useState(false),[seen,setSeen]=useState(false),[confirmStart,setConfirmStart]=useState(false),[confirmLeave,setConfirmLeave]=useState(false),[help,setHelp]=useState(false),[menu,setMenu]=useState(false);
   const currentCode=useRef(""),createId=useRef(""),latest=useRef<RoomView|null>(null),busyRef=useRef(false);
   // Local solo desk: each *.localhost phone joins its own seat. Never set on a public host.
   const soloJoin=useRef<{seat:number;name:string}|null>(null),soloTries=useRef(0);
@@ -210,9 +210,10 @@ export default function Home(){
   },[safeRead]);
   return <main className={`app-shell ${room ? "is-room" : "is-home"}`}>
     <header className="topbar">
-      <Brand onHome={back}/>
+      <Brand onOpen={()=>setMenu(true)}/>
       <div className="header-right">
         <span className="edition"><span className="status-dot"/>{t("面对面，才有意思")}</span>
+        {room&&<BoardRulesButton room={room}/>}
         <ThemeToggle/><LangToggle/>
         <InstallApp/>
         {room?.meId && <PushToggle seated act={act}/>}
@@ -301,7 +302,7 @@ export default function Home(){
             <div className="member-list">{room.players.map(p=><div key={p.id}><span className="member-seat">{p.seat}</span><span className="member-name">{p.name||t("已入座")}{p.id===room.meId&&<small>{t("我")}</small>}{p.id===room.hostId&&<Crown size={14} aria-label={t("房主")}/>}</span><span className={`member-status ${(room.phase==="lobby"?p.ready:p.confirmed)?"done":""}`}>{(room.phase==="lobby"?p.ready:p.confirmed)&&<Check size={12}/>} {room.phase==="lobby"?(p.ready?t("已准备"):t("未准备")):(p.confirmed?t("已确认"):t("待确认"))}</span></div>)}</div>
           </section>
           <aside className="room-side">
-            {!me?<section className="action-card"><span className="eyebrow">JOIN THE TABLE</span><h2>{room.phase==="lobby"?t("给自己留个座位。"):t("本局已经开始。")}</h2>{room.phase==="lobby"?<><label className="field">{t("你的昵称")}<input maxLength={12} autoComplete="nickname" placeholder={t("大家怎么称呼你")} value={name} onChange={e=>setName(e.target.value)}/></label><p className="muted-copy">{t("填好昵称后，在圆桌上选一个空位，就能加入朋友的房间。")}</p></>:<p className="muted-copy">{t("发身份后不能中途加入。如果你本来就在这桌，只是换了手机或浏览器，可以回到原来的座位。")}</p>}{room.namesHidden&&<p className="action-note"><LockKeyhole size={13}/>{t("通过房间码进入时不显示昵称；扫描房主的二维码可看到完整座位信息。")}</p>}<SeatRecovery room={room} busy={busy} connected={connected} act={act}/><button className="text-button" onClick={back}><ArrowLeft size={16}/>{t("返回首页")}</button></section>:
+            {!me?<section className="action-card"><span className="eyebrow">JOIN THE TABLE</span><h2>{room.phase==="lobby"?t("给自己留个座位。"):t("本局已经开始。")}</h2>{room.phase==="lobby"?<><label className="field">{t("你的昵称")}<input maxLength={12} autoComplete="nickname" placeholder={t("大家怎么称呼你")} value={name} onChange={e=>setName(e.target.value)}/></label><p className="muted-copy">{t("填好昵称后，在圆桌上选一个空位，就能加入朋友的房间。")}</p></>:<p className="muted-copy">{t("发身份后不能中途加入。如果你本来就在这桌，点左上角皇冠，用恢复码回到原来的座位。")}</p>}{room.namesHidden&&<p className="action-note"><LockKeyhole size={13}/>{t("通过房间码进入时不显示昵称；扫描房主的二维码可看到完整座位信息。")}</p>}<button className="text-button" onClick={back}><ArrowLeft size={16}/>{t("返回首页")}</button></section>:
             room.phase==="lobby"?<section className="action-card lobby-action"><div className="your-seat-label"><span className="eyebrow">{t("你的位置")}</span><span className="seat-ticket">{String(me.seat).padStart(2,"0")}<small>{t("号座位")}</small></span></div><h2>{t("{name}，入座了。",{name:me.name})}</h2><p className="muted-copy">{room.round>1?t("座位已经为你保留。重新准备后，让新的故事开始。"):t("和身边的朋友确认座位，准备好就可以开始了。")}</p><button className={me.ready?"secondary-button wide ready-button":"primary-button"} disabled={busy||!connected} onClick={()=>void act("ready",{ready:!me.ready})}>{me.ready?<><Check size={18}/>{t("已准备 · 点击取消")}</>:<>{t("我准备好了")}<Check size={18}/></>}</button>{isHost&&<div className="host-start"><div className="host-start-label"><Crown size={15}/><span>{t("房主操作")}</span></div><button className="primary-button" disabled={busy||!allReady||!connected} onClick={()=>setConfirmStart(true)}><Shield size={17}/>{t("发身份")}</button><p className="action-note">{room.players.length<room.capacity?t("还差 {n} 位朋友入座",{n:room.capacity-room.players.length}):!allReady?t("等待全员准备"):t("全员已准备，让故事开始")}</p></div>}<button className="text-button subtle" onClick={()=>setConfirmLeave(true)} disabled={busy}><LogOut size={15}/>{t("离开房间")}</button></section>:null}
           </aside>
         </div>}
@@ -309,9 +310,7 @@ export default function Home(){
       <div id="room-identity" hidden={roomPanel!=="identity"}>
         {me&&room.phase!=="lobby"?<section className="action-card identity-card"><div className="identity-heading"><span className="eyebrow"><Shield size={14}/>PRIVATE · {t("仅你可见")}</span><span className="identity-seat">{t("{n} 号",{n:me.seat})}</span></div><h2>{t("只属于你的线索。")}</h2><div className={`identity-surface ${reveal?"revealed":""}`} aria-live="off">{reveal&&identity?<><span className={`side-label ${identity.side}`}>{identity.side==="good"?t("正义阵营"):t("邪恶阵营")}</span><h3>{t(ROLES[identity.role].name)}</h3><p>{t(ROLES[identity.role].description)}</p><div className="identity-clues"><strong>{t("你知道的线索")}</strong>{identity.known.map(p=><div className="clue" key={p.seat}><span>{t("{n} 号",{n:p.seat})}</span><b>{p.name}</b><small>{ts(p.label)}</small></div>)}<p>{ts(identity.note)}</p></div></>:<div className="sealed"><span className="sealed-mark"><LockKeyhole size={36} strokeWidth={1.25}/></span><strong>{t("你的身份已密封")}</strong><p>{t("秘密只有你知道。")}<br/>{t("查看前，留意身边的目光。")}</p><span className="sealed-rule"/></div>}</div><button className="reveal-button" disabled={!identity} onPointerDown={e=>{e.preventDefault();e.currentTarget.setPointerCapture(e.pointerId);setReveal(true);setSeen(true);}} onPointerUp={()=>setReveal(false)} onPointerCancel={()=>setReveal(false)} onLostPointerCapture={()=>setReveal(false)} onKeyDown={e=>{if(e.key===" "||e.key==="Enter"){e.preventDefault();setReveal(true);setSeen(true);}}} onKeyUp={e=>{if(e.key===" "||e.key==="Enter")setReveal(false);}} onBlur={()=>setReveal(false)} onContextMenu={e=>e.preventDefault()}>{reveal?<EyeOff size={18}/>:<Eye size={18}/>}{t("按住查看，松开隐藏")}</button>{!room.game&&<button className={me.confirmed?"secondary-button wide ready-button":"primary-button"} disabled={busy||me.confirmed||!seen||!connected} onClick={()=>{setReveal(false);void act("confirm");}}><Check size={18}/>{me.confirmed?t("我已确认身份"):t("我记住了，确认身份")}</button>}<p className="action-note">{room.game?t("切到后台时，身份会自动隐藏。"):room.phase==="ready"?t("全员已确认，等待房主开始对局。"):t("还有 {n} 人等待确认身份",{n:room.capacity-confirmedCount})}</p>{room.phase==="ready"&&<div className="ready-notice"><Crown size={19}/><div><strong>{t("第一任队长 · {n} 号",{n:room.firstLeader??""})}</strong><p>{t("房主点击上方「开始对局」，进入第一轮。")}</p></div></div>}</section>
         :<p className="muted-copy">{t("发身份之后，在这里查看你的身份牌。")}</p>}
-            <section className="config-card"><div className="config-heading"><h3>{t("本局阵容")}</h3><span>{t(PRESETS[room.preset].name)}</span></div><div className="alignment-line"><span><i/>{t("{n} 位好人",{n:room.capacity-EVIL_COUNTS[room.capacity]})}</span><span><i/>{t("{n} 位坏人",{n:EVIL_COUNTS[room.capacity]})}</span></div><RoleChips roles={room.roles}/>{room.ladyOfLake&&<p className="module-badge">{t("湖中仙女 · 已启用")}</p>}<p className="module-badge">{room.turnSpeech?t("轮流发言 · 已启用"):t("线下讨论 · 亮车后直接表决")}</p><p className="action-note"><Shield size={13}/>{t("配置公开，个人身份私密分发。")}</p></section>
-            <RulesCard room={room}/>{room.phase!=="finished"&&<RoomRecord room={room}/>}
-            {me&&<RecoveryCodeCard room={room}/>}
+            {room.phase!=="finished"&&<RoomRecord room={room}/>}
 
       </div>
       <div hidden={roomPanel!=="notes"}><PlayerNotesPanel room={room}/></div>
@@ -325,5 +324,6 @@ export default function Home(){
     <AlertDialog open={swapSeat!==null} onOpenChange={open=>{if(!open)setSwapSeat(null);}}><AlertDialogContent><AlertDialogTitle>{t("向 {name} 申请换成 {n} 号？",{name:room?.players.find(p=>p.seat===swapSeat)?.name??"",n:swapSeat??""})}</AlertDialogTitle><AlertDialogDescription>{t("你现在是 {from} 号。对方同意后，你坐到 {to} 号，对方坐到 {from} 号，两人都要重新准备。",{from:room?.players.find(p=>p.id===room.meId)?.seat??"",to:swapSeat??""})}</AlertDialogDescription><AlertDialogFooter><AlertDialogCancel>{t("再想一下")}</AlertDialogCancel><AlertDialogAction disabled={busy||!connected||swapSeat===null} onClick={()=>{const seat=swapSeat;setSwapSeat(null);if(seat)void act("swap-request",{seat});}}>{t("申请互换")}</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
     <AlertDialog open={confirmLeave} onOpenChange={setConfirmLeave}><AlertDialogContent><AlertDialogTitle>{t("离开这个房间？")}</AlertDialogTitle><AlertDialogDescription>{t("你的座位会空出来。若你是房主，管理权会交给下一位玩家。")}</AlertDialogDescription><AlertDialogFooter><AlertDialogCancel>{t("继续等朋友")}</AlertDialogCancel><AlertDialogAction variant="destructive" disabled={busy||!connected||room?.phase!=="lobby"} onClick={()=>void act("leave")}>{t("离开房间")}</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
     <HelpDialog open={help} onOpenChange={setHelp}/>
+    <Dialog open={menu} onOpenChange={setMenu}><DialogContent className="rules-dialog"><DialogTitle>{t("菜单")}</DialogTitle><DialogDescription>{t("断线恢复")}</DialogDescription><button type="button" className="secondary-button" onClick={()=>{setMenu(false);back();}}>{t("返回首页")}</button>{room&&me&&<RecoveryCodeCard room={room}/>}{room&&!me&&<SeatRecovery room={room} busy={busy} connected={connected} act={act}/>}{!room&&<p className="action-note">{t("进入房间后，可以在这里用恢复码回到原来的座位。")}</p>}</DialogContent></Dialog>
   </main>;
 }

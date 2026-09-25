@@ -34,6 +34,7 @@
 :root[data-theme="light"] .solo-phone { border: 1px solid #cad2d0; background: #eaf0ef; }
 :root[data-theme="light"] .solo-phone h2 { color: #6b510f; }
 :root[data-theme="light"] .solo-phone iframe { border: 0; background: #f0f5f4; }
+:root[data-theme="light"] .board-rules-button { border: 1px solid #6b510f55; background: transparent; color: var(--primary); }
 :root[data-theme="light"] .push-note { border: 1px solid #cad2d0; background: #e3eaec; color: #272e23; }
 :root[data-theme="light"] .edition { color: #3e4d43; }
 :root[data-theme="light"] .status-dot { background: #2f604f; box-shadow: 0 0 0 4px #2f604f0a; }
