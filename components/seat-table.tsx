@@ -19,7 +19,20 @@ export function RoleChips({ roles }: { roles: Role[] }) {
 export function SeatTable({ count, room, onSeat, disabled }: { count: number; room?: RoomView | null; onSeat?: (seat: number) => void; disabled?: boolean }) {
   const { t } = useI18n();
   return <div className={`roundtable ${room ? "live-table" : ""}`}><div className="table-center"><Crown size={32} strokeWidth={1.3} /><span>AVALON</span><p>{room ? t("{n} / {count} 位已入座", { n: room.players.length, count }) : t("每个人，都有自己的秘密。")}</p></div>{Array.from({ length: count }, (_, index) => {
-    const player = room?.players.find(item => item.seat === index + 1), mine = !!player && player.id === room?.meId;
-    return <div className="seat-position" key={index} style={{ left: `${50 + 40 * Math.sin(index * 2 * Math.PI / count)}%`, top: `${50 - 40 * Math.cos(index * 2 * Math.PI / count)}%` }}><button type="button" className={`seat-circle ${player ? "occupied" : ""} ${mine ? "mine" : ""}`} disabled={disabled || !onSeat || !!player} onClick={() => onSeat?.(index + 1)} aria-label={player ? (mine ? t("{seat} 号座位，{name}，我", { seat: index + 1, name: player.name }) : t("{seat} 号座位，{name}", { seat: index + 1, name: player.name })) : t("{seat} 号座位，空位", { seat: index + 1 })}><span>{String(index + 1).padStart(2, "0")}</span>{player && (room?.phase === "lobby" ? player.ready : player.confirmed) && <Check className="seat-check" size={14} />}</button>{room && <span className={`seat-name ${mine ? "mine" : ""}`}>{player ? `${player.name || t("已入座")}${mine ? ` · ${t("我")}` : ""}` : t("待入座")}</span>}</div>;
+    const seat = index + 1;
+    const player = room?.players.find(item => item.seat === seat), mine = !!player && player.id === room?.meId;
+    const canAsk = !!player && !mine && !!onSeat && !disabled && room?.phase === "lobby";
+    const label = player
+      ? mine ? t("{seat} 号座位，{name}，我", { seat, name: player.name })
+        : canAsk ? t("{seat} 号座位，{name}，申请互换", { seat, name: player.name })
+          : t("{seat} 号座位，{name}", { seat, name: player.name })
+      : t("{seat} 号座位，空位", { seat });
+    return <div className="seat-position" key={seat} style={{ left: `${50 + 40 * Math.sin(index * 2 * Math.PI / count)}%`, top: `${50 - 40 * Math.cos(index * 2 * Math.PI / count)}%` }}>
+      <button type="button" className={`seat-circle ${player ? "occupied" : ""} ${mine ? "mine" : ""} ${canAsk ? "can-ask" : ""}`} disabled={disabled || !onSeat || (!!player && !canAsk)} onClick={() => onSeat?.(seat)} aria-label={label}>
+        <span>{String(seat).padStart(2, "0")}</span>
+        {player && (room?.phase === "lobby" ? player.ready : player.confirmed) && <Check className="seat-check" size={14} />}
+      </button>
+      {room && <span className={`seat-name ${mine ? "mine" : ""}`}>{player ? `${player.name || t("已入座")}${mine ? ` · ${t("我")}` : ""}` : t("待入座")}</span>}
+    </div>;
   })}</div>;
 }

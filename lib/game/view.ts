@@ -121,5 +121,15 @@ export function roomView(room: Room, key: string, version: number, invite?: stri
     recoveries: (room.recoveries ?? []).map(({ seat, method, at }) => ({ seat, method, at })),
     history: me ? (room.history ?? []).filter(record => record.players.some(player => player.id === me.id))
       .map(({ round, winner, reason, players }) => ({ round, winner, reason, players: players.map(({ id, name, seat, role, side }) => ({ id, name, seat, role, side })) })) : [],
+    seatSwapOut: !screen && me ? ((room.seatSwaps ?? []).flatMap(request => {
+      if (request.fromId !== me.id) return [];
+      const target = room.players.find(player => player.id === request.toId);
+      return target ? [{ id: request.id, seat: request.toSeat, name: target.name }] : [];
+    })[0] ?? null) : null,
+    seatSwapIn: !screen && me ? (room.seatSwaps ?? []).flatMap(request => {
+      if (request.toId !== me.id) return [];
+      const from = room.players.find(player => player.id === request.fromId);
+      return from ? [{ id: request.id, fromSeat: from.seat, name: from.name, seat: request.toSeat }] : [];
+    }) : [],
   };
 }

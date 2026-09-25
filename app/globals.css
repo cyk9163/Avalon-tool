@@ -215,6 +215,7 @@ legend { font-size: 14px; margin-bottom: 11px; color: #354e40; }
 .seat-circle.occupied { background: #385246; border-color: #8ea288; color: #f1f4e8; }
 .seat-circle.mine { background: #dbc18a; color: #1d3025; border-color: #f0d9a6; }
 .seat-circle:not(:disabled):hover { border-color: #ead2a0; background: #4a5b41; }
+.seat-circle.can-ask { cursor: pointer; }
 .seat-check { position: absolute; bottom: -3px; right: -3px; border-radius: 50%; padding: 1px; background: #a9c9a7; color: #203c2d; }
 .seat-name { font-size: 11px; line-height: 1.4; color: #afc1b0; max-width: 75px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 8px; }
 .seat-name.mine { color: var(--primary); }

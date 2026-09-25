@@ -155,6 +155,10 @@ export const SERVER: Record<string, string> = {
   "发身份后，座位与配置已锁定。": "Roles have been dealt, so seats and settings are locked.",
   "准备状态无效。": "Invalid ready status.",
   "这个座位已被占用。": "This seat is already taken.",
+  "只有这个号码上的玩家可以处理换号申请。": "Only the player on this number can answer the swap request.",
+  "座位已经变化，请让对方重新申请。": "The seats have changed. Ask them to request it again.",
+  "这个号码现在是空的，可以直接入座。": "That number is empty now, so you can sit there directly.",
+  "换号申请太多，请稍后再试。": "Too many swap requests. Please try again in a moment.",
   "请等待所有座位坐满，并且全员准备。": "Wait until every seat is filled and everyone is ready.",
   "不支持这个操作。": "This action isn't supported.",
 

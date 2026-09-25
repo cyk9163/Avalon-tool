@@ -268,3 +268,34 @@ test("Transfer, abort, removal and replacement lead to a complete fresh game wit
   assert.equal(view(room).resetReason, "rematch");
   assert.equal(view(room).round, 3);
 });
+
+test("players swap seat numbers only when the person sitting there agrees", () => {
+  const room = lobby();
+  for (const player of room.players) player.ready = true;
+  act(room, 2, "swap-request", {seat: 4});
+  const offer = view(room, 2).seatSwapOut;
+  assert.equal(offer.seat, 4);
+  assert.equal(offer.name, "玩家4");
+  assert.equal(view(room, 1).seatSwapIn.length, 0, "other players do not see the request");
+  assert.equal(view(room, 4).seatSwapIn[0].fromSeat, 2);
+  act(room, 2, "swap-request", {seat: 4});
+  assert.equal(room.seatSwaps.length, 1, "asking again for the same number does not duplicate");
+  invalid(room, () => act(room, 1, "swap-accept", {requestId: offer.id}), 403);
+  act(room, 4, "swap-accept", {requestId: offer.id});
+  assert.equal(member(room, 4).id, "p2");
+  assert.equal(member(room, 2).id, "p4");
+  assert.equal(member(room, 4).ready, false);
+  assert.equal(member(room, 2).ready, false);
+  assert.equal(room.seatSwaps, undefined);
+  act(room, 4, "swap-request", {seat: 2});
+  act(room, 2, "swap-reject", {requestId: view(room, 2).seatSwapIn[0].id});
+  assert.equal(member(room, 4).id, "p2");
+  act(room, 4, "swap-request", {seat: 3});
+  act(room, 4, "swap-cancel");
+  assert.equal(view(room, 4).seatSwapOut, null);
+  act(room, 4, "swap-request", {seat: 3});
+  invalid(room, () => act(room, 4, "swap-request", {seat: 9}), 400);
+  deal(room);
+  invalid(room, () => act(room, 4, "swap-accept", {requestId: "gone"}), undefined);
+  assert.equal(room.phase === "lobby", false);
+});

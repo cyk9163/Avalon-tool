@@ -115,6 +115,7 @@ function manageRoom(room: Room, me: Player, action: string, input: Record<string
     // cannot remove a new occupant who took the same seat.
     if (target) {
       room.players = room.players.filter(player => player.id !== targetId);
+      forgetSeatSwaps(room, targetId);
       // A removed stranger keeps no access: issue a fresh invite link.
       if (room.inviteToken) room.inviteToken = newInviteToken();
     }
@@ -125,6 +126,60 @@ function manageRoom(room: Room, me: Player, action: string, input: Record<string
   room.lastHostTransfer = { fromId: me.id, toId: targetId, round, hostRevision };
   room.hostId = targetId;
   room.hostRevision = revision;
+}
+
+function forgetSeatSwaps(room: Room, playerId: string): void {
+  room.seatSwaps = (room.seatSwaps ?? []).filter(request => request.fromId !== playerId && request.toId !== playerId);
+  if (!room.seatSwaps.length) delete room.seatSwaps;
+}
+
+function seatSwap(room: Room, me: Player, action: string, input: Record<string, unknown>): void {
+  const swaps = room.seatSwaps ?? [];
+  if (action === "swap-cancel") {
+    const kept = swaps.filter(request => request.fromId !== me.id);
+    if (kept.length) room.seatSwaps = kept;
+    else delete room.seatSwaps;
+    return;
+  }
+  if (action === "swap-reject" || action === "swap-accept") {
+    const id = requireTargetPlayerId(input.requestId);
+    const request = swaps.find(item => item.id === id);
+    if (!request) return;
+    if (request.toId !== me.id) throw new GameError("只有这个号码上的玩家可以处理换号申请。", 403);
+    if (action === "swap-reject") {
+      const kept = swaps.filter(item => item.id !== id);
+      if (kept.length) room.seatSwaps = kept;
+      else delete room.seatSwaps;
+      return;
+    }
+    const from = room.players.find(player => player.id === request.fromId);
+    const to = room.players.find(player => player.id === request.toId);
+    if (!from || !to || to.seat !== request.toSeat || from.seat === to.seat) {
+      const kept = swaps.filter(item => item.id !== id);
+      if (kept.length) room.seatSwaps = kept;
+      else delete room.seatSwaps;
+      throw new GameError("座位已经变化，请让对方重新申请。");
+    }
+    const fromSeat = from.seat;
+    from.seat = to.seat;
+    to.seat = fromSeat;
+    from.ready = false;
+    to.ready = false;
+    const involved = new Set([from.id, to.id]);
+    const kept = swaps.filter(item => !involved.has(item.fromId) && !involved.has(item.toId));
+    if (kept.length) room.seatSwaps = kept;
+    else delete room.seatSwaps;
+    return;
+  }
+  const seat = readSeat(room, input.seat);
+  if (seat === me.seat) return;
+  const target = room.players.find(player => player.seat === seat);
+  if (!target) throw new GameError("这个号码现在是空的，可以直接入座。", 400);
+  const mine = swaps.find(item => item.fromId === me.id);
+  if (mine?.toId === target.id && mine.toSeat === seat) return;
+  const next = swaps.filter(item => item.fromId !== me.id);
+  if (next.length >= 20) throw new GameError("换号申请太多，请稍后再试。", 429);
+  room.seatSwaps = [...next, { id: crypto.randomUUID(), fromId: me.id, toId: target.id, toSeat: seat, createdAt: Date.now() }];
 }
 
 function readSeat(room: Room, value: unknown): number {
@@ -271,10 +326,18 @@ export function mutateRoom(room: Room, key: string, action: string, input: Recor
     }
     me.seat = seat;
     me.ready = false;
+    const kept = (room.seatSwaps ?? []).filter(request => request.fromId !== me.id);
+    if (kept.length) room.seatSwaps = kept;
+    else delete room.seatSwaps;
+    return;
+  }
+  if (action === "swap-request" || action === "swap-cancel" || action === "swap-accept" || action === "swap-reject") {
+    seatSwap(room, me, action, input);
     return;
   }
   if (action === "leave") {
     const remainingPlayers = room.players.filter(player => player.id !== me.id);
+    forgetSeatSwaps(room, me.id);
     if (room.hostId === me.id && remainingPlayers.length) {
       const revision = nextHostRevision(room);
       room.hostId = [...remainingPlayers].sort((a, b) => a.seat - b.seat)[0].id;
@@ -293,6 +356,7 @@ export function mutateRoom(room: Room, key: string, action: string, input: Recor
     if (room.players.length !== room.capacity || !room.players.every(player => player.ready)) {
       throw new GameError("请等待所有座位坐满，并且全员准备。 ");
     }
+    delete room.seatSwaps;
     const roles = shuffle(roomRoles(room));
     room.firstLeader = randomInt(room.capacity) + 1;
     room.players.forEach((player, index) => {

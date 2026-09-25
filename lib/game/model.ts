@@ -213,6 +213,8 @@ export interface Room {
   recoveries?: RecoveryRecord[];
   // Finished games in this room (v1.9), newest last, for the same-room record.
   history?: RoundRecord[];
+  // Lobby-only asks to exchange seat numbers so the circle matches where people are sitting.
+  seatSwaps?: { id: string; fromId: string; toId: string; toSeat: number; createdAt: number }[];
 }
 export interface RoundRecord {
   round: number;
@@ -269,6 +271,8 @@ export interface RoomView {
   // Earlier finished games in this room that I played in (v1.9). Roles are
   // only ever shown to people who were in that game, as at its end.
   history: RoundRecord[];
+  seatSwapOut: { id: string; seat: number; name: string } | null;
+  seatSwapIn: { id: string; fromSeat: number; name: string; seat: number }[];
 }
 
 export function randomInt(max: number): number {

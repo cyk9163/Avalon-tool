@@ -55,7 +55,7 @@ export default function Home(){
   // host chooses a custom board, so reading storage here cannot affect hydration.
   const [savedTemplates,setSavedTemplates]=useState<BoardTemplate[]>(()=>typeof window==="undefined"?[]:loadSavedTemplates()),[templateName,setTemplateName]=useState<string|null>(null);
   const [room,setRoom]=useState<RoomView|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState(""),[sessionReady,setSessionReady]=useState(false),[connected,setConnected]=useState(true),[delivery,setDelivery]=useState<"saved"|"unsent"|null>(null);
-  const [membershipNotice,setMembershipNotice]=useState<Notice>(null);
+  const [membershipNotice,setMembershipNotice]=useState<Notice>(null),[swapSeat,setSwapSeat]=useState<number|null>(null);
   // Code of a room the server reported as expired or closed: stop syncing it.
   const [goneCode,setGoneCode]=useState("");
   const [booting,setBooting]=useState(true);
@@ -285,8 +285,16 @@ export default function Home(){
         <div className="room-layout">
           <section className="table-panel room-table">
             <div className="table-caption"><span><Users size={16}/>{room.phase==="lobby"?t("按实际座位入座"):t("今晚的同桌")}</span><span>{t("{n} / {count} 人",{n:room.players.length,count:room.capacity})}</span></div>
-            <Table count={room.capacity} room={room} disabled={busy||!sessionReady||!connected||room.phase!=="lobby"} onSeat={seat=>{if(me)void act("seat",{seat});else if(!name.trim())setError(msg("先填写昵称，再选择一个空位。"));else void act("join",{seat,name});}}/>
-            <p className="table-hint">{room.phase==="lobby"?me?t("点击空位可换座，换座后需要重新准备。"):t("填写昵称，点击空位加入圆桌。"):room.game?t("队长按座位顺序轮换。"):t("全员确认身份后，由房主开始对局。")}</p>
+            <Table count={room.capacity} room={room} disabled={busy||!sessionReady||!connected||room.phase!=="lobby"} onSeat={seat=>{
+              const taken=room.players.find(p=>p.seat===seat);
+              if(me){if(taken&&taken.id!==me.id)setSwapSeat(seat);else void act("seat",{seat});}
+              else if(!name.trim())setError(msg("先填写昵称，再选择一个空位。"));
+              else if(taken)setError(msg("这个号已经有人。先坐一个空位，再点这个号申请互换。"));
+              else void act("join",{seat,name});
+            }}/>
+            {room.phase==="lobby"&&room.seatSwapOut&&<p className="membership-notice" role="status">{t("已向 {name} 申请换成 {n} 号。",{name:room.seatSwapOut.name,n:room.seatSwapOut.seat})} <button type="button" className="text-button" disabled={busy||!connected} onClick={()=>void act("swap-cancel")}>{t("取消申请")}</button></p>}
+            {room.phase==="lobby"&&room.seatSwapIn.map(ask=><p className="membership-notice" role="status" key={ask.id}>{t("{name} 想和你换号：你到 {from} 号，对方到 {to} 号。",{name:ask.name,from:ask.fromSeat,to:ask.seat})} <button type="button" className="text-button" disabled={busy||!connected} onClick={()=>void act("swap-accept",{requestId:ask.id})}>{t("同意互换")}</button><button type="button" className="text-button subtle" disabled={busy||!connected} onClick={()=>void act("swap-reject",{requestId:ask.id})}>{t("拒绝")}</button></p>)}
+            <p className="table-hint">{room.phase==="lobby"?me?t("点空位直接换过去。号码已经有人时，点那个号申请互换，对方同意后两人对调。"):t("填写昵称，点击空位加入圆桌。号码已经有人时，先坐空位再申请互换。"):room.game?t("队长按座位顺序轮换。"):t("全员确认身份后，由房主开始对局。")}</p>
             <div className="member-list">{room.players.map(p=><div key={p.id}><span className="member-seat">{p.seat}</span><span className="member-name">{p.name||t("已入座")}{p.id===room.meId&&<small>{t("我")}</small>}{p.id===room.hostId&&<Crown size={14} aria-label={t("房主")}/>}</span><span className={`member-status ${(room.phase==="lobby"?p.ready:p.confirmed)?"done":""}`}>{(room.phase==="lobby"?p.ready:p.confirmed)&&<Check size={12}/>} {room.phase==="lobby"?(p.ready?t("已准备"):t("未准备")):(p.confirmed?t("已确认"):t("待确认"))}</span></div>)}</div>
           </section>
           <aside className="room-side">
@@ -306,6 +314,7 @@ export default function Home(){
     <Dialog open={share} onOpenChange={setShare}><DialogContent className="share-dialog"><span className="dialog-emblem"><QrCode size={24}/></span><DialogTitle>{t("给朋友留个座位。")}</DialogTitle><DialogDescription>{t("用手机相机扫码，或输入下方房间码。")}</DialogDescription>{qr?/* eslint-disable-next-line @next/next/no-img-element -- a locally generated data: URL; image optimisation does not apply. */
 <img className="qr-image" src={qr} alt={t("加入本房间的二维码")} width={240} height={240}/>:<div className="qr-loading"><LoaderCircle size={24} className="spin"/>{t("正在生成二维码…")}</div>}<div className="share-code"><small>{t("房间码")}</small>{room?.code}</div><button className="primary-button" onClick={async()=>{try{await navigator.clipboard.writeText(inviteUrl);setCopied(true);setTimeout(()=>setCopied(false),2000);}catch{setError(msg("无法复制，请直接分享房间码。"));}}}>{copied?<Check size={17}/>:<Copy size={17}/ >}{copied?t("已复制邀请链接"):t("复制邀请链接")}</button><p className="action-note">{t("邀请链接含专属口令，扫码进入可看到座位昵称；只输入房间码也能入座，但不显示昵称。")}</p>{room?.inviteToken&&<a className="secondary-button big-screen-link" href={`/screen?room=${room.code}&invite=${room.inviteToken}`} target="_blank" rel="noopener"><Monitor size={17}/>{t("打开大屏模式")}</a>}{room?.inviteToken&&<p className="action-note">{t("在桌子中间的平板或电脑上打开：只显示圆桌、任务、发言顺序和表决等公开信息，不显示任何人的身份。")}</p>}</DialogContent></Dialog>
     <AlertDialog open={confirmStart} onOpenChange={setConfirmStart}><AlertDialogContent><AlertDialogTitle>{t("让秘密各就各位？")}</AlertDialogTitle><AlertDialogDescription>{t("发身份后，本局座位与角色配置会锁定。请确认所有人都已坐在对应位置。")}</AlertDialogDescription><AlertDialogFooter><AlertDialogCancel>{t("再检查一下")}</AlertDialogCancel><AlertDialogAction disabled={busy||!connected||!allReady||!isHost||room?.phase!=="lobby"} onClick={()=>void act("start")}>{t("确认发身份")}</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
+    <AlertDialog open={swapSeat!==null} onOpenChange={open=>{if(!open)setSwapSeat(null);}}><AlertDialogContent><AlertDialogTitle>{t("向 {name} 申请换成 {n} 号？",{name:room?.players.find(p=>p.seat===swapSeat)?.name??"",n:swapSeat??""})}</AlertDialogTitle><AlertDialogDescription>{t("你现在是 {from} 号。对方同意后，你坐到 {to} 号，对方坐到 {from} 号，两人都要重新准备。",{from:room?.players.find(p=>p.id===room.meId)?.seat??"",to:swapSeat??""})}</AlertDialogDescription><AlertDialogFooter><AlertDialogCancel>{t("再想一下")}</AlertDialogCancel><AlertDialogAction disabled={busy||!connected||swapSeat===null} onClick={()=>{const seat=swapSeat;setSwapSeat(null);if(seat)void act("swap-request",{seat});}}>{t("申请互换")}</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
     <AlertDialog open={confirmLeave} onOpenChange={setConfirmLeave}><AlertDialogContent><AlertDialogTitle>{t("离开这个房间？")}</AlertDialogTitle><AlertDialogDescription>{t("你的座位会空出来。若你是房主，管理权会交给下一位玩家。")}</AlertDialogDescription><AlertDialogFooter><AlertDialogCancel>{t("继续等朋友")}</AlertDialogCancel><AlertDialogAction variant="destructive" disabled={busy||!connected||room?.phase!=="lobby"} onClick={()=>void act("leave")}>{t("离开房间")}</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
     <HelpDialog open={help} onOpenChange={setHelp}/>
   </main>;
