@@ -322,10 +322,11 @@
 :root[data-theme="light"] .player-draft small { color: #485852; }
 :root[data-theme="light"] .notes-preview { border: 1px solid var(--border); background: #f0f4f6; color: var(--foreground); }
 :root[data-theme="light"] .notes-preview-empty { color: #485852; }
+:root[data-theme="light"] .notes-editor { background: var(--background); color: var(--foreground); }
+:root[data-theme="light"] .notes-editor p { color: #485852; }
 :root[data-theme="light"] .notes-editor textarea { border: 1px solid var(--border); background: #f0f4f6; color: var(--foreground); }
 :root[data-theme="light"] .notes-editor textarea::placeholder { color: #647670; }
 :root[data-theme="light"] .notes-editor small { color: #485852; }
-:root[data-theme="light"] .notes-editor [data-slot="dialog-description"] { color: #485852; }
 :root[data-theme="light"] .loyalty-track { border: 1px solid var(--border); background: #16161605; }
 :root[data-theme="light"] .loyalty-title { color: #2c352e; }
 :root[data-theme="light"] .loyalty-card { border: 1px dashed #30403440; color: #41504a; }
