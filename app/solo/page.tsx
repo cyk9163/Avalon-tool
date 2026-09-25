@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { BUILT_IN_TEMPLATES, fillCustomRoles, loadSavedTemplates, sameBoard, templateFits, templateMinimum, type BoardTemplate } from "@/lib/board-templates";
 import { CUSTOM_EVIL_ROLES, CUSTOM_GOOD_ROLES, EVIL_COUNTS, PRESETS, ROLES, type Preset, type Role, type RoomView } from "@/lib/game";
@@ -26,6 +26,11 @@ export default function SoloPage() {
   const [table, setTable] = useState<Table | null>(null);
   const [booting, setBooting] = useState(false);
   const [error, setError] = useState("");
+  const [origins, setOrigins] = useState<string[]>([]);
+  const [origin, setOrigin] = useState("");
+  const [phoneSeat, setPhoneSeat] = useState<number | null>(null);
+  const [qrImage, setQrImage] = useState<{ url: string; data: string } | null>(null);
+  const [copied, setCopied] = useState(false);
   const local = typeof location === "undefined" || isSoloHost(location.hostname);
   const customRoles = fillCustomRoles(capacity, customSpecials);
 
@@ -68,6 +73,7 @@ export default function SoloPage() {
       });
       const room = await response.json() as RoomView & { error?: string };
       if (!response.ok) throw new Error(room.error || t("建房失败。"));
+      setPhoneSeat(null);
       setTable({ code: room.code, invite: room.inviteToken, capacity: room.capacity, devices });
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : t("建房失败。"));
@@ -76,7 +82,19 @@ export default function SoloPage() {
     }
   };
 
-  if (!local) return <main className="app-shell"><p>{t("一个人测试只在本地开发服务器上可用。")}</p></main>;
+  useEffect(() => {
+    if (!table) return;
+    let cancelled = false;
+    fetch("/api/dev-lan").then(async response => {
+      if (!response.ok) return;
+      const body = await response.json() as { origins?: unknown };
+      if (cancelled || !Array.isArray(body.origins)) return;
+      const next = body.origins.filter((item): item is string => typeof item === "string" && item.startsWith("http://"));
+      setOrigins(next);
+      setOrigin(current => current && next.includes(current) ? current : next.find(item => item.includes("://192.168.")) ?? next[0] ?? "");
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, [table]);
 
   const phoneSrc = (seat: number) => {
     if (!table) return "";
@@ -89,14 +107,26 @@ export default function SoloPage() {
     if (table.invite) params.set("invite", table.invite);
     return `/?${params.toString()}`;
   };
+  const phoneTarget = table && phoneSeat && origin ? `${origin}${phoneSrc(phoneSeat)}` : "";
+  const qr = qrImage?.url === phoneTarget ? qrImage.data : "";
+  useEffect(() => {
+    if (!phoneTarget) return;
+    let cancelled = false;
+    import("qrcode").then(QR => QR.toDataURL(phoneTarget, { width: 280, margin: 2, color: { dark: "#101c22", light: "#ffffff" }, errorCorrectionLevel: "M" }))
+      .then(data => { if (!cancelled) setQrImage({ url: phoneTarget, data }); })
+      .catch(() => { if (!cancelled) setQrImage(null); });
+    return () => { cancelled = true; };
+  }, [phoneTarget]);
+
+  if (!local) return <main className="app-shell"><p>{t("一个人测试只在本地开发服务器上可用。")}</p></main>;
 
   return <main className="app-shell solo-desk">
     <header className="solo-head">
       <div>
         <h1>{t("一个人测试整桌")}</h1>
-        <p>{t("每个窗口是一个独立座位。你可以在不同窗口里看身份、投票、出牌和复盘。")}</p>
+        <p>{t("每个窗口是一个独立座位。电脑上看整桌；手机和电脑连同一个 Wi-Fi 后，扫某一个座位的码，就能用手机看那一位的界面。")}</p>
       </div>
-      {table && <p className="solo-code">{t("房间码")} {table.code} <button type="button" className="text-button" onClick={() => { setTable(null); setError(""); }}>{t("再摆一桌")}</button></p>}
+      {table && <p className="solo-code">{t("房间码")} {table.code} <button type="button" className="text-button" onClick={() => { setTable(null); setPhoneSeat(null); setError(""); }}>{t("再摆一桌")}</button></p>}
     </header>
     {!table && <form className="solo-setup entry-panel" onSubmit={event => { event.preventDefault(); void start(); }}>
       <fieldset><legend>{t("这次有几位朋友？")}</legend><RadioGroup aria-label={t("游戏人数")} className="count-grid" value={String(capacity)} onValueChange={value => { const next = Number(value); setCapacity(next); if (next < PRESETS[preset].minimum) setPreset("classic"); if (ladyOfLake && next < 7) setLadyOfLake(false); }}>{[5, 6, 7, 8, 9, 10].map(count => <label className={`count-option ${capacity === count ? "selected" : ""}`} key={count}><RadioGroupItem value={String(count)} className="sr-only" /><strong>{count}</strong><span>{t("人")}</span></label>)}</RadioGroup></fieldset>
@@ -109,7 +139,18 @@ export default function SoloPage() {
     </form>}
     {table && <div className="solo-grid">{Array.from({ length: table.capacity }, (_, index) => {
       const seat = index + 1;
-      return <section key={seat} className="solo-phone"><h2>{t("{n} 号", { n: seat })} · {SOLO_NAMES[index]}</h2><iframe title={t("{n} 号", { n: seat })} src={phoneSrc(seat)} /></section>;
+      const open = phoneSeat === seat;
+      return <section key={seat} className="solo-phone">
+        <div className="solo-phone-bar"><h2>{t("{n} 号", { n: seat })} · {SOLO_NAMES[index]}</h2><button type="button" className="text-button" aria-expanded={open} onClick={() => { setCopied(false); setPhoneSeat(open ? null : seat); }}>{t("手机打开")}</button></div>
+        {open && <div className="solo-phone-link">
+          {origins.length > 1 && <label className="field">{t("手机要打开的地址")}<select value={origin} onChange={event => setOrigin(event.target.value)}>{origins.map(item => <option key={item} value={item}>{item}</option>)}</select></label>}
+          {qr ? /* eslint-disable-next-line @next/next/no-img-element -- a locally generated data: URL; image optimisation does not apply. */
+            <img src={qr} alt={t("用手机打开 {name} 的界面", { name: SOLO_NAMES[index] ?? String(seat) })} width={168} height={168} /> : <p>{phoneTarget ? t("正在生成二维码…") : t("这台电脑的局域网地址还没找到。重启本地开发服务器后再试。")}</p>}
+          {phoneTarget && <button type="button" className="text-button" onClick={async () => { try { await navigator.clipboard.writeText(phoneTarget); setCopied(true); } catch { setCopied(false); } }}>{copied ? t("已复制手机链接") : t("复制手机链接")}</button>}
+          <p>{t("扫码后就是这一位玩家。电脑上的窗口仍可操作整桌。")}</p>
+        </div>}
+        <iframe title={t("{n} 号", { n: seat })} src={phoneSrc(seat)} />
+      </section>;
     })}</div>}
   </main>;
 }
