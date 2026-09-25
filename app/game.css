@@ -361,6 +361,7 @@
 .hammer-warning { display: flex; align-items: center; gap: 8px; margin: 0; padding: 10px 12px; border-radius: 12px; background: #e9a59c1f; border: 1px solid #e9a59c66; color: var(--danger); font-size: 14px; font-weight: 600; }
 /* rules */
 .game-topline-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.you-are-leader { display: inline-flex; align-items: center; gap: 5px; height: 36px; padding: 0 12px 0 8px; border-radius: 999px; background: var(--primary); color: var(--primary-foreground); font-size: 13px; font-weight: 700; letter-spacing: .08em; flex-shrink: 0; box-shadow: 0 0 0 3px #dbc18a33; }
 .rules-button { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 12px; border-radius: 999px; border: 1px solid #b6c9ba2a; background: transparent; color: #c9d4cc; font-size: 13px; }
 .rules-button:hover { border-color: #dbc18a66; color: var(--primary); }
 .rules-list { margin: 10px 0 0; padding-left: 1.2em; display: grid; gap: 7px; font-size: 13px; line-height: 1.65; color: #c9d4cc; }

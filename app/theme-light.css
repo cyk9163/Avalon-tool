@@ -355,6 +355,7 @@
 :root[data-theme="light"] .leader-order li.hammer { border-color: #80403966; }
 :root[data-theme="light"] .leader-order li.hammer small { color: var(--danger); }
 :root[data-theme="light"] .hammer-warning { background: #8040391f; border: 1px solid #80403966; color: var(--danger); }
+:root[data-theme="light"] .you-are-leader { background: var(--primary); color: var(--primary-foreground); box-shadow: 0 0 0 3px #6b510f33; }
 :root[data-theme="light"] .rules-button { border: 1px solid #3040342a; background: transparent; color: #2c352e; }
 :root[data-theme="light"] .rules-button:hover { border-color: #6b510f66; color: var(--primary); }
 :root[data-theme="light"] .rules-list { color: #2c352e; }

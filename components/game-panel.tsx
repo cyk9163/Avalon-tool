@@ -109,6 +109,7 @@ export function GamePanel({ room, busy, connected, error, act, onNewGame }: Prop
     <div className="game-topline">
       <div className="game-workspace-title"><span className="game-kicker">THE ROUND TABLE</span><strong>{t("圆桌议事")} <span>{t("第 {n} 局", { n: room.round })}</span></strong></div>
       <div className="game-topline-actions">
+        {leader && room.phase !== "finished" && <span className="you-are-leader"><Crown size={15} aria-hidden="true" />{t("队长")}</span>}
         <EarlyAssassination room={room} busy={busy} connected={connected} act={act} />
         {room.phase !== "team" && <span className={`game-phase-chip ${room.phase === "assassination" ? "danger" : ""}`}><stage.Icon size={15} aria-hidden="true" />{stage.label}</span>}
       </div>
