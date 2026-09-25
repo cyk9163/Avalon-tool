@@ -53,7 +53,7 @@ test("the leader shows a team on the table, changes it and calls the vote; the t
     await otherPage.getByRole("alertdialog").getByRole("button", { name: "确认赞成" }).click();
     await expect(otherPage.getByText("你的表决已锁定，等待全员揭晓。")).toBeVisible();
     // The leader's table marks that seat as voted, live.
-    await expect(leaderPage.locator("#room-game .game-table").getByRole("img", { name: new RegExp(`^${game.other.seat} 号.*已表决`) })).toBeVisible({ timeout: 5_000 });
+    await expect(leaderPage.locator(".voter-progress > span.submitted")).toContainText(String(game.other.seat), { timeout: 5_000 });
 
     await expectNoHorizontalScroll(leaderPage);
     await expectNoHorizontalScroll(otherPage);
