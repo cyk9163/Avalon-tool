@@ -116,6 +116,8 @@
 :root[data-theme="light"] .member-status.done { color: #3a5f43; }
 :root[data-theme="light"] .identity-seat { color: #3c3e26; border: 1px solid #bfc4bc; }
 :root[data-theme="light"] .identity-surface { border: 1px solid #c0c2b9; background: radial-gradient(ellipse at 50% 20%,#d6ddd42e,transparent 80%),#e9f0f0; scrollbar-color: #bbc3be transparent; }
+:root[data-theme="light"] button.reveal-caption { border: 0; background: transparent; }
+:root[data-theme="light"] .identity-surface.revealed .reveal-caption { background: #e9f0f0; }
 :root[data-theme="light"] .reveal-caption { color: #2c2715; }
 :root[data-theme="light"] .sealed { color: #65531b; }
 :root[data-theme="light"] .sealed-mark { border: 1px solid #a2946970; box-shadow: 0 0 0 8px #6b510f04,0 0 0 9px #6b510f0b; background: #6b510f04; }

@@ -176,6 +176,8 @@ export const HOME: Record<string, string> = {
   "秘密只有你知道。": "Only you know your secret.",
   "查看前，留意身边的目光。": "Check who's looking before you peek.",
   "按住查看，松开隐藏": "Hold to reveal, release to hide",
+  "点击查看": "Tap to show",
+  "点击隐藏": "Tap to hide",
   "我已确认身份": "Role confirmed",
   "我记住了，确认身份": "Got it, confirm my role",
   "切到后台时，身份会自动隐藏。": "Your role hides automatically when you switch away.",

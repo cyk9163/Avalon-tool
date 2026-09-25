@@ -307,7 +307,10 @@ legend { font-size: 14px; margin-bottom: 11px; color: #354e40; }
 .identity-heading .eyebrow { font-size: 10px; letter-spacing: 1px; gap: 7px; }
 .identity-seat { font-size: 12px; color: #c2c5a8; border: 1px solid #546149; border-radius: 5px; padding: 3px 9px; white-space: nowrap; }
 /* A fixed surface keeps the hold-to-reveal button still while its content changes. */
-.identity-surface { height: 368px; min-height: 368px; overflow-y: auto; display: flex; flex-direction: column; padding: 16px 23px 23px; border: 1px solid #5b6246; border-radius: 13px; margin: 21px 0 15px; background: radial-gradient(ellipse at 50% 20%,#293d252e,transparent 80%),#0e2021; scrollbar-width: thin; scrollbar-color: #4c6555 transparent; touch-action: none; user-select: none; cursor: pointer; }
+.identity-surface { height: 368px; min-height: 368px; overflow-y: auto; display: flex; flex-direction: column; padding: 16px 23px 23px; border: 1px solid #5b6246; border-radius: 13px; margin: 21px 0 15px; background: radial-gradient(ellipse at 50% 20%,#293d252e,transparent 80%),#0e2021; scrollbar-width: thin; scrollbar-color: #4c6555 transparent; touch-action: manipulation; user-select: none; }
+.identity-surface.revealed { touch-action: pan-y; overflow-y: auto; -webkit-overflow-scrolling: touch; cursor: default; }
+button.reveal-caption { width: 100%; border: 0; background: transparent; font: inherit; cursor: pointer; }
+.identity-surface.revealed .reveal-caption { position: sticky; top: 0; z-index: 1; background: #0e2021; }
 .reveal-caption { display: flex; align-items: center; justify-content: center; gap: 8px; flex-shrink: 0; margin: 0 0 8px; color: #e9e2cb; font-size: 14px; }
 .sealed { flex: 1; height: auto; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 17px; color: #cfbd8a; }
 .sealed-mark { display: grid; place-items: center; width: 83px; height: 83px; border-radius: 50%; border: 1px solid #86784e70; box-shadow: 0 0 0 8px #dbc18a04,0 0 0 9px #dbc18a0b; margin: 4px 0 11px; background: #dbc18a04; }

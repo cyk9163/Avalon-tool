@@ -62,30 +62,19 @@ test("the leader shows a team on the table, changes it and calls the vote; the t
   }
 });
 
-test("the identity card shows only while held and hides when the app loses focus", async ({ browser }) => {
+test("the identity card toggles open and hides when the app loses focus", async ({ browser }) => {
   const game = await startedGame(browser);
   try {
     const page = await game.other.open(game.code);
     await page.getByRole("button", { name: "身份牌" }).click();
     const surface = page.locator(".identity-surface");
-    const reveal = page.locator(".reveal-button");
-    await reveal.scrollIntoViewIfNeeded();
+    const reveal = surface.getByRole("button", { name: "点击查看" });
     await expect(surface).not.toHaveClass(/revealed/);
-
-    const box = (await reveal.boundingBox())!;
-    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
-    await page.mouse.down();
+    await reveal.click();
     await expect(surface).toHaveClass(/revealed/);
     await expect(surface.locator(".side-label")).toBeVisible();
-    await page.mouse.up();
-    await expect(surface).not.toHaveClass(/revealed/);
-
-    // Switching apps (window blur) hides it even while the finger is still down.
-    await page.mouse.down();
-    await expect(surface).toHaveClass(/revealed/);
     await page.evaluate(() => window.dispatchEvent(new Event("blur")));
     await expect(surface).not.toHaveClass(/revealed/);
-    await page.mouse.up();
   } finally {
     await game.close();
   }
