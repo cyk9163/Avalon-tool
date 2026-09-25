@@ -250,7 +250,11 @@
 .is-lobby .live-table { max-width: none; width: min(100cqw, 100cqh); }
 .is-lobby .table-slot { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; container-type: size; overflow: hidden; }
 .is-lobby .table-slot .roundtable { width: min(100cqw, 100cqh); max-width: 100%; max-height: 100%; height: auto; margin: 0; }
-.is-lobby .lobby-ready, .is-lobby .text-fold, .is-lobby .table-caption, .is-lobby .membership-notice { flex-shrink: 0; }
+.is-lobby .lobby-ready, .is-lobby .text-fold, .is-lobby .table-caption, .is-lobby .membership-notice, .is-lobby .lobby-join { flex-shrink: 0; }
+.is-lobby .lobby-join { margin: 0 0 8px; }
+.is-lobby .lobby-join .field { margin: 0; }
+.is-lobby .lobby-join .action-note { margin: 8px 0 0; }
+.is-lobby .table-slot { min-height: 220px; flex: 1 0 220px; }
 html:has(.is-lobby), html:has(.is-notes), html:has(.is-identity), html:has(.is-play),
 body:has(.is-lobby), body:has(.is-notes), body:has(.is-identity), body:has(.is-play) { height: 100%; overflow: hidden; overscroll-behavior: none; }
 .app-shell:has(.is-notes) { height: 100dvh; overflow: hidden; display: flex; flex-direction: column; }
