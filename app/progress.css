@@ -280,8 +280,8 @@ body:has(.is-lobby), body:has(.is-notes), body:has(.is-identity), body:has(.is-p
 .is-play { flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; padding-top: 8px; padding-bottom: 8px; }
 .is-play .room-panel-nav, .is-play .room-progress, .is-play .action-dock, .is-play .connection-banner, .is-play .membership-notice { flex-shrink: 0; }
 .is-play .room-fit, .is-play .room-fit > div:not([hidden]) { flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
-.is-play .game-panel { flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; margin: 0; padding: 12px; }
-.is-play .game-topline, .is-play .game-score, .is-play .quest-context, .is-play .speech-bar, .is-play .proposed-team, .is-play .teammate-line { flex-shrink: 0; }
+.is-play .game-panel { flex: 1; min-height: 0; overflow: auto; display: flex; flex-direction: column; margin: 0; padding: 12px; }
+.is-play .game-topline, .is-play .game-score, .is-play .quest-context, .is-play .speech-bar, .is-play .proposed-team, .is-play .teammate-line, .is-play .game-history { flex-shrink: 0; }
 .is-play .phase-finished.game-panel { overflow: auto; padding-bottom: calc(28px + env(safe-area-inset-bottom)); }
 .is-play .phase-finished.game-panel > * { flex-shrink: 0; }
 .is-play .game-table-wrap { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; container-type: size; margin: 0; overflow: hidden; padding-block: 4px; box-sizing: border-box; }
