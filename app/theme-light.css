@@ -181,6 +181,8 @@
 :root[data-theme="light"] .game-score-side { border: 1px solid #cbd5d4; background: #2f604f06; color: #2f604f; }
 :root[data-theme="light"] .game-score-side > strong > small { color: #50635f; }
 :root[data-theme="light"] .game-score-side.evil { color: #804039; border-color: #d9d1d0; background: #80403906; }
+:root[data-theme="light"] .teammate-line { color: #804039; }
+:root[data-theme="light"] .teammate-line b { color: #211e17; }
 :root[data-theme="light"] .score-dots i { border: 1px solid currentColor; }
 :root[data-theme="light"] .score-dots i.filled { background: currentColor; }
 :root[data-theme="light"] .quest-track li { border: 1px solid #d1d9da; background: #eaf0f2; color: #435754; }

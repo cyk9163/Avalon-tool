@@ -82,6 +82,9 @@ export function GamePanel({ room, busy, connected, error, act, onNewGame }: Prop
   const seatName = (seat: number) => t("{n} 号 · {name}", { n: seat, name: playerName(seat) });
 
   if (!game) return null;
+  const teammates = Object.entries(clue.locked)
+    .map(([seat, mark]) => ({ seat: Number(seat), role: mark.role }))
+    .filter((item): item is { seat: number; role: Role } => !!item.role && item.seat !== me?.seat);
 
   const leader = me?.seat === game.leaderSeat;
   const onTeam = !!me && game.team.includes(me.seat);
@@ -120,6 +123,7 @@ export function GamePanel({ room, busy, connected, error, act, onNewGame }: Prop
       <div className="game-score-side good"><Shield size={19} aria-hidden="true" /><span>{t("正义任务")}</span><div className="score-dots" aria-hidden="true">{[1, 2, 3].map(point => <i key={point} className={point <= goodWins ? "filled" : ""} />)}</div><strong>{goodWins}<small>/ 3</small></strong></div>
       <div className="game-score-side evil"><Swords size={19} aria-hidden="true" /><span>{t("邪恶任务")}</span><div className="score-dots" aria-hidden="true">{[1, 2, 3].map(point => <i key={point} className={point <= evilWins ? "filled" : ""} />)}</div><strong>{evilWins}<small>/ 3</small></strong></div>
     </div>
+    {teammates.length > 0 && <p className="teammate-line"><span>{t("你的队友")}</span>{teammates.map(item => <b key={item.seat}>{t("{n} 号", { n: item.seat })} · {t(ROLES[item.role].name)}</b>)}</p>}
     {room.phase === "team" && <div className="game-table-wrap">
       <GameTable room={room} game={game} selection={selection} onToggle={room.phase === "team" && leader && !blocked ? toggleSeat : undefined} marks={marks} lockedSeats={Object.keys(clue.locked).map(Number)} evilSeats={clue.merlinSeats} onMark={room.meId && !blocked ? (seat, mark) => { if (markChangeAllowed(seat, mark, clue)) setMark(seat, mark); } : undefined} center={room.phase === "team" && leader && selection.length > 0 ? <div className="table-center-actions">
         <button type="button" className="secondary-button" disabled={blocked || !draftChanged} onClick={() => void act("draft", { turnId: game.turnId, team: selection })}><Eye size={16} aria-hidden="true" />{drafted ? t("改车") : t("亮车")}</button>

@@ -22,6 +22,8 @@
 .game-score-side > strong { display: flex; align-items: baseline; gap: 7px; font-size: 27px; line-height: 1; font-weight: 500; font-variant-numeric: tabular-nums; }
 .game-score-side > strong > small { font-size: 12px; color: #899e99; font-weight: 400; }
 .game-score-side.evil { color: #e9a59c; border-color: #513c3b; background: #e9a59c06; }
+.teammate-line { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 0 0 10px; color: #e9a59c; font-size: 13px; line-height: 1.4; }
+.teammate-line b { font-weight: 650; color: #f4f0e6; }
 .score-dots { display: flex; justify-content: flex-end; gap: 5px; margin-right: 6px; }
 .score-dots i { width: 7px; height: 7px; border: 1px solid currentColor; border-radius: 50%; opacity: .25; }
 .score-dots i.filled { background: currentColor; opacity: .9; }

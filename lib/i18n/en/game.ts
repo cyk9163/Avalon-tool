@@ -145,6 +145,7 @@ export const GAME: Record<string, string> = {
   "确定清空发言准备和头像上的标记？": "Clear your speaking notes and the marks on the avatars?",
   "好人": "Good",
   "坏人": "Evil",
+  "你的队友": "Your teammates",
   "未知": "Unknown",
   "编辑": "Edit",
   "完成": "Done",
