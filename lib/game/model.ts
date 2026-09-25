@@ -76,6 +76,8 @@ export interface Player {
   // Server-only one-time code that moves this seat to a new device. Rooms
   // created before v0.8 have none. Rotated after every successful recovery.
   recovery?: string;
+  // Set when this seat was taken by a signed-in account. Never sent to clients.
+  accountId?: string;
 }
 export interface TakeoverRequest {
   id: string;
@@ -151,6 +153,8 @@ export interface GameState {
   speech?: { turnId: string; index: number; startedAt: number };
   // Soft per-speaker timer in seconds (0 = off), kept across turns.
   speechSeconds?: number;
+  // Same-side MVP ballots after the game. accountId stays on the server.
+  mvpVotes?: { accountId: string; seat: number; side: "good" | "evil" }[];
 }
 export type LoyaltyCard = "keep" | "switch";
 export interface GameView {
@@ -182,6 +186,7 @@ export interface GameView {
   // Who played which quest card. Secret during play; after the game ends it is
   // shown to this game's members only, alongside the full role reveal (v1.5).
   questCards: { quest: number; cards: { seat: number; card: QuestCard }[] }[] | null;
+  mvp: { myVote: number | null; tally: { side: "good" | "evil"; seat: number; votes: number }[]; winners: { side: "good" | "evil"; seat: number | null }[] } | null;
 }
 export interface Room {
   code: string;

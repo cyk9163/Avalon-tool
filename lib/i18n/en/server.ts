@@ -1,5 +1,10 @@
 // English entries keyed by the Chinese source text (server).
 export const SERVER: Record<string, string> = {
+  "本局还没结束。": "This game has not ended yet.",
+  "登录后才能给己方投票。": "Sign in before voting for your side.",
+  "这一局没有你的身份。": "You have no role in this game.",
+  "请选择本局的一位玩家。": "Choose a player from this game.",
+  "只能投给己方的玩家。": "You can only vote for someone on your side.",
   "发言进度无效，请刷新后重试。": "Invalid speaking turn. Refresh and try again.",
   "只有正在发言的玩家、队长或房主可以轮到下一位。": "Only the current speaker, the leader or the host can pass the floor on.",
   "只有队长或房主可以重新开始发言。": "Only the leader or the host can restart the speaking round.",

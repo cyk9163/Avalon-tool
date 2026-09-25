@@ -16,6 +16,7 @@ import { GameTable } from "@/components/game-table";
 import { SpeechBar } from "@/components/speech-bar";
 import { VoteMatrix } from "@/components/vote-matrix";
 import { clueMarks, markChangeAllowed, usePlayerNotes, visibleMarks } from "@/lib/player-notes";
+import { MvpVote } from "@/components/mvp-vote";
 import { msg } from "@/lib/i18n/core";
 import { useI18n } from "@/lib/i18n/react";
 
@@ -182,6 +183,7 @@ export function GamePanel({ room, busy, connected, error, act, onNewGame }: Prop
       {game.revealedRoles && <HighlightList game={game} playerName={playerName} />}
       {game.revealedRoles && <div className="result-identity-list"><h3>{t("此刻，身份揭晓。")}</h3><div className="revealed-roles">{game.revealedRoles.map(player => <div key={player.seat}><span className="member-seat">{player.seat}</span><span>{playerName(player.seat)}</span><strong className={finalSide(player.role)}>{finalSide(player.role) === "good" ? <Shield size={13} aria-hidden="true" /> : <Swords size={13} aria-hidden="true" />}<RoleInfoButton role={player.role} className="revealed-role-name" />{finalSide(player.role) !== ROLES[player.role].side && <small>{finalSide(player.role) === "good" ? t("（最终属于正义）") : t("（最终属于邪恶）")}</small>}</strong></div>)}</div></div>}
       {!me && <p className="action-note">{t("完整身份仅向本局成员揭晓。")}</p>}
+      <MvpVote room={room} busy={busy} act={act} />
       <ReplayTimeline room={room} />
       <div className="rematch-actions">{me?.id === room.hostId ? <button className="primary-button" disabled={blocked} onClick={() => setPending({ action: "rematch", input: { round: room.round }, title: t("同房再来一局？"), description: t("保留房间码、玩家和座位，清除本局身份与全部投票记录。请先完成复盘；重开后所有人重新准备、重新发身份。房间仍在创建 24 小时后过期。"), label: t("确认重开") })}><RotateCcw size={17} />{t("同房再来一局")}</button> : me && <p className="waiting-note" role="status">{t("复盘完成后，可以请房主开启同房新一局。")}</p>}
       <button className="secondary-button" onClick={onNewGame}>{t("返回首页")}<ArrowRight size={16} /></button></div>

@@ -1,5 +1,6 @@
 import {env} from "cloudflare:workers";
 import {GameError,roomView} from "@/lib/game";
+import {readAccount} from "@/lib/account";
 import {verifyHostKey} from "@/lib/host-key";
 import {log,newRequestId,roomRef} from "@/lib/log";
 import {getRoom,createRoom,changeRoom,rateLimit,rateLimited} from "@/lib/room-store";
@@ -72,11 +73,16 @@ export async function POST(request:Request){
     const current=token(request);if(!current)throw new GameError("请刷新页面后重试，并允许本站 Cookie。",401);
     const key=await hash(current);await rateLimit(`write:${key}`,90,60000);
     const ip=await ipKey(request);if(ip)await rateLimit(`write-ip:${ip}`,600,60000);
+    delete input.accountId;
+    const account=await readAccount(request);
+    if(account)input.accountId=account.id;
     if(input.action==="create"){
       const {hostKey,...creation}=input;
-      const verified=await verifyHostKey(hostKey,env.HOST_KEY_HASHES);
-      if(verified===null)throw new GameError("房主 Key 服务尚未配置，请联系管理员。",503);
-      if(!verified)throw new GameError("房主 Key 无效，请检查后重试。",403);
+      if(!account?.canHost){
+        const verified=await verifyHostKey(hostKey,env.HOST_KEY_HASHES);
+        if(verified===null)throw new GameError("房主 Key 服务尚未配置，请联系管理员。",503);
+        if(!verified)throw new GameError("房主 Key 无效，请检查后重试。",403);
+      }
       const created=await createRoom(key,creation);code=created.code;
       result=response(requestId,created);
     }else{

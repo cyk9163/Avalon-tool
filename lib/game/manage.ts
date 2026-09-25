@@ -1,7 +1,7 @@
 import { gameAction } from "./play.ts";
 import {
   GameError, MAX_RECOVERY_RECORDS, MAX_TAKEOVERS, MAX_TAKEOVERS_PER_SEAT, TAKEOVER_WAIT_MS,
-  activeTakeovers, newInviteToken, newRecoveryCode, nickname, normalizeRecoveryCode, randomInt, roomRoles, sameSecret, shuffle,
+  activeTakeovers, currentSide, newInviteToken, newRecoveryCode, nickname, normalizeRecoveryCode, randomInt, roomRoles, sameSecret, shuffle,
 } from "./model.ts";
 import type { Player, Room } from "./model.ts";
 
@@ -268,6 +268,8 @@ function deviceRecovery(room: Room, me: Player | undefined, key: string, action:
 
 export function mutateRoom(room: Room, key: string, action: string, input: Record<string, unknown>): void {
   const me = room.players.find(player => player.key === key);
+  const accountId = typeof input.accountId === "string" && /^[a-f0-9]{32}$/.test(input.accountId) ? input.accountId : undefined;
+  if (me && accountId) me.accountId = accountId;
   if (["recover", "takeover-request", "takeover-cancel", "takeover-reject", "takeover-approve", "takeover-deny"].includes(action)) {
     deviceRecovery(room, me, key, action, input);
     return;
@@ -293,11 +295,25 @@ export function mutateRoom(room: Room, key: string, action: string, input: Recor
     if (room.players.some(player => player.seat === seat)) throw new GameError("这个座位刚被占用，请换一个。 ");
     if (room.players.length >= room.capacity) throw new GameError("房间已满。 ");
     room.players.push({ id: crypto.randomUUID(), key, name, seat, ready: false, confirmed: false,
-      ...(room.schemaVersion ? { recovery: newRecoveryCode() } : {}) });
+      ...(room.schemaVersion ? { recovery: newRecoveryCode() } : {}),
+      ...(accountId ? { accountId } : {}) });
     room.takeovers = (room.takeovers ?? []).filter(request => request.key !== key);
     return;
   }
   if (!me) throw new GameError("请先加入房间。", 403);
+  if (action === "mvp") {
+    if (room.phase !== "finished" || !room.game?.result) throw new GameError("本局还没结束。", 403);
+    if (!me.accountId) throw new GameError("登录后才能给己方投票。", 403);
+    if (!me.role) throw new GameError("这一局没有你的身份。", 403);
+    const target = Number(input.seat);
+    const targetPlayer = room.players.find(player => player.seat === target);
+    if (!targetPlayer?.role || !Number.isInteger(target)) throw new GameError("请选择本局的一位玩家。", 400);
+    const side = currentSide(room, me);
+    if (currentSide(room, targetPlayer) !== side) throw new GameError("只能投给己方的玩家。", 403);
+    const votes = room.game.mvpVotes ?? [];
+    room.game.mvpVotes = [...votes.filter(vote => vote.accountId !== me.accountId), { accountId: me.accountId, seat: target, side }];
+    return;
+  }
   if (["begin", "propose", "draft", "speech", "vote", "quest", "lake-check", "assassinate"].includes(action)) {
     gameAction(room, me, action, input);
     return;

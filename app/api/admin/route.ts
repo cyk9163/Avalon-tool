@@ -5,6 +5,7 @@ import {GameError} from "@/lib/game";
 import {log,newRequestId} from "@/lib/log";
 import {ipKey} from "@/lib/request-context";
 import {rateLimit,rateLimited} from "@/lib/room-store";
+import {setHostRight} from "@/lib/account";
 import {APP_VERSION} from "@/lib/version";
 export const dynamic="force-dynamic";
 // Wrong admin keys per network: ten tries per ten minutes.
@@ -39,5 +40,23 @@ export async function GET(request:Request){
     if(error instanceof GameError){status=error.status;log(status>=500?"error":"warn","admin.stats",{requestId,status,durationMs:Date.now()-started});return response(requestId,{error:error.message},status);}
     log("error","admin.unexpected",{requestId,reason:error instanceof Error?error.message:"unknown"});
     return response(requestId,{error:`管理后台暂时不可用。（错误编号 ${requestId.slice(0,8)}）`},503);
+  }
+}
+
+export async function POST(request: Request) {
+  const requestId = newRequestId();
+  try {
+    const origin = request.headers.get("origin");
+    if ((origin && origin !== new URL(request.url).origin) || request.headers.get("sec-fetch-site") === "cross-site") throw new GameError("请从管理页面访问。", 403);
+    const typed = request.headers.get(ADMIN_HEADER);
+    const verified = await verifyAdminKey(typed, env.ADMIN_KEY_HASHES);
+    if (!verified) throw new GameError("管理员 Key 无效。", 403);
+    const body = await request.json() as { name?: unknown; canHost?: unknown };
+    await setHostRight(body.name, body.canHost === true);
+    log("info", "admin.host", { requestId, status: 200 });
+    return response(requestId, { ok: true });
+  } catch (error) {
+    const message = error instanceof GameError ? error.message : "管理后台暂时不可用。";
+    return response(requestId, { error: message }, error instanceof GameError ? error.status : 503);
   }
 }

@@ -1,7 +1,8 @@
 import {
-  DEFAULT_SPEECH_SECONDS, TAKEOVER_WAIT_MS, activeTakeovers, allowedQuestCards, failsRequired, identityFor,
+  DEFAULT_SPEECH_SECONDS, TAKEOVER_WAIT_MS, activeTakeovers, allowedQuestCards, currentSide, failsRequired, identityFor,
   lancelotsSwitched, roomRoles, sameSecret, speakingOrder, teamSize,
 } from "./model.ts";
+import { mvpSeat } from "../mvp.ts";
 import type { GameView, Player, Role, Room, RoomView } from "./model.ts";
 
 /**
@@ -74,6 +75,15 @@ function gameView(room: Room, me: Player | null): GameView | null {
         cards: (game.questReceipts[index]?.votes ?? []).map(({ seat, card }) => ({ seat, card })).sort((a, b) => a.seat - b.seat),
       }))
       : null,
+    mvp: me && room.phase === "finished" ? {
+      myVote: (game.mvpVotes ?? []).find(vote => vote.accountId === me.accountId)?.seat ?? null,
+      tally: ["good", "evil"].flatMap(side => {
+        const counts = new Map<number, number>();
+        for (const vote of game.mvpVotes ?? []) if (vote.side === side) counts.set(vote.seat, (counts.get(vote.seat) ?? 0) + 1);
+        return [...counts.entries()].map(([seat, votes]) => ({ side: side as "good" | "evil", seat, votes }));
+      }),
+      winners: (["good", "evil"] as const).map(side => ({ side, seat: mvpSeat(game.mvpVotes ?? [], side) })),
+    } : null,
   };
 }
 

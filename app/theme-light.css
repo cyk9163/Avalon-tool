@@ -168,6 +168,13 @@
 @container (max-width: 340px) {
   :root[data-theme="light"] .live-table .seat-circle { box-shadow: 0 0 0 4px #e5ecea; }
 }
+:root[data-theme="light"] .account-profile { background: var(--background); }
+:root[data-theme="light"] .account-mode button, :root[data-theme="light"] .account-tabs button { border: 1px solid #cad2d0; background: transparent; color: #2a3632; }
+:root[data-theme="light"] .account-mode button.active, :root[data-theme="light"] .account-tabs button.active { background: #6b510f; color: #f6f3ee; border-color: #6b510f; }
+:root[data-theme="light"] .account-tabs { background: #f0f4f6f2; }
+:root[data-theme="light"] .mvp-vote { border: 1px solid #cad2d0; }
+:root[data-theme="light"] .mvp-choices button { border: 1px solid #cad2d0; background: transparent; color: inherit; }
+:root[data-theme="light"] .mvp-choices button.selected { border-color: #6b510f; color: #6b510f; }
 /* from app/game.css */
 :root[data-theme="light"] .game-panel {
   border: 1px solid #d1d9da;

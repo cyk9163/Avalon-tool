@@ -169,6 +169,12 @@ export default function AdminPage() {
           </div>
         </div>
       )}
+      {stats && <form className="admin-card" onSubmit={event => { event.preventDefault(); const form = event.currentTarget; const target = new FormData(form).get("name"); void fetch("/api/admin", { method: "POST", headers: { "content-type": "application/json", "x-admin-key": authorized.current }, body: JSON.stringify({ name: target, canHost: true }) }).then(async response => { const data = await response.json() as { error?: string }; if (!response.ok) setError(data.error ?? t("没有这个账号。")); else setError(t("已开通开房")); }); }}>
+        <h2>{t("开通开房")}</h2>
+        <label className="field">{t("账号名")}<input name="name" required /></label>
+        <button className="primary-button" type="submit">{t("允许这个账号开房")}</button>
+        {error && <p role="alert">{error}</p>}
+      </form>}
     </main>
   );
 }
