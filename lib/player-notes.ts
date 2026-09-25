@@ -83,8 +83,8 @@ const EMPTY: PlayerNotes = { marks: {}, notes: {}, draft: "" };
 const cache = new Map<string, PlayerNotes>();
 const listeners = new Set<() => void>();
 
-export function notesKey(code: string, round: number): string {
-  return `${PREFIX}${code}:${round}`;
+export function notesKey(code: string, round: number, playerId = ""): string {
+  return `${PREFIX}${code}:${round}:${playerId}`;
 }
 
 /** Keeps only well-formed seats, sides, roles and notes. */
@@ -143,9 +143,9 @@ function subscribe(listener: () => void) {
   return () => { listeners.delete(listener); window.removeEventListener("storage", onStorage); };
 }
 
-/** Notes for one room and game, shared live by every component that shows them. */
-export function usePlayerNotes(code: string, round: number, roles: readonly Role[]) {
-  const key = notesKey(code, round);
+/** Notes for one player in one room and game. Each person has a separate sheet on this device. */
+export function usePlayerNotes(code: string, round: number, roles: readonly Role[], playerId = "") {
+  const key = notesKey(code, round, playerId);
   const notes = useSyncExternalStore(subscribe, () => read(key, roles), () => EMPTY);
   const setMark = useCallback((seat: number, mark: Mark | null) => {
     const current = read(key, roles);

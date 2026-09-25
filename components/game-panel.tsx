@@ -57,7 +57,7 @@ function LeaderOrder({ room, game }: { room: RoomView; game: GameView }) {
 
 export function GamePanel({ room, busy, connected, error, act, onNewGame }: Props) {
   const { t, ts } = useI18n();
-  const { notes, setMark } = usePlayerNotes(room.code, room.round, room.roles);
+  const { notes, setMark } = usePlayerNotes(room.code, room.round, room.roles, room.meId ?? "");
   const { remember } = usePersonalRecord();
   const [selection, setSelection] = useState<number[]>(() => room.game?.draftTeam ?? []);
   const [target, setTarget] = useState<number | null>(null);

@@ -16,7 +16,7 @@ export function EarlyAssassination({ room, busy, connected, act }: {
   act: (action: string, input?: Record<string, unknown>) => Promise<RoomView | null>;
 }) {
   const { t } = useI18n();
-  const { notes } = usePlayerNotes(room.code, room.round, room.roles);
+  const { notes } = usePlayerNotes(room.code, room.round, room.roles, room.meId ?? "");
   const marks = visibleMarks(notes.marks, clueMarks(room.identity));
   const [open, setOpen] = useState(false), [target, setTarget] = useState<number | null>(null), [confirming, setConfirming] = useState(false);
   // Leaving the page closes the dialog and forgets the choice.

@@ -13,9 +13,10 @@ test("each mark is a single distinct character", () => {
   assert.equal(markGlyph({role: "merlin", side: "good"}), "梅");
 });
 
-test("notes are kept per room and per game", () => {
-  assert.equal(notesKey("123456", 1), "avalon:notes:123456:1");
-  assert.notEqual(notesKey("123456", 1), notesKey("123456", 2), "a rematch gets a fresh sheet");
+test("notes are kept per room, per game, and per player", () => {
+  assert.equal(notesKey("123456", 1, "alice"), "avalon:notes:123456:1:alice");
+  assert.notEqual(notesKey("123456", 1, "alice"), notesKey("123456", 2, "alice"), "a rematch gets a fresh sheet");
+  assert.notEqual(notesKey("123456", 1, "alice"), notesKey("123456", 1, "bob"), "another player cannot read these marks");
 });
 
 test("stored notes are cleaned: only real seats, sides, roles on this board and trimmed text survive", () => {

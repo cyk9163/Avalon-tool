@@ -18,7 +18,7 @@ export function MarkTag({ mark }: { mark?: Mark }) {
 /** My private marks and notes for this room and game (this device only). */
 export function PlayerNotesPanel({ room }: { room: RoomView }) {
   const { t } = useI18n();
-  const { notes, setDraft, clear } = usePlayerNotes(room.code, room.round, room.roles);
+  const { notes, setDraft, clear } = usePlayerNotes(room.code, room.round, room.roles, room.meId ?? "");
   const [confirmClear, setConfirmClear] = useState(false);
   const [editing, setEditing] = useState(false);
   const draftRef = useRef<HTMLTextAreaElement>(null);
