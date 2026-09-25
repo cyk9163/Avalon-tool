@@ -1,4 +1,5 @@
-import { accountCookie, loginAccount, logoutAccount, readAccount, registerAccount } from "@/lib/account";
+import { accountCookie, loginAccount, logoutAccount, readAccount, registerAccount, setAccountTitle } from "@/lib/account";
+import { isAchievementId } from "@/lib/achievements";
 import { GameError } from "@/lib/game";
 import { newRequestId } from "@/lib/log";
 import { env } from "cloudflare:workers";
@@ -40,9 +41,11 @@ export async function GET(request: Request) {
       if (victory) role.won += 1;
       byRole.set(row.role, role);
     }
+    const unlocked = await env.DB.prepare("SELECT achievement_id as id FROM account_achievements WHERE account_id = ? ORDER BY unlocked_at").bind(account.id).all<{ id: string }>();
     return json({
       account,
       games: rows,
+      achievements: (unlocked.results ?? []).map(row => row.id),
       stats: { total: rows.length, won, mvp, bySide, byRole: [...byRole.entries()].map(([role, count]) => ({ role, ...count })) },
     });
   } catch (error) {
@@ -56,6 +59,13 @@ export async function POST(request: Request) {
   const secure = new URL(request.url).protocol === "https:";
   try {
     const body = await request.json() as Record<string, unknown>;
+    if (body.action === "title") {
+      const account = await readAccount(request);
+      if (!account) throw new GameError("请先登录。", 401);
+      if (typeof body.title !== "string" || !isAchievementId(body.title)) throw new GameError("没有这个成就。", 400);
+      await setAccountTitle(account.id, body.title);
+      return json({ account: { ...account, title: body.title } });
+    }
     if (body.action === "logout") {
       await logoutAccount(request);
       return json({ account: null }, 200, accountCookie("", secure, true));

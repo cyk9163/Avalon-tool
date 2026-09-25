@@ -215,4 +215,7 @@ export const SERVER: Record<string, string> = {
   "管理员 Key 无效。": "Invalid admin key.",
   "数据库暂时不可用。": "The database is temporarily unavailable.",
   "管理后台暂时不可用。（错误编号 {0}）": "The admin dashboard is temporarily unavailable. (Error ID {0})",
+  "请先登录。": "Please log in first.",
+  "没有这个成就。": "There is no such achievement.",
+  "还没有解锁这个成就。": "You have not unlocked this achievement yet.",
 };

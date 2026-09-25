@@ -175,6 +175,9 @@
 :root[data-theme="light"] .mvp-vote { border: 1px solid #cad2d0; }
 :root[data-theme="light"] .mvp-choices button { border: 1px solid #cad2d0; background: transparent; color: inherit; }
 :root[data-theme="light"] .mvp-choices button.selected { border-color: #6b510f; color: #6b510f; }
+:root[data-theme="light"] .worn-title { color: #6b510f; }
+:root[data-theme="light"] .account-titles button { border: 1px solid #cad2d0; background: transparent; color: inherit; }
+:root[data-theme="light"] .account-titles button.selected { border-color: #6b510f; }
 /* from app/game.css */
 :root[data-theme="light"] .game-panel {
   border: 1px solid #d1d9da;

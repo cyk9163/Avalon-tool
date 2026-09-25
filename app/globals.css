@@ -517,3 +517,10 @@ html[lang="en"] .count-option span:empty { display: none; }
 .mvp-choices button { min-height: 44px; border-radius: 12px; border: 1px solid #344c46; background: transparent; color: inherit; padding: 8px 12px; }
 .mvp-choices button.selected { border-color: #dbc18a; color: #dbc18a; }
 .app-shell:has(.account-tabs) { padding-bottom: 80px; }
+.worn-title { margin: 0 0 4px; color: #dbc18a; letter-spacing: 0.14em; font-size: 13px; }
+.eyebrow .worn-title { letter-spacing: 0.18em; }
+.account-titles { list-style: none; padding: 0; display: grid; gap: 8px; }
+.account-titles button { width: 100%; text-align: left; border: 1px solid #344c46; border-radius: 12px; background: transparent; color: inherit; padding: 10px 12px; }
+.account-titles button.selected { border-color: #dbc18a; }
+.account-titles button:disabled { opacity: 0.45; }
+.account-titles span { display: block; font-size: 12px; opacity: 0.75; }

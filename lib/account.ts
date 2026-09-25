@@ -7,7 +7,7 @@ export const ACCOUNT_COOKIE = "avalon_account";
 const YEAR = 60 * 60 * 24 * 365;
 const PBKDF2_ITERATIONS = 10000;
 
-export type Account = { id: string; name: string; canHost: boolean };
+export type Account = { id: string; name: string; canHost: boolean; title: string | null };
 
 function db() {
   if (!env.DB) throw new GameError("账号服务暂时不可用，请稍后再试。", 503);
@@ -50,10 +50,10 @@ export async function readAccount(request: Request): Promise<Account | null> {
   if (!token) return null;
   const tokenHash = await hash(token);
   const row = await db().prepare(
-    "SELECT a.id, a.name, a.can_host as canHost FROM account_sessions s JOIN accounts a ON a.id = s.account_id WHERE s.token_hash = ? AND s.expires_at > ?",
-  ).bind(tokenHash, Date.now()).first<{ id: string; name: string; canHost: number }>();
+    "SELECT a.id, a.name, a.can_host as canHost, a.title as title FROM account_sessions s JOIN accounts a ON a.id = s.account_id WHERE s.token_hash = ? AND s.expires_at > ?",
+  ).bind(tokenHash, Date.now()).first<{ id: string; name: string; canHost: number; title: string | null }>();
   if (!row) return null;
-  return { id: row.id, name: row.name, canHost: row.canHost === 1 };
+  return { id: row.id, name: row.name, canHost: row.canHost === 1, title: row.title };
 }
 
 export async function registerAccount(nameInput: unknown, passwordInput: unknown): Promise<{ account: Account; token: string }> {
@@ -66,20 +66,20 @@ export async function registerAccount(nameInput: unknown, passwordInput: unknown
   const id = crypto.randomUUID().replace(/-/g, "");
   await db().prepare("INSERT INTO accounts (id, name, password_hash, can_host, created_at) VALUES (?, ?, ?, 0, ?)").bind(id, name, passwordHash, Date.now()).run();
   const token = await startSession(id);
-  return { account: { id, name, canHost: false }, token };
+  return { account: { id, name, canHost: false, title: null }, token };
 }
 
 export async function loginAccount(nameInput: unknown, passwordInput: unknown): Promise<{ account: Account; token: string }> {
   const name = nameOf(nameInput);
   const password = passwordOf(passwordInput);
-  const row = await db().prepare("SELECT id, name, password_hash, can_host as canHost FROM accounts WHERE name = ?").bind(name).first<{ id: string; name: string; password_hash: string; canHost: number }>();
+  const row = await db().prepare("SELECT id, name, password_hash, can_host as canHost, title FROM accounts WHERE name = ?").bind(name).first<{ id: string; name: string; password_hash: string; canHost: number; title: string | null }>();
   if (!row) throw new GameError("账号或密码不正确。", 403);
   const [saltHex, expected] = row.password_hash.split(":");
   if (!saltHex || !expected || saltHex.length !== 32) throw new GameError("账号或密码不正确。", 403);
   const salt = new Uint8Array(saltHex.match(/../g)!.map(byte => parseInt(byte, 16)));
   const actual = await derivePassword(password, salt);
   if (actual !== expected) throw new GameError("账号或密码不正确。", 403);
-  return { account: { id: row.id, name: row.name, canHost: row.canHost === 1 }, token: await startSession(row.id) };
+  return { account: { id: row.id, name: row.name, canHost: row.canHost === 1, title: row.title }, token: await startSession(row.id) };
 }
 
 async function startSession(accountId: string): Promise<string> {
@@ -93,6 +93,12 @@ export async function logoutAccount(request: Request): Promise<void> {
   const token = readAccountCookie(request);
   if (!token) return;
   await db().prepare("DELETE FROM account_sessions WHERE token_hash = ?").bind(await hash(token)).run();
+}
+
+export async function setAccountTitle(accountId: string, achievementId: string): Promise<void> {
+  const owned = await db().prepare("SELECT 1 as ok FROM account_achievements WHERE account_id = ? AND achievement_id = ?").bind(accountId, achievementId).first();
+  if (!owned) throw new GameError("还没有解锁这个成就。", 403);
+  await db().prepare("UPDATE accounts SET title = ? WHERE id = ?").bind(achievementId, accountId).run();
 }
 
 export async function setHostRight(nameInput: unknown, canHost: boolean): Promise<void> {
