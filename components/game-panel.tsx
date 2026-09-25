@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Eye, ArrowRight, Check, ChevronDown, CircleDashed, Crown, Flag, History, LockKeyhole, RotateCcw, Shield, Swords, ThumbsUp, Trophy, Users, Waves, X } from "lucide-react";
+import { Eye, ArrowRight, Check, ChevronDown, Crown, Flag, History, LockKeyhole, RotateCcw, Shield, Swords, ThumbsUp, Trophy, Users, Waves } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { ROLES, type GameView, type Role, type RoomView } from "@/lib/game";
 import { ReplayExport } from "@/components/replay-export";
@@ -123,18 +123,6 @@ export function GamePanel({ room, busy, connected, error, act, onNewGame }: Prop
       <GameTable room={room} game={game} selection={selection} onToggle={room.phase === "team" && leader && !blocked ? toggleSeat : undefined} marks={notes.marks} onMark={room.meId && !blocked ? (seat, mark) => setMark(seat, mark) : undefined} />
       <LeaderOrder room={room} game={game} />
     </div>}
-    <ol className="quest-track" aria-label={t("五次任务进度")}>
-      {[1, 2, 3, 4, 5].map(number => {
-        const quest = game.quests.find(item => item.quest === number);
-        const current = !quest && game.quest === number && room.phase !== "finished" && room.phase !== "assassination";
-        return <li key={number} className={`${quest ? quest.success ? "success" : "failure" : ""} ${current ? "current" : ""}`} aria-current={current ? "step" : undefined}>
-          <span className="quest-step-label">{t("任务 {n}", { n: number })}</span>
-          <span className="quest-step-symbol" aria-hidden="true">{quest ? quest.success ? <Check size={19} /> : <X size={19} /> : current ? <Flag size={18} /> : <CircleDashed size={19} />}</span>
-          <strong>{quest ? quest.success ? t("成功") : t("失败") : current ? t("当前") : t("待开始")}</strong>
-          {quest && <small>{t("{n} 张失败", { n: quest.failCount })}</small>}
-        </li>;
-      })}
-    </ol>
     <p className="quest-rule-note">{room.capacity >= 7 ? t("第 4 次任务需要 2 张失败牌才会失败，其余任务 1 张即失败。") : t("任务中出现 1 张失败牌，该次任务即失败。")}</p>
     {game.loyalty && <div className="loyalty-track" role="group" aria-label={t("兰斯洛特忠诚牌")}>
       <span className="loyalty-title">{t("兰斯洛特忠诚牌")}</span>
