@@ -272,6 +272,7 @@ body:has(.is-lobby), body:has(.is-notes), body:has(.is-identity), body:has(.is-p
 .is-identity .identity-card { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
 .is-identity .identity-heading, .is-identity .reveal-caption, .is-identity .action-note, .is-identity .ready-notice, .is-identity .room-record { flex-shrink: 0; }
 .is-identity .identity-surface { flex: 1; height: auto; min-height: 0; margin: 8px 0; overflow: auto; }
+.is-identity .identity-surface.revealed > * { flex-shrink: 0; }
 .is-identity .ready-notice { margin-top: 8px; padding-top: 8px; }
 .is-identity .room-record { max-height: 30%; overflow: auto; }
 .app-shell:has(.is-play) { height: 100dvh; overflow: hidden; display: flex; flex-direction: column; }
