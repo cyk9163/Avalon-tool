@@ -68,8 +68,8 @@ export function GameTable({ room, game, selection, onToggle, marks, onMark, repl
         const lake = replay ? replay.lakeSeat === seat : game.lake?.holderSeat === seat && room.phase !== "finished";
         const speaking = !replay && !!game.speech && game.speech.order[game.speech.index] === seat;
         const revealed = replay ? undefined : game.publicReveals.find(item => item.seat === seat);
-        const mark = mine || replay ? undefined : marks[seat];
         const locked = lockedSeats.includes(seat);
+        const mark = replay || (mine && !locked) ? undefined : marks[seat];
         const canMark = !!onMark && !replay && !mine && !!player && !locked;
         const disabled = !picking || (!team && (selection?.length ?? 0) >= game.teamSize);
         const label = [

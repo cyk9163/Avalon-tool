@@ -33,22 +33,21 @@ export type ClueMarks = { locked: Record<number, Mark>; merlinSeats: number[] };
 
 const ROLE_BY_NAME = new Map((Object.keys(ROLES) as Role[]).map(role => [ROLES[role].name, role]));
 
-/** Evil teammates are fixed role glyphs. Merlin's known evils start as 坏 and may become a specific evil role. */
-export function clueMarks(identity: ClueIdentity): ClueMarks {
+/** Evil teammates are fixed role glyphs. Your own role is fixed too. Merlin's known evils start as 坏 and may become a specific evil role. */
+export function clueMarks(identity: ClueIdentity, ownSeat?: number | null): ClueMarks {
   const locked: Record<number, Mark> = {};
   const merlinSeats: number[] = [];
   if (!identity) return { locked, merlinSeats };
   if (identity.role === "merlin") {
     for (const person of identity.known) if (person.label === "已知邪恶") merlinSeats.push(person.seat);
-    return { locked, merlinSeats };
-  }
-  if (ROLES[identity.role].side === "evil" && identity.role !== "oberon") {
+  } else if (ROLES[identity.role].side === "evil" && identity.role !== "oberon") {
     for (const person of identity.known) {
       const role = ROLE_BY_NAME.get(person.label);
       if (!role || ROLES[role].side !== "evil") continue;
       locked[person.seat] = { role, side: "evil" };
     }
   }
+  if (ownSeat) locked[ownSeat] = { role: identity.role, side: ROLES[identity.role].side };
   return { locked, merlinSeats };
 }
 

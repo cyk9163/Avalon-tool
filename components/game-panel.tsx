@@ -58,8 +58,6 @@ function LeaderOrder({ room, game }: { room: RoomView; game: GameView }) {
 export function GamePanel({ room, busy, connected, error, act, onNewGame }: Props) {
   const { t, ts } = useI18n();
   const { notes, setMark } = usePlayerNotes(room.code, room.round, room.roles);
-  const clue = clueMarks(room.identity);
-  const marks = visibleMarks(notes.marks, clue);
   const { remember } = usePersonalRecord();
   const [selection, setSelection] = useState<number[]>(() => room.game?.draftTeam ?? []);
   const [target, setTarget] = useState<number | null>(null);
@@ -67,6 +65,8 @@ export function GamePanel({ room, busy, connected, error, act, onNewGame }: Prop
   const blocked = busy || !connected;
   const feedback = !connected ? t("连接暂时中断，恢复后可以继续提交。") : ts(error);
   const me = room.players.find(player => player.id === room.meId);
+  const clue = clueMarks(room.identity, me?.seat);
+  const marks = visibleMarks(notes.marks, clue);
   const game = room.game;
 
   // One local row per finished game. Spectators have no revealed role, so they are skipped.
