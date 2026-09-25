@@ -15,7 +15,7 @@ function roomRules(room: RoomView): string[] {
   const roles = new Set(room.roles);
   const rules = [
     msg("身份随机发放。第一局队长随机，同一房间的下一局队长按座位顺延一位；一局之内仍按座位顺序轮换。"),
-    msg("组队表决严格过半才通过，平票算否决；同一任务连续五次否决，邪恶直接获胜。"),
+    msg("组队表决严格过半才通过，平票算否决。同一任务连续两次否决后，第三车不表决，直接执行任务。"),
   ];
   if (room.capacity >= 7) rules.push(msg("第 4 次任务需要 2 张失败牌才算失败。"));
   rules.push(room.evilSeesOberon

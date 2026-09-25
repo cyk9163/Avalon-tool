@@ -211,6 +211,7 @@ export const HOME: Record<string, string> = {
   "队长选队，全员表决。任务队员秘密提交任务票，只公布失败总数。": "The leader picks a team and everyone votes. Team members play quest cards in secret; only the number of fails is revealed.",
   "复盘，再来一局": "Recap, then play again",
   "刺客可以在对局中随时出刀一次，没出刀则在三次成功后刺杀；三次失败或连续五次否决，邪恶获胜。结束后可以复盘和同房重开。": "The Assassin may strike once at any point; if they haven't, the assassination comes after three successes. Three failed quests or five rejected teams in a row means Evil wins. Afterwards, review the recap and rematch in the same room.",
+  "刺客可以在对局中随时出刀一次，没出刀则在三次成功后刺杀；三次失败，邪恶获胜。同一任务连续两次否决后，第三车直接执行任务。结束后可以复盘和同房重开。": "The Assassin may strike once at any point; if they haven't, the assassination comes after three successes. Three failed quests means Evil wins. After two rejections on the same quest, the third team goes on the quest. Afterwards, review the recap and rematch in the same room.",
   "房主可在「房间管理」中移交权限、开局前移出玩家，或中止对局后调整人员。": "Under \"Room management\" the host can transfer hosting, remove players before the game, or abort a game to change the lineup.",
   "刷新或锁屏后用原来的浏览器返回即可。换了手机或浏览器时，在新设备打开房间，选择「我本来就在这桌」，输入自己的恢复码，或请房主当面核实后批准；原设备会立即失效。房间创建 24 小时后过期。": "After a refresh or screen lock, just come back in the same browser. On a new phone or browser, open the room, choose \"I'm at this table, on a new device\", and enter your recovery code or ask the host to approve you in person; the old device stops working immediately. Rooms expire 24 hours after they're created.",
   "完整规则与角色图鉴 →": "Full rules and all roles →",

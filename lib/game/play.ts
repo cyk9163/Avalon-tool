@@ -156,6 +156,22 @@ function proposeTeam(room: Room, game: GameState, me: Player, input: Record<stri
   }
   delete game.draftTeam;
   game.team = team;
+  // Two rejections in a row: the third team skips the vote and goes on the quest.
+  if (game.rejections >= 2) {
+    game.proposals.push({
+      id: game.turnId,
+      quest: game.quest,
+      attempt: game.rejections + 1,
+      leaderSeat: game.leaderSeat,
+      team: [...team],
+      votes: [],
+      approved: true,
+    });
+    game.rejections = 0;
+    game.teamVotes = {};
+    room.phase = "quest";
+    return;
+  }
   room.phase = "vote";
 }
 

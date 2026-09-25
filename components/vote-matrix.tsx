@@ -45,7 +45,7 @@ export function VoteMatrix({ room, game }: { room: RoomView; game: GameView }) {
                     </td>
                   );
                 })}
-                <td className="matrix-result">{proposal.approved ? t("通过") : t("否决")}</td>
+                <td className="matrix-result">{proposal.votes.length === 0 && proposal.approved ? t("直接出发") : proposal.approved ? t("通过") : t("否决")}</td>
               </tr>
             ))}
           </tbody>

@@ -17,12 +17,15 @@ const player = (room, seat) => room.players.find(p => p.seat === seat);
 const view = (room, seat = 1) => roomView(room, player(room, seat).key, 1);
 const act = (room, seat, action, input = {}) => mutateRoom(room, player(room, seat).key, action, {round: room.round ?? 1, ...input});
 
-/** Five rejected teams: evil wins without anyone playing a card. */
-function rejectFiveTimes(room) {
-  for (let attempt = 0; attempt < 5; attempt++) {
+/** Three failed quests, so the game ends without an assassination. */
+function failThreeQuests(room) {
+  for (let quest = 0; quest < 3; quest++) {
     const {game} = view(room);
-    act(room, game.leaderSeat, "propose", {turnId: game.turnId, team: [1, 2]});
-    for (const p of room.players) act(room, p.seat, "vote", {turnId: game.turnId, approve: false});
+    const evil = room.players.find(p => ROLES[p.role].side === "evil").seat;
+    const team = [evil, ...room.players.map(p => p.seat).filter(seat => seat !== evil)].slice(0, game.teamSize);
+    act(room, game.leaderSeat, "propose", {turnId: game.turnId, team});
+    for (const p of room.players) act(room, p.seat, "vote", {turnId: game.turnId, approve: true});
+    for (const seat of team) act(room, seat, "quest", {turnId: game.turnId, card: seat === evil ? "fail" : "success"});
   }
   assert.equal(room.phase, "finished");
 }
@@ -38,10 +41,10 @@ test("each finished game is recorded once, kept across rematches, and shown only
   const room = sample();
   act(room, 1, "begin");
   assert.deepEqual(view(room).history, []);
-  rejectFiveTimes(room);
+  failThreeQuests(room);
   const first = view(room).history;
   assert.equal(first.length, 1);
-  assert.deepEqual({round: first[0].round, winner: first[0].winner, reason: first[0].reason}, {round: 1, winner: "evil", reason: "five-rejections"});
+  assert.deepEqual({round: first[0].round, winner: first[0].winner, reason: first[0].reason}, {round: 1, winner: "evil", reason: "three-failures"});
   assert.deepEqual(first[0].players.map(p => [p.seat, p.role, p.side]), room.players.map(p => [p.seat, p.role, ROLES[p.role].side]));
   assert.ok(!JSON.stringify(first).includes("secret-"), "no device keys in the record");
   assert.equal(roomView(room, "outsider", 1).history.length, 0, "visitors see nothing");
@@ -53,7 +56,7 @@ test("each finished game is recorded once, kept across rematches, and shown only
   mutateRoom(room, "newcomer-key", "join", {name: "新人", seat: 5, round: 2});
   assert.equal(roomView(room, "newcomer-key", 1).history.length, 0, "a newcomer cannot see earlier games' roles");
   dealAndBegin(room);
-  rejectFiveTimes(room);
+  failThreeQuests(room);
   assert.equal(roomView(room, "newcomer-key", 1).history.length, 1);
   assert.equal(view(room, 1).history.length, 2);
   act(room, 1, "rematch", {round: 1});   // Retrying never records a game twice.

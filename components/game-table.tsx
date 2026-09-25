@@ -31,7 +31,7 @@ export function GameTable({ room, game, selection, onToggle, marks, onMark, repl
   const attempt = replay ? replay.attempt : game.rejections + 1;
   const questNumber = replay ? replay.quest : game.quest;
   const teamSize = replay ? (replay.focus === "lake" ? game.teamSize : Math.max(replay.team.length, 1)) : game.teamSize;
-  const hammer = attempt === 5 && (replay ? replay.focus === "proposal" : room.phase === "team" || room.phase === "vote");
+  const hammer = attempt === 3 && (replay ? replay.focus === "proposal" : room.phase === "team" || room.phase === "quest");
   const boardRoles = [...new Set(room.roles)];
   const menuPlayer = room.players.find(player => player.seat === menuSeat);
   const menuMark = menuSeat ? marks[menuSeat] : undefined;
@@ -46,7 +46,7 @@ export function GameTable({ room, game, selection, onToggle, marks, onMark, repl
       <div className="table-center">
         <strong className="game-table-quest">{t("任务 {n}", { n: questNumber })}</strong>
         {replay?.focus === "lake" ? <p>{t("湖中仙女")}</p> : <p>{t("需要 {n} 人 · 第 {a} 车", { n: teamSize, a: attempt })}</p>}
-        {hammer && <p className="game-table-hammer">{t("第五车")}</p>}
+        {hammer && <p className="game-table-hammer">{t("第三车")}</p>}
         {picking && <p className="game-table-pick">{t("已选 {n} / {size}", { n: selection?.length ?? 0, size: game.teamSize })}</p>}
       </div>
       {Array.from({ length: count }, (_, index) => {

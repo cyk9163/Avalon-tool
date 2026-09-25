@@ -31,11 +31,13 @@ function begin(capacity = 5, leaderSeat = capacity) {
 }
 function propose(room, team) {
   const current = game(room);
+  const forced = current.rejections >= 2;
   act(room, current.leaderSeat, "propose", {turnId: current.turnId, team});
-  assert.equal(room.phase, "vote");
+  assert.equal(room.phase, forced ? "quest" : "vote");
   return current.turnId;
 }
 function voteAll(room, approve = true) {
+  if (room.phase === "quest") return game(room).turnId;
   const {turnId} = game(room);
   for (const p of room.players) act(room, p.seat, "vote", {turnId, approve});
   return turnId;
@@ -132,18 +134,24 @@ test("A strict majority is required; a tie rejects, rotating and wrapping the le
   assert.equal(room.phase, "quest");
 });
 
-test("Five consecutive rejected teams end the game for evil with complete public ballot history", () => {
+test("the third team of a quest launches without a vote", () => {
   const room = begin();
-  for (let attempt = 1; attempt <= 5; attempt++) {
-    assert.equal(game(room).leaderSeat, attempt === 1 ? 5 : attempt - 1);
+  for (let attempt = 1; attempt <= 2; attempt++) {
     propose(room, [1, 2]);
     voteAll(room, false);
-    assert.equal(game(room).proposals.length, attempt);
+    assert.equal(room.phase, "team");
     assert.equal(game(room).rejections, attempt);
-    assert.equal(room.phase, attempt === 5 ? "finished" : "team");
+    assert.equal(game(room).proposals.length, attempt);
   }
-  assert.deepEqual(game(room).result, {winner: "evil", reason: "five-rejections"});
+  propose(room, [1, 2]);
+  assert.equal(room.phase, "quest");
+  assert.equal(game(room).rejections, 0);
   assert.equal(game(room).quests.length, 0);
+  const forced = game(room).proposals.at(-1);
+  assert.equal(forced.attempt, 3);
+  assert.equal(forced.approved, true);
+  assert.deepEqual(forced.votes, []);
+  assert.equal(game(room).result, null);
 });
 
 test("Only quest members submit cards; good players cannot fail and hidden cards never identify their authors", () => {

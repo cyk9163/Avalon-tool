@@ -118,17 +118,21 @@ for (const hitMerlin of [true, false]) {
 
 {
   const {clients, code} = await setup();
-  for (let attempt = 1; attempt <= 5; attempt++) {
+  for (let attempt = 1; attempt <= 2; attempt++) {
     const before = await clients[0].get(code);
     const {turnId, leaderSeat} = before.game;
     ok(await clients[leaderSeat - 1].call({action: "propose", code, turnId, team: [1, 2]}));
     (await Promise.all(clients.slice(0, 5).map(client => client.call({action: "vote", code, turnId, approve: false})))).forEach(ok);
     const after = await clients[0].get(code);
     assert.equal(after.game.rejections, attempt);
-    assert.equal(after.game.proposals.length, attempt);
-    assert.equal(after.game.quests.length, 0);
-    assert.equal(after.phase, attempt === 5 ? "finished" : "team");
+    assert.equal(after.phase, "team");
   }
-  assert.deepEqual((await clients[0].get(code)).game.result, {winner: "evil", reason: "five-rejections"});
-  console.log("PASS complete 5-player game: five rejected teams end for evil");
+  const third = await clients[0].get(code);
+  ok(await clients[third.game.leaderSeat - 1].call({action: "propose", code, turnId: third.game.turnId, team: [1, 2]}));
+  const launched = await clients[0].get(code);
+  assert.equal(launched.phase, "quest");
+  assert.equal(launched.game.rejections, 0);
+  assert.equal(launched.game.proposals.at(-1).approved, true);
+  assert.deepEqual(launched.game.proposals.at(-1).votes, []);
+  console.log("PASS complete 5-player game: the third team launches without a vote");
 }
