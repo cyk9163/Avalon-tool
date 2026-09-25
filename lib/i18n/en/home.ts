@@ -51,6 +51,7 @@ export const HOME: Record<string, string> = {
   "轮流发言": "Speaking turns",
   "坏人认识奥伯伦": "Evil knows Oberon",
   "坏人知道奥伯伦是谁，奥伯伦不知道队友。": "Evil learns who Oberon is. Oberon still does not know his teammates.",
+  "坏人知道奥伯伦是谁，奥伯伦不知道队友。勾选后会把奥伯伦加入板子。": "Evil learns who Oberon is. Oberon still does not know his teammates. Checking this adds Oberon to the board.",
   "每人说完要点「我说完了」，并可以计时。不勾选时，队长亮车，大家讨论完直接表决。": "Each player taps \"I'm done\" when they finish, and a timer is available. Leave this off: the leader shows a team, you talk, then vote.",
   "轮流发言 · 已启用": "Speaking turns on",
   "线下讨论 · 亮车后直接表决": "In person: show a team, then vote",
