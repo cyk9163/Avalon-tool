@@ -464,6 +464,7 @@
 .mark-menu-grid button { min-width: 44px; min-height: 44px; border-radius: 12px; border: 1px solid #3d5c52; background: #10241f; color: #f1f4e8; font-size: 18px; font-weight: 700; }
 .mark-menu-grid button.good.on { background: #9bcab7; color: #10231d; border-color: #9bcab7; }
 .mark-menu-grid button.evil.on { background: #e9a59c; color: #2a1210; border-color: #e9a59c; }
+.mark-menu-actions { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 12px; }
 .game-table .seat-circle:not(:disabled) { cursor: pointer; }
 .game-table .seat-circle.speaking { box-shadow: 0 0 0 3px #9bcab7aa, 0 0 0 7px #132623; }
 .game-table .seat-circle.on-team.speaking { box-shadow: 0 0 0 3px #9bcab7, 0 0 0 7px #132623; }

@@ -66,7 +66,7 @@ export function visibleMarks(stored: Record<number, Mark>, clue: ClueMarks): Rec
 export function markChangeAllowed(seat: number, mark: Mark | null, clue: ClueMarks): boolean {
   if (clue.locked[seat]) return false;
   if (clue.merlinSeats.includes(seat)) {
-    if (!mark) return false;
+    if (!mark) return true;
     if (mark.role) return ROLES[mark.role].side === "evil";
     return mark.side === "evil";
   }

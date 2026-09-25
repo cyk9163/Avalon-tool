@@ -58,7 +58,7 @@ test("evil teammates are fixed role marks, and Merlin starts on 坏 but may name
   assert.deepEqual(visibleMarks({ 3: { side: "good" } }, merlin)[3], { side: "evil" });
   assert.equal(markChangeAllowed(3, { role: "morgana", side: "evil" }, merlin), true);
   assert.equal(markChangeAllowed(3, { side: "good" }, merlin), false);
-  assert.equal(markChangeAllowed(3, null, merlin), false);
+  assert.equal(markChangeAllowed(3, null, merlin), true);
 
   assert.deepEqual(clueMarks({ role: "oberon", known: [{ seat: 2, label: "刺客" }] }).locked, {});
 });

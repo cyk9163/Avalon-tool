@@ -115,7 +115,10 @@ export function GameTable({ room, game, selection, onToggle, marks, onMark, repl
           {(!evilSeats.includes(menuSeat) ? (["good", "evil"] as const) : (["evil"] as const)).map(side => <button type="button" key={side} className={`${side}${!menuMark?.role && menuMark?.side === side ? " on" : ""}`} aria-label={side === "good" ? t("好人") : t("坏人")} aria-pressed={!menuMark?.role && menuMark?.side === side} onClick={() => choose({ side })}>{SIDE_GLYPH[side]}</button>)}
           {boardRoles.filter(role => !evilSeats.includes(menuSeat) || ROLES[role].side === "evil").map(role => <button type="button" key={role} className={`${ROLES[role].side}${menuMark?.role === role ? " on" : ""}`} aria-label={t(ROLES[role].name)} aria-pressed={menuMark?.role === role} onClick={() => choose({ role: role as Role })}>{MARK_GLYPH[role]}</button>)}
         </div>
-        <button type="button" className="text-button" onClick={() => setMenuSeat(null)}>{t("取消")}</button>
+        <div className="mark-menu-actions">
+          <button type="button" className="text-button" disabled={!menuMark || (evilSeats.includes(menuSeat) && !menuMark.role)} onClick={() => { onMark(menuSeat, null); setMenuSeat(null); }}>{t("消除标记")}</button>
+          <button type="button" className="text-button" onClick={() => setMenuSeat(null)}>{t("取消")}</button>
+        </div>
       </div>
     </div>}
   </>);

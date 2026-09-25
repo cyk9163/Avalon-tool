@@ -78,6 +78,7 @@ export const GAME: Record<string, string> = {
   "在上方圆桌上点选队员，再点一次取消。点头像右上角可以标记。": "Tap seats on the table above to pick the team; tap again to remove. Tap the corner of an avatar to mark them.",
   "点按标记": "Mark this player",
   "标记 {n} 号": "Mark seat {n}",
+  "消除标记": "Clear mark",
   "改动还没亮给大家：点「改车」更新，或直接发起表决。": "Your changes aren't shown yet: tap \"Change team\" to update, or call the vote now.",
   "改车": "Change team",
   "亮车": "Show team",
