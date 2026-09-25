@@ -111,7 +111,7 @@ export function GamePanel({ room, busy, connected, error, act, onNewGame }: Prop
       <div className="game-topline-actions">
         {leader && room.phase !== "finished" && <span className="you-are-leader"><Crown size={15} aria-hidden="true" />{t("队长")}</span>}
         <EarlyAssassination room={room} busy={busy} connected={connected} act={act} />
-        {room.phase !== "team" && <span className={`game-phase-chip ${room.phase === "assassination" ? "danger" : ""}`}><stage.Icon size={15} aria-hidden="true" />{stage.label}</span>}
+        {room.phase !== "team" && room.phase !== "vote" && room.phase !== "quest" && <span className={`game-phase-chip ${room.phase === "assassination" ? "danger" : ""}`}><stage.Icon size={15} aria-hidden="true" />{stage.label}</span>}
       </div>
     </div>
     <div className="game-score" aria-label={t("任务比分：正义 {good}，邪恶 {evil}", { good: goodWins, evil: evilWins })}>
