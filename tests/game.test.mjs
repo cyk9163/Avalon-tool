@@ -24,18 +24,19 @@ test("Percival cannot distinguish candidates through role order or role fields",
   const a=room.players.find(p=>p.role==="merlin"),b=room.players.find(p=>p.role==="morgana");[a.role,b.role]=[b.role,a.role];
   assert.deepEqual(roomView(room,me.key,1).identity,before);
 });
-test("the next game in the same room gives the first lead to the next seat", () => {
+test("the next game starts with the seat after the last leader", () => {
   const room = sample(5, "classic");
   room.phase = "finished";
   room.round = 1;
   room.firstLeader = 5;
+  room.game = { proposals: [{ leaderSeat: 2 }] };
   room.hostId = room.players[0].id;
   mutateRoom(room, room.players[0].key, "rematch", { round: 1 });
   assert.equal(room.firstLeader, undefined);
-  assert.equal(room.nextFirstLeader, 1);
+  assert.equal(room.nextFirstLeader, 3);
   for (const player of room.players) mutateRoom(room, player.key, "ready", { ready: true, round: 2 });
   mutateRoom(room, room.players[0].key, "start", { round: 2 });
-  assert.equal(room.firstLeader, 1);
+  assert.equal(room.firstLeader, 3);
   assert.equal(room.nextFirstLeader, undefined);
 });
 test("when enabled, evil learns who Oberon is and Oberon still sees no one", () => {

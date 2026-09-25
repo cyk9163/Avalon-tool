@@ -25,11 +25,13 @@ function requireCurrentRound(room: Room, input: Record<string, unknown>): void {
 function resetGame(room: Room, reason: "rematch" | "abort"): void {
   const round = room.round ?? 1;
   if (round === Number.MAX_SAFE_INTEGER) throw new GameError("请重新建立房间。 ");
+  const lastDriver = room.game?.proposals.at(-1)?.leaderSeat ?? room.game?.leaderSeat ?? room.firstLeader;
   room.round = round + 1;
   room.phase = "lobby";
   room.resetReason = reason;
   delete room.game;
-  if (reason === "rematch" && room.firstLeader) room.nextFirstLeader = room.firstLeader % room.capacity + 1;
+  // The seat after whoever drove the last team opens the next game.
+  if (reason === "rematch" && lastDriver) room.nextFirstLeader = lastDriver % room.capacity + 1;
   else delete room.nextFirstLeader;
   delete room.firstLeader;
   delete room.lastHostTransfer;

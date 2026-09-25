@@ -196,7 +196,7 @@ export interface Room {
   turnSpeech?: boolean;
   // Optional: other evil players learn who Oberon is. Oberon still sees no one.
   evilSeesOberon?: boolean;
-  // Seat that opens the next game after a rematch. Absent on a room's first game.
+  // Seat that opens the next game after a rematch: the seat after whoever drove the last team.
   nextFirstLeader?: number;
   phase: RoomPhase;
   hostId: string;
