@@ -13,7 +13,7 @@ import type { TableReplay } from "@/lib/replay-steps";
  * own private marks. During team selection the leader picks seats right here.
  * Presentation only: every choice still goes through the existing actions.
  */
-export function GameTable({ room, game, selection, onToggle, marks, onMark, replay, center }: {
+export function GameTable({ room, game, selection, onToggle, marks, onMark, replay, center, lockedSeats = [], evilSeats = [] }: {
   room: RoomView;
   game: GameView;
   selection?: number[];
@@ -22,6 +22,8 @@ export function GameTable({ room, game, selection, onToggle, marks, onMark, repl
   onMark?: (seat: number, mark: Mark | null) => void;
   replay?: TableReplay;
   center?: ReactNode;
+  lockedSeats?: number[];
+  evilSeats?: number[];
 }) {
   const { t } = useI18n();
   const [menuSeat, setMenuSeat] = useState<number | null>(null);
@@ -37,7 +39,14 @@ export function GameTable({ room, game, selection, onToggle, marks, onMark, repl
   const menuMark = menuSeat ? marks[menuSeat] : undefined;
   const choose = (next: Mark | null) => {
     if (menuSeat === null || !onMark) return;
+    const evilOnly = evilSeats.includes(menuSeat);
+    if (evilOnly) {
+      if (!next) return;
+      const side = next.role ? ROLES[next.role].side : next.side;
+      if (side !== "evil") return;
+    }
     const same = !!next && (next.role ? menuMark?.role === next.role : !menuMark?.role && menuMark?.side === next.side);
+    if (evilOnly && same) { setMenuSeat(null); return; }
     onMark(menuSeat, next && !same ? next : null);
     setMenuSeat(null);
   };
@@ -60,7 +69,8 @@ export function GameTable({ room, game, selection, onToggle, marks, onMark, repl
         const speaking = !replay && !!game.speech && game.speech.order[game.speech.index] === seat;
         const revealed = replay ? undefined : game.publicReveals.find(item => item.seat === seat);
         const mark = mine || replay ? undefined : marks[seat];
-        const canMark = !!onMark && !replay && !mine && !!player;
+        const locked = lockedSeats.includes(seat);
+        const canMark = !!onMark && !replay && !mine && !!player && !locked;
         const disabled = !picking || (!team && (selection?.length ?? 0) >= game.teamSize);
         const label = [
           t("{n} 号", { n: seat }), player?.name, mine ? t("我") : "",
@@ -88,7 +98,7 @@ export function GameTable({ room, game, selection, onToggle, marks, onMark, repl
                 {voted && <Check className="seat-check" size={14} aria-hidden="true" />}
                 {speaking && <Mic className="seat-badge seat-badge-speaking" size={13} aria-hidden="true" />}
                 {lake && <Waves className="seat-badge seat-badge-lake" size={13} aria-hidden="true" />}
-                {mark && !picking && <span className={`seat-mark-char ${mark.side}`} aria-hidden="true">{markGlyph(mark)}</span>}
+                {mark && (!picking || locked) && <span className={`seat-mark-char ${mark.side}`} aria-hidden="true">{markGlyph(mark)}</span>}
               </Seat>
               {canMark && picking && <button type="button" className={`seat-mark-open${mark?.side ? ` ${mark.side}` : ""}`} aria-label={t("标记 {n} 号", { n: seat })} onClick={openMenu}>{mark ? markGlyph(mark) : MARK_CORNER}</button>}
             </div>
@@ -102,8 +112,8 @@ export function GameTable({ room, game, selection, onToggle, marks, onMark, repl
       <div className="mark-menu" role="dialog" aria-label={t("标记 {n} 号", { n: menuSeat })} onClick={event => event.stopPropagation()}>
         <p>{t("标记 {n} 号", { n: menuSeat })}{menuPlayer?.name ? ` · ${menuPlayer.name}` : ""}</p>
         <div className="mark-menu-grid">
-          {(["good", "evil"] as const).map(side => <button type="button" key={side} className={`${side}${!menuMark?.role && menuMark?.side === side ? " on" : ""}`} aria-label={side === "good" ? t("好人") : t("坏人")} aria-pressed={!menuMark?.role && menuMark?.side === side} onClick={() => choose({ side })}>{SIDE_GLYPH[side]}</button>)}
-          {boardRoles.map(role => <button type="button" key={role} className={`${ROLES[role].side}${menuMark?.role === role ? " on" : ""}`} aria-label={t(ROLES[role].name)} aria-pressed={menuMark?.role === role} onClick={() => choose({ role: role as Role })}>{MARK_GLYPH[role]}</button>)}
+          {(!evilSeats.includes(menuSeat) ? (["good", "evil"] as const) : (["evil"] as const)).map(side => <button type="button" key={side} className={`${side}${!menuMark?.role && menuMark?.side === side ? " on" : ""}`} aria-label={side === "good" ? t("好人") : t("坏人")} aria-pressed={!menuMark?.role && menuMark?.side === side} onClick={() => choose({ side })}>{SIDE_GLYPH[side]}</button>)}
+          {boardRoles.filter(role => !evilSeats.includes(menuSeat) || ROLES[role].side === "evil").map(role => <button type="button" key={role} className={`${ROLES[role].side}${menuMark?.role === role ? " on" : ""}`} aria-label={t(ROLES[role].name)} aria-pressed={menuMark?.role === role} onClick={() => choose({ role: role as Role })}>{MARK_GLYPH[role]}</button>)}
         </div>
         <button type="button" className="text-button" onClick={() => setMenuSeat(null)}>{t("取消")}</button>
       </div>

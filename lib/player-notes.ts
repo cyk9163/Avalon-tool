@@ -28,6 +28,52 @@ export const SIDE_GLYPH: Record<Side, string> = { good: "好", evil: "坏" };
 /** Shown on a seat while the leader is picking a team, so the corner stays a mark button. */
 export const MARK_CORNER = "标";
 
+export type ClueIdentity = { role: Role; known: { seat: number; label: string }[] } | null | undefined;
+export type ClueMarks = { locked: Record<number, Mark>; merlinSeats: number[] };
+
+const ROLE_BY_NAME = new Map((Object.keys(ROLES) as Role[]).map(role => [ROLES[role].name, role]));
+
+/** Evil teammates are fixed role glyphs. Merlin's known evils start as 坏 and may become a specific evil role. */
+export function clueMarks(identity: ClueIdentity): ClueMarks {
+  const locked: Record<number, Mark> = {};
+  const merlinSeats: number[] = [];
+  if (!identity) return { locked, merlinSeats };
+  if (identity.role === "merlin") {
+    for (const person of identity.known) if (person.label === "已知邪恶") merlinSeats.push(person.seat);
+    return { locked, merlinSeats };
+  }
+  if (ROLES[identity.role].side === "evil" && identity.role !== "oberon") {
+    for (const person of identity.known) {
+      const role = ROLE_BY_NAME.get(person.label);
+      if (!role || ROLES[role].side !== "evil") continue;
+      locked[person.seat] = { role, side: "evil" };
+    }
+  }
+  return { locked, merlinSeats };
+}
+
+/** Stored notes, with clue marks applied. Locked teammate roles always win. Merlin keeps an evil-role note, otherwise 坏. */
+export function visibleMarks(stored: Record<number, Mark>, clue: ClueMarks): Record<number, Mark> {
+  const marks = { ...stored };
+  for (const seat of clue.merlinSeats) {
+    const user = stored[seat];
+    marks[seat] = user?.role && ROLES[user.role].side === "evil" ? user : { side: "evil" };
+  }
+  for (const [seat, mark] of Object.entries(clue.locked)) marks[Number(seat)] = mark;
+  return marks;
+}
+
+/** False when this seat's mark cannot be changed to `mark`. */
+export function markChangeAllowed(seat: number, mark: Mark | null, clue: ClueMarks): boolean {
+  if (clue.locked[seat]) return false;
+  if (clue.merlinSeats.includes(seat)) {
+    if (!mark) return false;
+    if (mark.role) return ROLES[mark.role].side === "evil";
+    return mark.side === "evil";
+  }
+  return true;
+}
+
 export const MAX_NOTE_LENGTH = 300;
 export const MAX_DRAFT_LENGTH = 600;
 const PREFIX = "avalon:notes:";

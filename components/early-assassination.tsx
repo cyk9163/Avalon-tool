@@ -5,7 +5,7 @@ import { Swords } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import type { RoomView } from "@/lib/game";
 import { useI18n } from "@/lib/i18n/react";
-import { usePlayerNotes } from "@/lib/player-notes";
+import { clueMarks, usePlayerNotes, visibleMarks } from "@/lib/player-notes";
 import { MarkTag } from "@/components/player-notes";
 
 const PLAY_PHASES = ["team", "vote", "quest", "lake"];
@@ -17,6 +17,7 @@ export function EarlyAssassination({ room, busy, connected, act }: {
 }) {
   const { t } = useI18n();
   const { notes } = usePlayerNotes(room.code, room.round, room.roles);
+  const marks = visibleMarks(notes.marks, clueMarks(room.identity));
   const [open, setOpen] = useState(false), [target, setTarget] = useState<number | null>(null), [confirming, setConfirming] = useState(false);
   // Leaving the page closes the dialog and forgets the choice.
   useEffect(() => {
@@ -43,7 +44,7 @@ export function EarlyAssassination({ room, busy, connected, act }: {
           <div className="early-strike-seats" role="radiogroup" aria-label={t("刺杀目标")}>
             {others.map(player => (
               <button key={player.id} type="button" role="radio" aria-checked={target === player.seat} className={target === player.seat ? "selected" : undefined} onClick={() => { setTarget(player.seat); setConfirming(false); }}>
-                <strong>{t("{n} 号", { n: player.seat })}</strong><span>{player.name}</span><MarkTag mark={notes.marks[player.seat]} />
+                <strong>{t("{n} 号", { n: player.seat })}</strong><span>{player.name}</span><MarkTag mark={marks[player.seat]} />
               </button>
             ))}
           </div>

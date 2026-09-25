@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {MAX_DRAFT_LENGTH, MAX_NOTE_LENGTH, MARK_GLYPH, markGlyph, notesKey, sanitizeNotes} from "../lib/player-notes.ts";
+import {MAX_DRAFT_LENGTH, MAX_NOTE_LENGTH, MARK_GLYPH, clueMarks, markChangeAllowed, markGlyph, notesKey, sanitizeNotes, visibleMarks} from "../lib/player-notes.ts";
 
 const board = ["merlin", "percival", "loyal", "assassin", "morgana"];
 
@@ -39,4 +39,23 @@ test("the speaking draft is kept, capped, and blank drafts are dropped", () => {
   assert.equal(sanitizeNotes({draft: "字".repeat(MAX_DRAFT_LENGTH + 20)}, board).draft.length, MAX_DRAFT_LENGTH);
   assert.equal(sanitizeNotes({draft: "   "}, board).draft, "");
   assert.equal(sanitizeNotes({draft: 12}, board).draft, "");
+});
+
+test("evil teammates are fixed role marks, and Merlin starts on 坏 but may name an evil role", () => {
+  const evil = clueMarks({ role: "assassin", known: [{ seat: 2, label: "莫甘娜" }, { seat: 4, label: "已知邪恶" }] });
+  assert.deepEqual(evil.locked[2], { role: "morgana", side: "evil" });
+  assert.equal(evil.locked[4], undefined);
+  assert.equal(markChangeAllowed(2, null, evil), false);
+  assert.deepEqual(visibleMarks({ 2: { side: "good" } }, evil)[2], { role: "morgana", side: "evil" });
+
+  const merlin = clueMarks({ role: "merlin", known: [{ seat: 3, label: "已知邪恶" }, { seat: 5, label: "刺客" }] });
+  assert.deepEqual(merlin.merlinSeats, [3]);
+  assert.deepEqual(visibleMarks({}, merlin)[3], { side: "evil" });
+  assert.deepEqual(visibleMarks({ 3: { role: "assassin", side: "evil" } }, merlin)[3], { role: "assassin", side: "evil" });
+  assert.deepEqual(visibleMarks({ 3: { side: "good" } }, merlin)[3], { side: "evil" });
+  assert.equal(markChangeAllowed(3, { role: "morgana", side: "evil" }, merlin), true);
+  assert.equal(markChangeAllowed(3, { side: "good" }, merlin), false);
+  assert.equal(markChangeAllowed(3, null, merlin), false);
+
+  assert.deepEqual(clueMarks({ role: "oberon", known: [{ seat: 2, label: "刺客" }] }).locked, {});
 });

@@ -15,7 +15,7 @@ import { MarkTag } from "@/components/player-notes";
 import { GameTable } from "@/components/game-table";
 import { SpeechBar } from "@/components/speech-bar";
 import { VoteMatrix } from "@/components/vote-matrix";
-import { usePlayerNotes } from "@/lib/player-notes";
+import { clueMarks, markChangeAllowed, usePlayerNotes, visibleMarks } from "@/lib/player-notes";
 import { msg } from "@/lib/i18n/core";
 import { useI18n } from "@/lib/i18n/react";
 
@@ -58,6 +58,8 @@ function LeaderOrder({ room, game }: { room: RoomView; game: GameView }) {
 export function GamePanel({ room, busy, connected, error, act, onNewGame }: Props) {
   const { t, ts } = useI18n();
   const { notes, setMark } = usePlayerNotes(room.code, room.round, room.roles);
+  const clue = clueMarks(room.identity);
+  const marks = visibleMarks(notes.marks, clue);
   const { remember } = usePersonalRecord();
   const [selection, setSelection] = useState<number[]>(() => room.game?.draftTeam ?? []);
   const [target, setTarget] = useState<number | null>(null);
@@ -119,7 +121,7 @@ export function GamePanel({ room, busy, connected, error, act, onNewGame }: Prop
       <div className="game-score-side evil"><Swords size={19} aria-hidden="true" /><span>{t("邪恶任务")}</span><div className="score-dots" aria-hidden="true">{[1, 2, 3].map(point => <i key={point} className={point <= evilWins ? "filled" : ""} />)}</div><strong>{evilWins}<small>/ 3</small></strong></div>
     </div>
     {room.phase === "team" && <div className="game-table-wrap">
-      <GameTable room={room} game={game} selection={selection} onToggle={room.phase === "team" && leader && !blocked ? toggleSeat : undefined} marks={notes.marks} onMark={room.meId && !blocked ? (seat, mark) => setMark(seat, mark) : undefined} center={room.phase === "team" && leader && selection.length > 0 ? <div className="table-center-actions">
+      <GameTable room={room} game={game} selection={selection} onToggle={room.phase === "team" && leader && !blocked ? toggleSeat : undefined} marks={marks} lockedSeats={Object.keys(clue.locked).map(Number)} evilSeats={clue.merlinSeats} onMark={room.meId && !blocked ? (seat, mark) => { if (markChangeAllowed(seat, mark, clue)) setMark(seat, mark); } : undefined} center={room.phase === "team" && leader && selection.length > 0 ? <div className="table-center-actions">
         <button type="button" className="secondary-button" disabled={blocked || !draftChanged} onClick={() => void act("draft", { turnId: game.turnId, team: selection })}><Eye size={16} aria-hidden="true" />{drafted ? t("改车") : t("亮车")}</button>
         <button className="primary-button" disabled={blocked || selection.length !== game.teamSize} onClick={() => setPending({ action: "propose", input: { turnId: game.turnId, team: selection }, title: game.rejections >= 2 ? t("第三车直接出发？") : t("发起表决？"), description: game.rejections >= 2 ? t("队员：{seats}。这支队伍不表决，马上执行任务。", { seats: seatsLabel(selection) }) : t("队员：{seats}。发起后全员表决，这一车不能再改。", { seats: seatsLabel(selection) }), label: game.rejections >= 2 ? t("直接出发") : t("发起表决") })}>{game.rejections >= 2 ? t("直接出发") : t("发起表决")}<ArrowRight size={17} /></button>
       </div> : undefined} />
@@ -156,7 +158,7 @@ export function GamePanel({ room, busy, connected, error, act, onNewGame }: Prop
 
     {room.phase === "lake" && game.lake && <div className="game-action lake-action">
       <div className="game-action-heading"><span className="step-icon"><Waves size={25} aria-hidden="true" /></span><div><span className="action-kicker">{t("任务 {n} 结束后的私密查验", { n: game.quest })}</span><h2>{t("湖中仙女正在辨认忠诚。")}</h2><p>{t("查验只会显示阵营，不会显示具体角色。查验后，令牌交给被查验者。")}</p></div></div>
-      {me?.seat===game.lake.holderSeat?<><p className="muted-copy">{t("选择一位尚未使用过湖中仙女的玩家。结果仅在你的设备上显示。")}</p><div className="team-selector">{room.players.filter(player=>player.seat!==me.seat&&!game.lake!.usedSeats.includes(player.seat)).map(player=><button key={player.id} className={`player-option ${target===player.seat?"selected":""}`} aria-pressed={target===player.seat} disabled={blocked} onClick={()=>setTarget(player.seat)}><span className="player-number">{player.seat}</span><span>{player.name}<MarkTag mark={notes.marks[player.seat]}/></span><span className="selection-check">{target===player.seat&&<Check size={15}/>}</span></button>)}</div><button className="primary-button" disabled={blocked||target===null} onClick={()=>setPending({action:"lake-check",input:{turnId:game.turnId,targetSeat:target},title:t("查验 {n} 号 · {name}？",{n:target??"",name:playerName(target!)}),description:t("确认后你会私密看到其阵营，湖中仙女令牌同时交给对方。目标不能更换。"),label:t("确认查验")})}><Waves size={18}/>{t("确认查验")}</button></>:<p className="waiting-note" role="status">{t("湖中仙女由 {n} 号 · {name} 持有，等待其完成私密查验。",{n:game.lake.holderSeat,name:playerName(game.lake.holderSeat)})}</p>}
+      {me?.seat===game.lake.holderSeat?<><p className="muted-copy">{t("选择一位尚未使用过湖中仙女的玩家。结果仅在你的设备上显示。")}</p><div className="team-selector">{room.players.filter(player=>player.seat!==me.seat&&!game.lake!.usedSeats.includes(player.seat)).map(player=><button key={player.id} className={`player-option ${target===player.seat?"selected":""}`} aria-pressed={target===player.seat} disabled={blocked} onClick={()=>setTarget(player.seat)}><span className="player-number">{player.seat}</span><span>{player.name}<MarkTag mark={marks[player.seat]}/></span><span className="selection-check">{target===player.seat&&<Check size={15}/>}</span></button>)}</div><button className="primary-button" disabled={blocked||target===null} onClick={()=>setPending({action:"lake-check",input:{turnId:game.turnId,targetSeat:target},title:t("查验 {n} 号 · {name}？",{n:target??"",name:playerName(target!)}),description:t("确认后你会私密看到其阵营，湖中仙女令牌同时交给对方。目标不能更换。"),label:t("确认查验")})}><Waves size={18}/>{t("确认查验")}</button></>:<p className="waiting-note" role="status">{t("湖中仙女由 {n} 号 · {name} 持有，等待其完成私密查验。",{n:game.lake.holderSeat,name:playerName(game.lake.holderSeat)})}</p>}
     </div>}
 
     {game.publicReveals.map(item=><div className="public-reveal" key={item.seat}><Flag size={18}/><span><strong>{seatName(item.seat)}</strong> {t("已公开为 {role}。",{role:t(ROLES[item.role].name)})}</span></div>)}
@@ -165,7 +167,7 @@ export function GamePanel({ room, busy, connected, error, act, onNewGame }: Prop
       <div className="game-action-heading"><span className="step-icon"><Swords size={27} aria-hidden="true" /></span><div><span className="action-kicker">{t("最后一次机会")}</span><h2>{t("找到梅林，逆转结局。")}</h2><p>{t("三次任务成功。邪恶阵营可以公开讨论，由刺客做出最终选择。")}</p></div></div>
       {room.identity?.role === "assassin" ? <>
         <p className="muted-copy">{t("选择你怀疑的梅林。确认后立即结算，不能更改。")}</p>
-        <div className="team-selector">{room.players.filter(player => player.id !== me?.id).map(player => <button key={player.id} className={`player-option ${target === player.seat ? "selected" : ""}`} aria-pressed={target === player.seat} disabled={blocked} onClick={() => setTarget(player.seat)}><span className="player-number">{player.seat}</span><span>{player.name}<MarkTag mark={notes.marks[player.seat]} /></span><span className="selection-check">{target === player.seat && <Check size={15} />}</span></button>)}</div>
+        <div className="team-selector">{room.players.filter(player => player.id !== me?.id).map(player => <button key={player.id} className={`player-option ${target === player.seat ? "selected" : ""}`} aria-pressed={target === player.seat} disabled={blocked} onClick={() => setTarget(player.seat)}><span className="player-number">{player.seat}</span><span>{player.name}<MarkTag mark={marks[player.seat]} /></span><span className="selection-check">{target === player.seat && <Check size={15} />}</span></button>)}</div>
         <button className="primary-button assassination-button" disabled={blocked || target === null} onClick={() => setPending({ action: "assassinate", input: { turnId: game.turnId, targetSeat: target }, title: t("刺杀 {n} 号 · {name}？", { n: target ?? "", name: playerName(target!) }), description: t("这是一局中唯一的刺杀机会。确认后立即揭晓结局，无法撤销或重新选择。"), label: t("确认刺杀") })}><Swords size={18} />{t("确认刺杀目标")}</button>
       </> : <p className="waiting-note" role="status">{t("等待刺客选择目标。请继续保护梅林的身份。")}</p>}
     </div>}
