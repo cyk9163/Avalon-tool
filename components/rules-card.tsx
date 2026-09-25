@@ -14,11 +14,13 @@ import { useI18n } from "@/lib/i18n/react";
 function roomRules(room: RoomView): string[] {
   const roles = new Set(room.roles);
   const rules = [
-    msg("身份随机发放，第一任队长随机；之后队长按座位顺序轮换。"),
+    msg("身份随机发放。第一局队长随机，同一房间的下一局队长按座位顺延一位；一局之内仍按座位顺序轮换。"),
     msg("组队表决严格过半才通过，平票算否决；同一任务连续五次否决，邪恶直接获胜。"),
   ];
   if (room.capacity >= 7) rules.push(msg("第 4 次任务需要 2 张失败牌才算失败。"));
-  rules.push(msg("坏人互相知道彼此的具体角色（奥伯伦除外）；梅林只知道谁是坏人，看不到莫德雷德。"));
+  rules.push(room.evilSeesOberon
+    ? msg("坏人互相知道具体角色，并且知道奥伯伦是谁；奥伯伦不知道队友。梅林只知道谁是坏人，看不到莫德雷德。")
+    : msg("坏人互相知道彼此的具体角色（奥伯伦除外）；梅林只知道谁是坏人，看不到莫德雷德。"));
   rules.push(msg("刺客可以在对局中随时出刀一次：刺中梅林邪恶获胜，刺错正义获胜；没出刀则在三次任务成功后刺杀。"));
   if (roles.has("goodLancelot")) rules.push(msg("兰斯洛特：开局公开第 3–5 轮的忠诚牌，翻到「转换」两人互换阵营；属于正义只能出成功，属于邪恶只能出失败。"));
   if (room.ladyOfLake) rules.push(msg("湖中仙女：第 2、3、4 次任务后，持有者私下查验一人阵营，令牌交给对方。"));
@@ -59,6 +61,7 @@ export function BoardRulesButton({ room }: { room: RoomView }) {
         <RoleChips roles={room.roles} />
         {room.ladyOfLake && <p className="module-badge">{t("湖中仙女 · 已启用")}</p>}
         <p className="module-badge">{room.turnSpeech ? t("轮流发言 · 已启用") : t("线下讨论 · 亮车后直接表决")}</p>
+        {room.evilSeesOberon && <p className="module-badge">{t("坏人认识奥伯伦 · 已启用")}</p>}
         <RulesList room={room} />
         <Link className="rules-dialog-link" href="/rules" onClick={() => setOpen(false)}>{t("完整规则与角色图鉴 →")}</Link>
       </DialogContent>

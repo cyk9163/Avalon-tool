@@ -24,6 +24,31 @@ test("Percival cannot distinguish candidates through role order or role fields",
   const a=room.players.find(p=>p.role==="merlin"),b=room.players.find(p=>p.role==="morgana");[a.role,b.role]=[b.role,a.role];
   assert.deepEqual(roomView(room,me.key,1).identity,before);
 });
+test("the next game in the same room gives the first lead to the next seat", () => {
+  const room = sample(5, "classic");
+  room.phase = "finished";
+  room.round = 1;
+  room.firstLeader = 5;
+  room.hostId = room.players[0].id;
+  mutateRoom(room, room.players[0].key, "rematch", { round: 1 });
+  assert.equal(room.firstLeader, undefined);
+  assert.equal(room.nextFirstLeader, 1);
+  for (const player of room.players) mutateRoom(room, player.key, "ready", { ready: true, round: 2 });
+  mutateRoom(room, room.players[0].key, "start", { round: 2 });
+  assert.equal(room.firstLeader, 1);
+  assert.equal(room.nextFirstLeader, undefined);
+});
+test("when enabled, evil learns who Oberon is and Oberon still sees no one", () => {
+  const room = sample();
+  room.evilSeesOberon = true;
+  const oberon = room.players.find(player => player.role === "oberon");
+  assert.equal(roomView(room, oberon.key, 1).identity.known.length, 0);
+  for (const player of room.players) {
+    if (ROLES[player.role].side !== "evil" || player.role === "oberon") continue;
+    const known = roomView(room, player.key, 1).identity.known;
+    assert.ok(known.some(clue => clue.seat === oberon.seat && clue.label === "奥伯伦"));
+  }
+});
 test("Evil sees only teammates except Oberon; loyal and Oberon have no extra information",()=>{
   const room=sample();for(const me of room.players){const identity=roomView(room,me.key,1).identity;
     if(["loyal","oberon"].includes(me.role))assert.equal(identity.known.length,0);

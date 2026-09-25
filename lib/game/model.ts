@@ -194,6 +194,10 @@ export interface Room {
   // When false, the table talks in person: the leader shows a team and calls the vote.
   // Omitted on rooms created before this option, which keep the speaking order.
   turnSpeech?: boolean;
+  // Optional: other evil players learn who Oberon is. Oberon still sees no one.
+  evilSeesOberon?: boolean;
+  // Seat that opens the next game after a rematch. Absent on a room's first game.
+  nextFirstLeader?: number;
   phase: RoomPhase;
   hostId: string;
   hostRevision?: number;
@@ -247,6 +251,7 @@ export interface RoomView {
   roles: Role[];
   ladyOfLake: boolean;
   turnSpeech: boolean;
+  evilSeesOberon: boolean;
   phase: RoomPhase;
   hostId: string;
   hostRevision: number;
@@ -330,6 +335,11 @@ export function nickname(value: unknown): string {
   return name;
 }
 
+function evilAllies(room: Room, me: Player): Player[] {
+  return room.players.filter(player => player.id !== me.id && player.role &&
+    ROLES[player.role].side === "evil" && (room.evilSeesOberon === true || player.role !== "oberon"));
+}
+
 export function identityFor(room: Room, me: Player): Identity | null {
   if (!me.role || room.phase === "lobby" || room.phase === "closed") return null;
   let known: Identity["known"] = [];
@@ -346,21 +356,23 @@ export function identityFor(room: Room, me: Player): Identity | null {
   } else if (me.role === "goodLancelot") {
     note = "你不知道邪恶兰斯洛特是谁。忠诚牌翻到「转换」时，你会换到邪恶阵营，那时只能出失败牌。";
   } else if (me.role === "evilLancelot") {
-    known = room.players.filter(player => player.id !== me.id && player.role &&
-      ROLES[player.role].side === "evil" && player.role !== "oberon")
-      .map(player => ({ seat: player.seat, name: player.name, label: ROLES[player.role!].name }));
-    note = "你认识除奥伯伦外的邪恶同伴，他们也知道你；你不知道正义兰斯洛特是谁。忠诚牌翻到「转换」时，你会换到正义阵营，那时只能出成功牌。";
+    known = evilAllies(room, me).map(player => ({ seat: player.seat, name: player.name, label: ROLES[player.role!].name }));
+    note = room.evilSeesOberon
+      ? "你认识其他邪恶同伴，也知道奥伯伦是谁；奥伯伦不认识你。你不知道正义兰斯洛特是谁。忠诚牌翻到「转换」时，你会换到正义阵营，那时只能出成功牌。"
+      : "你认识除奥伯伦外的邪恶同伴，他们也知道你；你不知道正义兰斯洛特是谁。忠诚牌翻到「转换」时，你会换到正义阵营，那时只能出成功牌。";
   } else if (me.role === "cleric") {
     const leader = room.players.find(player => player.seat === room.firstLeader);
     if (leader?.role) known = [{ seat: leader.seat, name: leader.name, label: ROLES[leader.role].side === "good" ? "第一任队长是正义" : "第一任队长是邪恶" }];
     note = "你只知道第一任队长的阵营，不知道其具体角色。";
   } else if (ROLES[me.role].side === "evil" && me.role !== "oberon") {
-    known = room.players.filter(player => player.id !== me.id && player.role &&
-      ROLES[player.role].side === "evil" && player.role !== "oberon")
-      .map(player => ({ seat: player.seat, name: player.name, label: ROLES[player.role!].name }));
-    note = "你们同属邪恶阵营，彼此知道对方的具体角色。奥伯伦不会出现在这里，他也不认识你们。";
+    known = evilAllies(room, me).map(player => ({ seat: player.seat, name: player.name, label: ROLES[player.role!].name }));
+    note = room.evilSeesOberon
+      ? "你们同属邪恶阵营，彼此知道对方的具体角色，也知道奥伯伦是谁。奥伯伦不认识你们。"
+      : "你们同属邪恶阵营，彼此知道对方的具体角色。奥伯伦不会出现在这里，他也不认识你们。";
   } else if (me.role === "oberon") {
-    note = "你不知道其他邪恶同伴是谁，他们也不认识你。梅林能看见你。";
+    note = room.evilSeesOberon
+      ? "你不知道其他邪恶同伴是谁，但他们认识你。梅林能看见你。"
+      : "你不知道其他邪恶同伴是谁，他们也不认识你。梅林能看见你。";
   }
   return { role: me.role, side: currentSide(room, me), known: known.sort((a, b) => a.seat - b.seat), note };
 }

@@ -29,6 +29,8 @@ function resetGame(room: Room, reason: "rematch" | "abort"): void {
   room.phase = "lobby";
   room.resetReason = reason;
   delete room.game;
+  if (reason === "rematch" && room.firstLeader) room.nextFirstLeader = room.firstLeader % room.capacity + 1;
+  else delete room.nextFirstLeader;
   delete room.firstLeader;
   delete room.lastHostTransfer;
   for (const player of room.players) {
@@ -358,7 +360,9 @@ export function mutateRoom(room: Room, key: string, action: string, input: Recor
     }
     delete room.seatSwaps;
     const roles = shuffle(roomRoles(room));
-    room.firstLeader = randomInt(room.capacity) + 1;
+    const carried = room.resetReason === "rematch" ? room.nextFirstLeader : undefined;
+    room.firstLeader = carried && carried >= 1 && carried <= room.capacity ? carried : randomInt(room.capacity) + 1;
+    delete room.nextFirstLeader;
     room.players.forEach((player, index) => {
       player.role = roles[index];
       player.confirmed = false;

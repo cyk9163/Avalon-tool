@@ -93,6 +93,7 @@ export function roomView(room: Room, key: string, version: number, invite?: stri
     roles: roomRoles(room),
     ladyOfLake: room.ladyOfLake === true,
     turnSpeech: room.turnSpeech !== false,
+    evilSeesOberon: room.evilSeesOberon === true,
     phase: room.phase,
     hostId: room.hostId,
     hostRevision: room.hostRevision ?? 0,

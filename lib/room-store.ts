@@ -33,6 +33,9 @@ export async function createRoom(key:string,input:Record<string,unknown>){
   if(ladyOfLake&&(preset!=="custom"||capacity<7))throw new GameError("湖中仙女仅支持 7 人及以上的自定义板子。",400);
   if(input.turnSpeech!==undefined&&typeof input.turnSpeech!=="boolean")throw new GameError("发言方式无效。",400);
   const turnSpeech=input.turnSpeech===true;
+  if(input.evilSeesOberon!==undefined&&typeof input.evilSeesOberon!=="boolean")throw new GameError("奥伯伦选项无效。",400);
+  const evilSeesOberon=input.evilSeesOberon===true;
+  if(evilSeesOberon&&!roles.includes("oberon"))throw new GameError("只有板子里有奥伯伦时，才能让坏人认识他。",400);
   if(typeof input.requestId!=="string"||!/^[a-f0-9-]{36}$/.test(input.requestId))throw new GameError("创建请求无效，请刷新重试。",400);
   const requestId=`${key}:${input.requestId}`;
   const existing=await db().prepare("SELECT state,version,expires_at FROM rooms WHERE request_id=?").bind(requestId).first<Row>();
@@ -46,7 +49,7 @@ export async function createRoom(key:string,input:Record<string,unknown>){
   if(count&&count.n>=8)throw new GameError("今天建立的房间有点多，请先使用已有房间。",429);
   for(let i=0;i<8;i++){
     const code=String(100000+randomInt(900000)),id=crypto.randomUUID();
-    const room:Room={code,round:1,capacity,preset,turnSpeech,...(preset==="custom"?{customRoles:roles,ladyOfLake}:{}),phase:"lobby",hostId:id,hostRevision:0,players:[{id,key,name,seat:1,ready:false,confirmed:false,recovery:newRecoveryCode()}],createdAt:Date.now(),expiresAt:Date.now()+86400000,requestId,schemaVersion:ROOM_SCHEMA_VERSION,inviteToken:newInviteToken(),takeovers:[],recoveries:[]};
+    const room:Room={code,round:1,capacity,preset,turnSpeech,evilSeesOberon,...(preset==="custom"?{customRoles:roles,ladyOfLake}:{}),phase:"lobby",hostId:id,hostRevision:0,players:[{id,key,name,seat:1,ready:false,confirmed:false,recovery:newRecoveryCode()}],createdAt:Date.now(),expiresAt:Date.now()+86400000,requestId,schemaVersion:ROOM_SCHEMA_VERSION,inviteToken:newInviteToken(),takeovers:[],recoveries:[]};
     const result=await db().prepare("INSERT OR IGNORE INTO rooms (code,state,version,expires_at,owner_key,request_id) VALUES (?,?,1,?,?,?)").bind(code,JSON.stringify(room),room.expiresAt,key,requestId).run();
     if(result.meta.changes===1)return roomView(room,key,1);
     const duplicate=await db().prepare("SELECT state,version,expires_at FROM rooms WHERE request_id=?").bind(requestId).first<Row>();

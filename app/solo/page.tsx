@@ -27,6 +27,7 @@ export default function SoloPage() {
   const [capacity, setCapacity] = useState(5);
   const [preset, setPreset] = useState<Preset>("classic");
   const [turnSpeech, setTurnSpeech] = useState(false);
+  const [knowsOberon, setKnowsOberon] = useState(false);
   const [customSpecials, setCustomSpecials] = useState<Set<Role>>(() => new Set(["merlin", "assassin"]));
   const [ladyOfLake, setLadyOfLake] = useState(false);
   const [savedTemplates] = useState<BoardTemplate[]>(() => typeof window === "undefined" ? [] : loadSavedTemplates());
@@ -79,6 +80,7 @@ export default function SoloPage() {
           capacity,
           preset,
           turnSpeech,
+          evilSeesOberon: (preset === "full" || (preset === "custom" && customSpecials.has("oberon"))) && knowsOberon,
           ...(preset === "custom" ? { roles: customRoles, ladyOfLake } : {}),
           requestId: crypto.randomUUID(),
         }),
@@ -148,6 +150,7 @@ export default function SoloPage() {
       <fieldset className="template-picker"><legend>{t("推荐板子")}</legend><div className="template-chips">{[...BUILT_IN_TEMPLATES, ...savedTemplates].map(template => { const fits = templateFits(template, capacity); const active = preset === "custom" && sameBoard(template, customSpecials, ladyOfLake); return <span key={template.id} className={`template-chip${active ? " selected" : ""}`}><button type="button" disabled={!fits} aria-pressed={active} onClick={() => { setPreset("custom"); setCustomSpecials(new Set(template.specials)); setLadyOfLake(template.ladyOfLake); }}><span>{template.builtIn ? t(template.name) : template.name}</span><small>{fits ? (template.hint ? t(template.hint) : template.ladyOfLake ? t("我的模板 · 湖中仙女") : t("我的模板")) : t("{n} 人起", { n: templateMinimum(template) ?? "" })}</small></button></span>; })}</div></fieldset>
       {preset === "custom" && <fieldset className="custom-board"><legend>{t("编辑自定义板子")}</legend><div className="custom-board-summary"><span>{t("正义 {n} 位", { n: capacity - EVIL_COUNTS[capacity] })}</span><span>{t("邪恶 {n} 位", { n: EVIL_COUNTS[capacity] })}</span></div><div className="custom-role-columns"><div><strong>{t("正义角色")}</strong>{CUSTOM_GOOD_ROLES.map(role => <button type="button" key={role} className={customSpecials.has(role) ? "selected" : ""} aria-pressed={customSpecials.has(role)} disabled={role === "merlin" || (capacity < 7 && ["goodLancelot", "cleric"].includes(role))} onClick={() => toggleCustomRole(role)}><span>{t(ROLES[role].name)}</span></button>)}</div><div><strong>{t("邪恶角色")}</strong>{CUSTOM_EVIL_ROLES.map(role => <button type="button" key={role} className={customSpecials.has(role) ? "selected" : ""} aria-pressed={customSpecials.has(role)} disabled={role === "assassin" || (capacity < 7 && ["evilLancelot", "lunatic", "brute", "revealer"].includes(role))} onClick={() => toggleCustomRole(role)}><span>{t(ROLES[role].name)}</span></button>)}</div></div><label className={`module-toggle ${capacity < 7 ? "disabled" : ""}`}><input type="checkbox" checked={ladyOfLake} disabled={capacity < 7} onChange={event => setLadyOfLake(event.target.checked)} /><span><strong>{t("启用湖中仙女")}</strong><small>{t("第 2、3、4 次任务后，持有者私密查验一位玩家的阵营")}</small></span></label></fieldset>}
       <label className="module-toggle"><input type="checkbox" checked={turnSpeech} onChange={event => setTurnSpeech(event.target.checked)} /><span><strong>{t("轮流发言")}</strong><small>{t("每人说完要点「我说完了」，并可以计时。不勾选时，队长亮车，大家讨论完直接表决。")}</small></span></label>
+      {(preset === "full" || (preset === "custom" && customSpecials.has("oberon"))) && <label className="module-toggle"><input type="checkbox" checked={knowsOberon} onChange={event => setKnowsOberon(event.target.checked)} /><span><strong>{t("坏人认识奥伯伦")}</strong><small>{t("坏人知道奥伯伦是谁，奥伯伦不知道队友。")}</small></span></label>}
       {remote && <label className="field">{t("房主 Key")}<input value={formatHostKey(hostKey)} onChange={event => setHostKey(hostKeyBody(event.target.value))} autoComplete="off" autoCapitalize="characters" spellCheck={false} inputMode="text" /></label>}
       {error && <p role="alert">{error}</p>}
       <button className="primary-button" type="submit" disabled={booting || (remote && hostKey.length !== 16) || (preset !== "custom" && capacity < PRESETS[preset].minimum)}>{booting ? t("正在摆桌子…") : t("摆好一桌")}</button>

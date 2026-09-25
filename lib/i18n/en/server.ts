@@ -85,6 +85,11 @@ export const SERVER: Record<string, string> = {
   "第一任队长是邪恶": "First leader is Evil",
   "你只知道第一任队长的阵营，不知道其具体角色。": "You only know the first leader's side, not their exact role.",
   "你们同属邪恶阵营，彼此知道对方的具体角色。奥伯伦不会出现在这里，他也不认识你们。": "You're all on the Evil side and know each other's exact roles. Oberon doesn't appear here, and he doesn't know you either.",
+  "你们同属邪恶阵营，彼此知道对方的具体角色，也知道奥伯伦是谁。奥伯伦不认识你们。": "You're all on the Evil side and know each other's exact roles, including who Oberon is. Oberon does not know you.",
+  "你认识其他邪恶同伴，也知道奥伯伦是谁；奥伯伦不认识你。你不知道正义兰斯洛特是谁。忠诚牌翻到「转换」时，你会换到正义阵营，那时只能出成功牌。": "You know the other Evil players, including who Oberon is; Oberon does not know you. You don't know who Good Lancelot is. When a Switch loyalty card comes up, you move to Good's side and must then play Success.",
+  "你不知道其他邪恶同伴是谁，但他们认识你。梅林能看见你。": "You don't know who the other Evil players are, but they know you. Merlin can see you.",
+  "奥伯伦选项无效。": "The Oberon option is invalid.",
+  "只有板子里有奥伯伦时，才能让坏人认识他。": "Evil can be shown Oberon only when Oberon is on this board.",
   "你不知道其他邪恶同伴是谁，他们也不认识你。梅林能看见你。": "You don't know who the other Evil players are, and they don't know you. Merlin can see you.",
 
   // Game actions
