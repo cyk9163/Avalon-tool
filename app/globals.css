@@ -266,7 +266,8 @@ legend { font-size: 14px; margin-bottom: 11px; color: #354e40; }
 .room-invite small { font-size: 10px; color: #a2ae96; letter-spacing: 1px; }
 .room-invite strong { font-size: 22px; font-weight: 500; letter-spacing: 2px; font-variant-numeric: tabular-nums; }
 .invite-caption { display: flex; align-items: center; justify-content: space-between; grid-column: 1/-1; border-top: 1px solid #dac08d22; padding-top: 7px; margin-top: 1px; font-size: 11px; color: #c7c4a3; }
-.room-layout { display: grid; grid-template-columns: minmax(0,1.1fr) minmax(0,1fr); gap: 23px; align-items: start; }
+.lobby-ready { display: grid; gap: 4px; margin: 8px auto 0; max-width: 420px; }
+.room-layout:has(.lobby-ready) { grid-template-columns: minmax(0, 1fr); max-width: 520px; margin-inline: auto; }
 .room-table { padding: 24px 27px; }
 .live-table { max-width: 385px; margin-top: 28px; margin-bottom: 28px; }
 .live-table .seat-circle { min-width: 44px; min-height: 44px; }
