@@ -22,8 +22,19 @@ body { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-ins
   button:active { transform: none !important; }
 }
 
-/* Section tabs exist for phones only. */
-.room-section-nav { display: none; }
+.room-panel-nav {
+  display: flex; gap: 8px; margin: 0 0 14px;
+  position: sticky; top: 0; z-index: 30;
+  padding: 8px 0;
+  background: #0c171aeb; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+}
+.room-panel-nav button {
+  flex: 1; min-height: 44px; border-radius: 999px; border: 1px solid #344c46;
+  background: transparent; color: #c5d4cf; font-size: 15px; font-weight: 650;
+}
+.room-panel-nav button.active { background: #ffe7a3; border-color: #fff6d0; color: #1a1408; }
+.room-panel-nav button.your-turn { position: relative; }
+.room-panel-nav button.your-turn::after { content: ""; position: absolute; top: 6px; right: 10px; width: 8px; height: 8px; border-radius: 50%; background: var(--danger); }
 
 @media (max-width: 720px) {
   /* During a game the slogan heading gives way to the game itself. */

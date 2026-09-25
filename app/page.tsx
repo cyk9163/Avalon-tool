@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, type ChangeEvent } from "react";
 import Link from "next/link";
-import { ArrowRight, ArrowLeft, Shield, Users, Crown, KeyRound, Check, Copy, QrCode, Eye, EyeOff, RefreshCw, LogOut, LockKeyhole, CircleHelp, Smartphone, LoaderCircle, ChevronDown, Bookmark, X, Monitor } from "lucide-react";
+import { ArrowRight, ArrowLeft, Shield, Users, Crown, KeyRound, Check, Copy, QrCode, Eye, EyeOff, RefreshCw, LogOut, LockKeyhole, CircleHelp, Smartphone, LoaderCircle, Bookmark, X, Monitor } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -16,7 +16,6 @@ import { RoomProgress } from "@/components/room-progress";
 import { RecoveryCodeCard, SeatRecovery } from "@/components/device-recovery";
 import { TakeoverAlert, TakeoverRequests } from "@/components/takeover-requests";
 import { PlayerNotesPanel } from "@/components/player-notes";
-import { RoomSectionNav } from "@/components/room-section-nav";
 import { RevealOverlay } from "@/components/reveal-overlay";
 import { useTurnReminder } from "@/components/turn-reminder";
 import { myTurn } from "@/lib/turn";
@@ -54,7 +53,7 @@ export default function Home(){
   // host chooses a custom board, so reading storage here cannot affect hydration.
   const [savedTemplates,setSavedTemplates]=useState<BoardTemplate[]>(()=>typeof window==="undefined"?[]:loadSavedTemplates()),[templateName,setTemplateName]=useState<string|null>(null);
   const [room,setRoom]=useState<RoomView|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState(""),[sessionReady,setSessionReady]=useState(false),[connected,setConnected]=useState(true),[delivery,setDelivery]=useState<"saved"|"unsent"|null>(null);
-  const [membershipNotice,setMembershipNotice]=useState<Notice>(null),[swapSeat,setSwapSeat]=useState<number|null>(null);
+  const [membershipNotice,setMembershipNotice]=useState<Notice>(null),[swapSeat,setSwapSeat]=useState<number|null>(null),[roomPanel,setRoomPanel]=useState<"table"|"identity"|"notes">("table");
   // Code of a room the server reported as expired or closed: stop syncing it.
   const [goneCode,setGoneCode]=useState("");
   const [booting,setBooting]=useState(true);
@@ -108,7 +107,9 @@ export default function Home(){
     return()=>{cancelled=true;};
   },[load]);
   useEffect(()=>{const hide=()=>setReveal(false);window.addEventListener("blur",hide);window.addEventListener("pagehide",hide);return()=>{window.removeEventListener("blur",hide);window.removeEventListener("pagehide",hide);};},[]);
-  useEffect(()=>{window.scrollTo({top:0,behavior:"instant"});},[room?.code]);
+  const dealtKey=room?.phase==="identity"?`${room.code}:${room.round}`:"";
+  const [seenDeal,setSeenDeal]=useState(dealtKey);
+  if(dealtKey&&seenDeal!==dealtKey){setSeenDeal(dealtKey);setRoomPanel("identity");}
   // Re-seal the identity card whenever the seat, role or game changes. This is
   // derived during render so a new identity is never shown for a single frame.
   const identityKey=`${room?.meId??""}:${room?.identity?.role??""}:${room?.round??0}`;
@@ -273,15 +274,18 @@ export default function Home(){
       {!connected&&delivery!=="unsent"&&<div className="connection-banner" role="status"><RefreshCw size={17}/><span>{delivery==="saved"?t("正在重连。刚才的操作已经在服务器上，座位和身份也还在。"):t("连接暂时中断，座位和身份保存在服务器上，恢复网络后自动同步。换了设备可以用恢复码回到座位。")}</span><button onClick={()=>void load(room.code).catch(()=>setConnected(false))}>{t("立即重试")}</button></div>}
       {membershipNotice&&<div className="membership-notice dismissible" role="status"><p>{t(membershipNotice.text,membershipNotice.vars)}</p><button type="button" aria-label={t("关闭提示")} onClick={()=>setMembershipNotice(null)}>×</button></div>}
       {room.phase==="lobby"&&room.resetReason==="abort"&&<p className="membership-notice" role="status">{t("上一局已由房主作废，身份和记录已清除。玩家与座位已保留，请重新准备；需要补位时可由房主移除离场玩家。")}</p>}
-      {room.game&&<RoomSectionNav showNotes={!!room.meId} connected={connected} live={live} turn={turn}/>}<p className="sr-only" role="status" aria-live="polite">{turn?t(turn):""}</p><GuideHint room={room}/>{room.game&&<RevealOverlay key={room.round} room={room}/>}
+      <p className="sr-only" role="status" aria-live="polite">{turn?t(turn):""}</p><GuideHint room={room}/>{room.game&&<RevealOverlay key={room.round} room={room}/>}
       <TakeoverAlert room={room} busy={busy} connected={connected} act={act}/>
       <TakeoverRequests room={room} busy={busy} connected={connected} act={act}/>
       <RoomProgress room={room} connected={connected} live={live}/>
+      <nav className="room-panel-nav" aria-label={t("房间分区")}>
+        <button type="button" className={roomPanel==="table"?`active${turn?" your-turn":""}`:turn?"your-turn":""} aria-current={roomPanel==="table"?"page":undefined} onClick={()=>setRoomPanel("table")}>{t("主界面")}</button>
+        <button type="button" className={roomPanel==="identity"?"active":""} aria-current={roomPanel==="identity"?"page":undefined} onClick={()=>setRoomPanel("identity")}>{t("身份牌")}</button>
+        <button type="button" className={roomPanel==="notes"?"active":""} aria-current={roomPanel==="notes"?"page":undefined} onClick={()=>setRoomPanel("notes")}>{t("笔记")}</button>
+      </nav>
+      <div hidden={roomPanel!=="table"}>
       <GamePanel key={`${room.round}:${room.game?.turnId??"pregame"}`} room={room} busy={busy} connected={connected} error={error} act={act} onNewGame={back}/>
-      <PlayerNotesPanel room={room}/>
-      <details id="room-identity" className={`room-details ${room.game?"in-game":""}`} open={!room.game}>
-        <summary><span><LockKeyhole size={17}/>{me?t("我的身份与圆桌座位"):t("圆桌座位与角色配置")}</span><ChevronDown size={18}/></summary>
-        <div className="room-layout">
+      {!room.game&&<div className="room-layout">
           <section className="table-panel room-table">
             <div className="table-caption"><span><Users size={16}/>{room.phase==="lobby"?t("按实际座位入座"):t("今晚的同桌")}</span><span>{t("{n} / {count} 人",{n:room.players.length,count:room.capacity})}</span></div>
             <Table count={room.capacity} room={room} disabled={busy||!sessionReady||!connected||room.phase!=="lobby"} onSeat={seat=>{
@@ -298,14 +302,19 @@ export default function Home(){
           </section>
           <aside className="room-side">
             {!me?<section className="action-card"><span className="eyebrow">JOIN THE TABLE</span><h2>{room.phase==="lobby"?t("给自己留个座位。"):t("本局已经开始。")}</h2>{room.phase==="lobby"?<><label className="field">{t("你的昵称")}<input maxLength={12} autoComplete="nickname" placeholder={t("大家怎么称呼你")} value={name} onChange={e=>setName(e.target.value)}/></label><p className="muted-copy">{t("填好昵称后，在圆桌上选一个空位，就能加入朋友的房间。")}</p></>:<p className="muted-copy">{t("发身份后不能中途加入。如果你本来就在这桌，只是换了手机或浏览器，可以回到原来的座位。")}</p>}{room.namesHidden&&<p className="action-note"><LockKeyhole size={13}/>{t("通过房间码进入时不显示昵称；扫描房主的二维码可看到完整座位信息。")}</p>}<SeatRecovery room={room} busy={busy} connected={connected} act={act}/><button className="text-button" onClick={back}><ArrowLeft size={16}/>{t("返回首页")}</button></section>:
-            room.phase==="lobby"?<section className="action-card lobby-action"><div className="your-seat-label"><span className="eyebrow">{t("你的位置")}</span><span className="seat-ticket">{String(me.seat).padStart(2,"0")}<small>{t("号座位")}</small></span></div><h2>{t("{name}，入座了。",{name:me.name})}</h2><p className="muted-copy">{room.round>1?t("座位已经为你保留。重新准备后，让新的故事开始。"):t("和身边的朋友确认座位，准备好就可以开始了。")}</p><button className={me.ready?"secondary-button wide ready-button":"primary-button"} disabled={busy||!connected} onClick={()=>void act("ready",{ready:!me.ready})}>{me.ready?<><Check size={18}/>{t("已准备 · 点击取消")}</>:<>{t("我准备好了")}<Check size={18}/></>}</button>{isHost&&<div className="host-start"><div className="host-start-label"><Crown size={15}/><span>{t("房主操作")}</span></div><button className="primary-button" disabled={busy||!allReady||!connected} onClick={()=>setConfirmStart(true)}><Shield size={17}/>{t("发身份")}</button><p className="action-note">{room.players.length<room.capacity?t("还差 {n} 位朋友入座",{n:room.capacity-room.players.length}):!allReady?t("等待全员准备"):t("全员已准备，让故事开始")}</p></div>}<button className="text-button subtle" onClick={()=>setConfirmLeave(true)} disabled={busy}><LogOut size={15}/>{t("离开房间")}</button></section>:
-            <section className="action-card identity-card"><div className="identity-heading"><span className="eyebrow"><Shield size={14}/>PRIVATE · {t("仅你可见")}</span><span className="identity-seat">{t("{n} 号",{n:me.seat})}</span></div><h2>{t("只属于你的线索。")}</h2><div className={`identity-surface ${reveal?"revealed":""}`} aria-live="off">{reveal&&identity?<><span className={`side-label ${identity.side}`}>{identity.side==="good"?t("正义阵营"):t("邪恶阵营")}</span><h3>{t(ROLES[identity.role].name)}</h3><p>{t(ROLES[identity.role].description)}</p><div className="identity-clues"><strong>{t("你知道的线索")}</strong>{identity.known.map(p=><div className="clue" key={p.seat}><span>{t("{n} 号",{n:p.seat})}</span><b>{p.name}</b><small>{ts(p.label)}</small></div>)}<p>{ts(identity.note)}</p></div></>:<div className="sealed"><span className="sealed-mark"><LockKeyhole size={36} strokeWidth={1.25}/></span><strong>{t("你的身份已密封")}</strong><p>{t("秘密只有你知道。")}<br/>{t("查看前，留意身边的目光。")}</p><span className="sealed-rule"/></div>}</div><button className="reveal-button" disabled={!identity} onPointerDown={e=>{e.preventDefault();e.currentTarget.setPointerCapture(e.pointerId);setReveal(true);setSeen(true);}} onPointerUp={()=>setReveal(false)} onPointerCancel={()=>setReveal(false)} onLostPointerCapture={()=>setReveal(false)} onKeyDown={e=>{if(e.key===" "||e.key==="Enter"){e.preventDefault();setReveal(true);setSeen(true);}}} onKeyUp={e=>{if(e.key===" "||e.key==="Enter")setReveal(false);}} onBlur={()=>setReveal(false)} onContextMenu={e=>e.preventDefault()}>{reveal?<EyeOff size={18}/>:<Eye size={18}/>}{t("按住查看，松开隐藏")}</button>{!room.game&&<button className={me.confirmed?"secondary-button wide ready-button":"primary-button"} disabled={busy||me.confirmed||!seen||!connected} onClick={()=>{setReveal(false);void act("confirm");}}><Check size={18}/>{me.confirmed?t("我已确认身份"):t("我记住了，确认身份")}</button>}<p className="action-note">{room.game?t("切到后台时，身份会自动隐藏。"):room.phase==="ready"?t("全员已确认，等待房主开始对局。"):t("还有 {n} 人等待确认身份",{n:room.capacity-confirmedCount})}</p>{room.phase==="ready"&&<div className="ready-notice"><Crown size={19}/><div><strong>{t("第一任队长 · {n} 号",{n:room.firstLeader??""})}</strong><p>{t("房主点击上方「开始对局」，进入第一轮。")}</p></div></div>}</section>}
+            room.phase==="lobby"?<section className="action-card lobby-action"><div className="your-seat-label"><span className="eyebrow">{t("你的位置")}</span><span className="seat-ticket">{String(me.seat).padStart(2,"0")}<small>{t("号座位")}</small></span></div><h2>{t("{name}，入座了。",{name:me.name})}</h2><p className="muted-copy">{room.round>1?t("座位已经为你保留。重新准备后，让新的故事开始。"):t("和身边的朋友确认座位，准备好就可以开始了。")}</p><button className={me.ready?"secondary-button wide ready-button":"primary-button"} disabled={busy||!connected} onClick={()=>void act("ready",{ready:!me.ready})}>{me.ready?<><Check size={18}/>{t("已准备 · 点击取消")}</>:<>{t("我准备好了")}<Check size={18}/></>}</button>{isHost&&<div className="host-start"><div className="host-start-label"><Crown size={15}/><span>{t("房主操作")}</span></div><button className="primary-button" disabled={busy||!allReady||!connected} onClick={()=>setConfirmStart(true)}><Shield size={17}/>{t("发身份")}</button><p className="action-note">{room.players.length<room.capacity?t("还差 {n} 位朋友入座",{n:room.capacity-room.players.length}):!allReady?t("等待全员准备"):t("全员已准备，让故事开始")}</p></div>}<button className="text-button subtle" onClick={()=>setConfirmLeave(true)} disabled={busy}><LogOut size={15}/>{t("离开房间")}</button></section>:null}
+          </aside>
+        </div>}
+      </div>
+      <div id="room-identity" hidden={roomPanel!=="identity"}>
+        {me&&room.phase!=="lobby"?<section className="action-card identity-card"><div className="identity-heading"><span className="eyebrow"><Shield size={14}/>PRIVATE · {t("仅你可见")}</span><span className="identity-seat">{t("{n} 号",{n:me.seat})}</span></div><h2>{t("只属于你的线索。")}</h2><div className={`identity-surface ${reveal?"revealed":""}`} aria-live="off">{reveal&&identity?<><span className={`side-label ${identity.side}`}>{identity.side==="good"?t("正义阵营"):t("邪恶阵营")}</span><h3>{t(ROLES[identity.role].name)}</h3><p>{t(ROLES[identity.role].description)}</p><div className="identity-clues"><strong>{t("你知道的线索")}</strong>{identity.known.map(p=><div className="clue" key={p.seat}><span>{t("{n} 号",{n:p.seat})}</span><b>{p.name}</b><small>{ts(p.label)}</small></div>)}<p>{ts(identity.note)}</p></div></>:<div className="sealed"><span className="sealed-mark"><LockKeyhole size={36} strokeWidth={1.25}/></span><strong>{t("你的身份已密封")}</strong><p>{t("秘密只有你知道。")}<br/>{t("查看前，留意身边的目光。")}</p><span className="sealed-rule"/></div>}</div><button className="reveal-button" disabled={!identity} onPointerDown={e=>{e.preventDefault();e.currentTarget.setPointerCapture(e.pointerId);setReveal(true);setSeen(true);}} onPointerUp={()=>setReveal(false)} onPointerCancel={()=>setReveal(false)} onLostPointerCapture={()=>setReveal(false)} onKeyDown={e=>{if(e.key===" "||e.key==="Enter"){e.preventDefault();setReveal(true);setSeen(true);}}} onKeyUp={e=>{if(e.key===" "||e.key==="Enter")setReveal(false);}} onBlur={()=>setReveal(false)} onContextMenu={e=>e.preventDefault()}>{reveal?<EyeOff size={18}/>:<Eye size={18}/>}{t("按住查看，松开隐藏")}</button>{!room.game&&<button className={me.confirmed?"secondary-button wide ready-button":"primary-button"} disabled={busy||me.confirmed||!seen||!connected} onClick={()=>{setReveal(false);void act("confirm");}}><Check size={18}/>{me.confirmed?t("我已确认身份"):t("我记住了，确认身份")}</button>}<p className="action-note">{room.game?t("切到后台时，身份会自动隐藏。"):room.phase==="ready"?t("全员已确认，等待房主开始对局。"):t("还有 {n} 人等待确认身份",{n:room.capacity-confirmedCount})}</p>{room.phase==="ready"&&<div className="ready-notice"><Crown size={19}/><div><strong>{t("第一任队长 · {n} 号",{n:room.firstLeader??""})}</strong><p>{t("房主点击上方「开始对局」，进入第一轮。")}</p></div></div>}</section>
+        :<p className="muted-copy">{t("发身份之后，在这里查看你的身份牌。")}</p>}
             <section className="config-card"><div className="config-heading"><h3>{t("本局阵容")}</h3><span>{t(PRESETS[room.preset].name)}</span></div><div className="alignment-line"><span><i/>{t("{n} 位好人",{n:room.capacity-EVIL_COUNTS[room.capacity]})}</span><span><i/>{t("{n} 位坏人",{n:EVIL_COUNTS[room.capacity]})}</span></div><RoleChips roles={room.roles}/>{room.ladyOfLake&&<p className="module-badge">{t("湖中仙女 · 已启用")}</p>}<p className="module-badge">{room.turnSpeech?t("轮流发言 · 已启用"):t("线下讨论 · 亮车后直接表决")}</p><p className="action-note"><Shield size={13}/>{t("配置公开，个人身份私密分发。")}</p></section>
             <RulesCard room={room}/>{room.phase!=="finished"&&<RoomRecord room={room}/>}
             {me&&<RecoveryCodeCard room={room}/>}
-          </aside>
-        </div>
-      </details>
+
+      </div>
+      <div hidden={roomPanel!=="notes"}><PlayerNotesPanel room={room}/></div>
       <RoomManagement key={`${room.code}:${room.round}:${room.meId}:${room.hostId}:${room.hostRevision}`} room={room} busy={busy} connected={connected} error={error} act={act}/>
     </section>}
 

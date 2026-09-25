@@ -19,7 +19,7 @@ export function PlayerNotesPanel({ room }: { room: RoomView }) {
   const { t } = useI18n();
   const { notes, setDraft, clear } = usePlayerNotes(room.code, room.round, room.roles);
   const [confirmClear, setConfirmClear] = useState(false);
-  if (!room.meId || !room.game && room.phase !== "identity" && room.phase !== "ready") return null;
+  if (!room.meId) return null;
   const others = room.players.filter(player => player.id !== room.meId);
   const marked = others.filter(player => notes.marks[player.seat]?.side).length;
   return (

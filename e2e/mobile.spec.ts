@@ -66,7 +66,7 @@ test("the identity card shows only while held and hides when the app loses focus
   const game = await startedGame(browser);
   try {
     const page = await game.other.open(game.code);
-    await page.locator("#room-identity > summary").click();
+    await page.getByRole("button", { name: "身份牌" }).click();
     const surface = page.locator(".identity-surface");
     const reveal = page.locator(".reveal-button");
     await reveal.scrollIntoViewIfNeeded();
