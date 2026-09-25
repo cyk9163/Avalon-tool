@@ -265,3 +265,14 @@
 .is-notes .room-fit, .is-notes .room-fit > div:not([hidden]) { flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
 .is-notes .player-notes { flex: 1; min-height: 0; margin: 0; display: flex; flex-direction: column; overflow: hidden; border: 0; background: transparent; }
 .is-notes .action-dock { margin-bottom: 0; }
+.app-shell:has(.is-identity) { height: 100dvh; overflow: hidden; display: flex; flex-direction: column; }
+.app-shell:has(.is-identity) > * { flex-shrink: 0; }
+.is-identity { flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; padding-top: 8px; padding-bottom: 8px; }
+.is-identity .room-panel-nav, .is-identity .room-progress, .is-identity .action-dock, .is-identity .connection-banner, .is-identity .membership-notice { flex-shrink: 0; }
+.is-identity .room-fit, .is-identity #room-identity { flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
+.is-identity .identity-card { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+.is-identity .identity-heading, .is-identity .reveal-button, .is-identity .action-note, .is-identity .ready-notice, .is-identity .room-record { flex-shrink: 0; }
+.is-identity .reveal-button { margin: 8px 0 0; }
+.is-identity .identity-surface { flex: 1; height: auto; min-height: 0; margin: 8px 0; overflow: auto; touch-action: none; user-select: none; cursor: pointer; }
+.is-identity .ready-notice { margin-top: 8px; padding-top: 8px; }
+.is-identity .room-record { max-height: 30%; overflow: auto; }
