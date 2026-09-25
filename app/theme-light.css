@@ -169,6 +169,7 @@
 :root[data-theme="light"] .game-workspace-title > strong { color: #211e17; }
 :root[data-theme="light"] .game-workspace-title > strong > span { color: #425653; }
 :root[data-theme="light"] .game-phase-chip { border: 1px solid #c1b99b; background: #6b510f0c; color: #675221; }
+:root[data-theme="light"] .game-phase-chip.action { border-color: #695300; background: #695300; color: #f6f3ee; }
 :root[data-theme="light"] .game-phase-chip.danger { border-color: #cbbdbb; background: #8040390a; color: #804039; }
 :root[data-theme="light"] .game-score-side { border: 1px solid #cbd5d4; background: #2f604f06; color: #2f604f; }
 :root[data-theme="light"] .game-score-side > strong > small { color: #50635f; }
@@ -214,8 +215,8 @@
 :root[data-theme="light"] .voter-progress .submitted { color: #1d2c20; border-color: #477156; background: #c4cec9; }
 :root[data-theme="light"] .voter-progress .submitted svg { border: 1px solid #c4cec9; background: #386046; color: #dae4e0; }
 :root[data-theme="light"] .game-panel .action-note { color: #3d4b49; }
-:root[data-theme="light"] .ballot-choice { border: 1px solid #769a85; background: #cfd9d4; color: #475c41; }
-:root[data-theme="light"] .ballot-choice.reject { border-color: #be928b; background: #e1d9da; color: #73493c; }
+:root[data-theme="light"] .ballot-choice { border: 2px solid #00673c; background: #75cc97; color: #121a15; }
+:root[data-theme="light"] .ballot-choice.reject { border-color: #873a2d; background: #dcb9b5; color: #1e1816; }
 :root[data-theme="light"] .ballot-choice:hover:not(:disabled) { border-color: #65531f; box-shadow: inset 0 0 0 1px #65531f; }
 :root[data-theme="light"] .ballot-choice.selected { border-color: #6a510e; box-shadow: inset 0 0 0 2px #6a510e; }
 :root[data-theme="light"] .ballot-choice > svg:last-child { color: #665321; }
@@ -223,6 +224,7 @@
 :root[data-theme="light"] .ballot-count { color: #435b54; }
 :root[data-theme="light"] .ballot-count b { color: #665226; }
 :root[data-theme="light"] .ballot-count > span { color: #364236; }
+:root[data-theme="light"] .game-action > .primary-button { background: #6a5200; color: #f6f3ee; border-color: #5e5531; }
 :root[data-theme="light"] .private-ballot-dialog, :root[data-theme="light"] .game-confirm-dialog { border-color: #bec5c3; background: #e3eaec; }
 :root[data-theme="light"] .private-ballot-dialog [data-slot=dialog-description], :root[data-theme="light"] .game-confirm-dialog [data-slot=alert-dialog-description] { color: #364541; }
 :root[data-theme="light"] .private-ballot-label { color: #6b510f; }
@@ -319,7 +321,7 @@
 :root[data-theme="light"] .game-table-quest { color: var(--foreground); }
 :root[data-theme="light"] .game-table-hammer { color: var(--danger) !important; }
 :root[data-theme="light"] .game-table-pick { color: var(--primary) !important; }
-:root[data-theme="light"] .game-table .seat-circle.on-team { background: #6b510f; border-color: #68521a; color: #dee5e1; box-shadow: 0 0 0 4px #6b510f40, 0 0 0 7px #e5ecea; }
+:root[data-theme="light"] .game-table .seat-circle.on-team { background: #6a5200; border: 3px solid #5e5531; color: #f6f3ee; box-shadow: 0 0 0 5px #6a5200, 0 0 0 9px #e5ecea, 0 0 22px #6a5200cc; }
 :root[data-theme="light"] .game-table .seat-circle.mine:not(.on-team) { background: #ced7d3; border-color: #6b510f; color: var(--primary); }
 :root[data-theme="light"] .game-table .seat-circle.marked-good { box-shadow: 0 0 0 3px var(--success), 0 0 0 7px #e5ecea; }
 :root[data-theme="light"] .game-table .seat-circle.marked-evil { box-shadow: 0 0 0 3px var(--danger), 0 0 0 7px #e5ecea; }

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ChevronDown, NotebookPen } from "lucide-react";
 import { ROLES, type RoomView } from "@/lib/game";
 import { useI18n } from "@/lib/i18n/react";
-import { MAX_DRAFT_LENGTH, MAX_NOTE_LENGTH, usePlayerNotes, markGlyph, type Mark } from "@/lib/player-notes";
+import { MAX_DRAFT_LENGTH, usePlayerNotes, markGlyph, type Mark } from "@/lib/player-notes";
 
 /** Small one-character tag for a private mark. */
 export function MarkTag({ mark }: { mark?: Mark }) {
@@ -17,11 +17,11 @@ export function MarkTag({ mark }: { mark?: Mark }) {
 /** My private marks and notes for this room and game (this device only). */
 export function PlayerNotesPanel({ room }: { room: RoomView }) {
   const { t } = useI18n();
-  const { notes, setNote, setDraft, clear } = usePlayerNotes(room.code, room.round, room.roles);
+  const { notes, setDraft, clear } = usePlayerNotes(room.code, room.round, room.roles);
   const [confirmClear, setConfirmClear] = useState(false);
   if (!room.meId || !room.game && room.phase !== "identity" && room.phase !== "ready") return null;
-  const others = room.players.filter(player => player.id !== room.meId).sort((a, b) => a.seat - b.seat);
-  const marked = others.filter(player => notes.marks[player.seat]?.side || notes.notes[player.seat]).length;
+  const others = room.players.filter(player => player.id !== room.meId);
+  const marked = others.filter(player => notes.marks[player.seat]?.side).length;
   return (
     <details id="room-notes" className="player-notes">
       <summary>
@@ -41,32 +41,10 @@ export function PlayerNotesPanel({ room }: { room: RoomView }) {
         />
         <small>{t("{n} / {max} 字", { n: notes.draft.length, max: MAX_DRAFT_LENGTH })}</small>
       </label>
-      <ul className="player-notes-list">
-        {others.map(player => {
-          const mark = notes.marks[player.seat];
-          return (
-            <li key={player.id} className={mark?.side ? `marked ${mark.side}` : undefined}>
-              <div className="player-notes-head">
-                <span className="player-number">{player.seat}</span>
-                <strong>{player.name || t("已入座")}</strong>
-                <MarkTag mark={mark} />
-              </div>
-              <textarea
-                aria-label={t("{n} 号的发言备注", { n: player.seat })}
-                placeholder={t("记下发言、站边、投票理由…")}
-                maxLength={MAX_NOTE_LENGTH}
-                rows={notes.notes[player.seat] ? 2 : 1}
-                value={notes.notes[player.seat] ?? ""}
-                onChange={event => setNote(player.seat, event.target.value)}
-              />
-            </li>
-          );
-        })}
-      </ul>
       <div className="player-notes-footer">
         {!confirmClear
           ? <button type="button" className="text-button subtle" onClick={() => setConfirmClear(true)}>{t("清空本局笔记")}</button>
-          : <span>{t("确定清空所有标记、备注和发言草稿？")}<button type="button" className="text-button" onClick={() => { clear(); setConfirmClear(false); }}>{t("清空")}</button><button type="button" className="text-button subtle" onClick={() => setConfirmClear(false)}>{t("取消")}</button></span>}
+          : <span>{t("确定清空发言准备和头像上的标记？")}<button type="button" className="text-button" onClick={() => { clear(); setConfirmClear(false); }}>{t("清空")}</button><button type="button" className="text-button subtle" onClick={() => setConfirmClear(false)}>{t("取消")}</button></span>}
       </div>
     </details>
   );

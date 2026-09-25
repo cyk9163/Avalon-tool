@@ -131,6 +131,7 @@ export const GAME: Record<string, string> = {
   "{n} / {max} 字": "{n} / {max} characters",
   "已标记 {n} / {total} 人 · 有发言草稿": "{n} / {total} marked · draft saved",
   "确定清空所有标记、备注和发言草稿？": "Clear all marks, notes and your draft?",
+  "确定清空发言准备和头像上的标记？": "Clear your speaking notes and the marks on the avatars?",
   "好人": "Good",
   "坏人": "Evil",
   "未知": "Unknown",

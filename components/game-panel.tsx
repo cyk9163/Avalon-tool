@@ -7,6 +7,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { ROLES, type GameView, type Role, type RoomView } from "@/lib/game";
 import { ReplayExport } from "@/components/replay-export";
 import { ReplayTimeline } from "@/components/replay-timeline";
+import { EarlyAssassination } from "@/components/early-assassination";
 import { gameHighlights } from "@/lib/highlights";
 import { recordFromView, usePersonalRecord } from "@/lib/personal-record";
 import { RoomRecord } from "@/components/room-record";
@@ -136,12 +137,15 @@ export function GamePanel({ room, busy, connected, error, act, onNewGame }: Prop
   return <section id="room-game" className={`game-panel phase-${room.phase}`} aria-label={t("当前对局")}>
     <div className="game-topline">
       <div className="game-workspace-title"><span className="game-kicker">THE ROUND TABLE</span><strong>{t("圆桌议事")} <span>{t("第 {n} 局", { n: room.round })}</span></strong></div>
-      <div className="game-topline-actions"><RulesButton room={room} /><span className={`game-phase-chip ${room.phase === "assassination" ? "danger" : ""}`}><stage.Icon size={15} aria-hidden="true" />{stage.label}</span></div>
+      <div className="game-topline-actions"><RulesButton room={room} />{room.phase === "quest" && onTeam && game.myQuestVote === null
+        ? <button type="button" className="game-phase-chip action" disabled={blocked} onClick={() => { setCard(null); setBallotOpen(true); }}><stage.Icon size={15} aria-hidden="true" />{t("私密提交任务票")}</button>
+        : <span className={`game-phase-chip ${room.phase === "assassination" ? "danger" : ""}`}><stage.Icon size={15} aria-hidden="true" />{stage.label}</span>}</div>
     </div>
     <div className="game-score" aria-label={t("任务比分：正义 {good}，邪恶 {evil}", { good: goodWins, evil: evilWins })}>
       <div className="game-score-side good"><Shield size={19} aria-hidden="true" /><span>{t("正义任务")}</span><div className="score-dots" aria-hidden="true">{[1, 2, 3].map(point => <i key={point} className={point <= goodWins ? "filled" : ""} />)}</div><strong>{goodWins}<small>/ 3</small></strong></div>
       <div className="game-score-side evil"><Swords size={19} aria-hidden="true" /><span>{t("邪恶任务")}</span><div className="score-dots" aria-hidden="true">{[1, 2, 3].map(point => <i key={point} className={point <= evilWins ? "filled" : ""} />)}</div><strong>{evilWins}<small>/ 3</small></strong></div>
     </div>
+    <EarlyAssassination room={room} busy={busy} connected={connected} act={act} />
     {room.phase !== "finished" && <div className="game-table-wrap">
       <GameTable room={room} game={game} selection={selection} onToggle={room.phase === "team" && leader && !blocked ? toggleSeat : undefined} marks={notes.marks} onMark={room.meId && !blocked ? (seat, mark) => setMark(seat, mark) : undefined} />
       <LeaderOrder room={room} game={game} />

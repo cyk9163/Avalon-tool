@@ -13,6 +13,8 @@
 .game-workspace-title > strong { color: #f4f0e6; font-size: 24px; font-weight: 600; line-height: 1.4; letter-spacing: -.5px; }
 .game-workspace-title > strong > span { display: inline-block; margin-left: 10px; color: #93a9a6; font-size: 12px; font-weight: 400; letter-spacing: 0; vertical-align: middle; }
 .game-phase-chip { display: inline-flex; align-items: center; justify-content: center; gap: 7px; flex-shrink: 0; padding: 9px 12px; border: 1px solid #6d664a; border-radius: 30px; background: #dbc18a0c; color: #e2cc9e; font-size: 12px; line-height: 1.4; }
+.game-phase-chip.action { border-color: #f3dd9a; background: #f3dd9a; color: #1a1408; font-weight: 700; cursor: pointer; }
+.game-phase-chip.action:disabled { opacity: .45; cursor: default; }
 .game-phase-chip.danger { border-color: #79534e; background: #e9a59c0a; color: #e9a59c; }
 .game-score { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 23px; }
 .game-score-side { min-width: 0; display: grid; grid-template-columns: auto auto 1fr auto; align-items: center; gap: 11px; min-height: 64px; padding: 11px 17px; border: 1px solid #2b4945; border-radius: 12px; background: #9bcab706; color: #9bcab7; }
@@ -78,9 +80,9 @@
 .voter-progress .submitted svg { position: absolute; right: -2px; bottom: -1px; width: 14px; height: 14px; border: 1px solid #355646; border-radius: 50%; background: #a1c8ad; color: #19342b; }
 .game-panel .action-note { color: #a4b5b2; font-size: 13px; line-height: 1.8; }
 .vote-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 23px 0 10px; }
-.ballot-choice { position: relative; min-width: 0; min-height: 118px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 13px; padding: 19px 14px; border: 1px solid #628571; border-radius: 14px; background: #244537; color: #cae1c4; }
-.ballot-choice strong { font-size: 23px; line-height: 1.2; font-weight: 500; letter-spacing: 3px; padding-left: 3px; }
-.ballot-choice.reject { border-color: #916861; background: #443032; color: #efc1b3; }
+.ballot-choice { position: relative; min-width: 0; min-height: 118px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 13px; padding: 19px 14px; border: 2px solid #7dcea0; border-radius: 14px; background: #1c7a4a; color: #f4fff8; }
+.ballot-choice strong { font-size: 23px; line-height: 1.2; font-weight: 700; letter-spacing: 3px; padding-left: 3px; }
+.ballot-choice.reject { border-color: #f0a090; background: #9a3330; color: #fff6f3; }
 .ballot-choice:hover:not(:disabled) { border-color: #e9d7a6; box-shadow: inset 0 0 0 1px #e9d7a6; }
 .ballot-choice:disabled { opacity: .4; }
 .ballot-choice.selected { border-color: #e1c890; box-shadow: inset 0 0 0 2px #e1c890; }
@@ -89,7 +91,7 @@
 .ballot-count { margin: 0; font-size: 23px; font-variant-numeric: tabular-nums; line-height: 1.2; color: #8ba59d; }
 .ballot-count b { margin-right: 3px; color: #ead5aa; font-size: 43px; font-weight: 400; }
 .ballot-count > span { display: block; margin-top: 7px; font-size: 13px; line-height: 1.5; color: #b5c3b5; }
-.game-action > .primary-button { max-width: 480px; margin: 20px auto 0; }
+.game-action > .primary-button { max-width: 480px; margin: 20px auto 0; background: #ffe7a3; color: #1a1408; border-color: #fff6d0; font-weight: 700; }
 .private-ballot-dialog, .game-confirm-dialog { max-height: calc(100dvh - 40px); overflow-y: auto; border-color: #49605b; border-radius: 18px; background: #13272b; }
 .private-ballot-dialog [data-slot=dialog-title] { font-size: 25px; line-height: 1.4; font-weight: 600; letter-spacing: -.5px; }
 .private-ballot-dialog [data-slot=dialog-description], .game-confirm-dialog [data-slot=alert-dialog-description] { color: #aebfba; font-size: 14px; line-height: 1.8; }
@@ -303,7 +305,7 @@
 .game-table-pick { color: var(--primary) !important; font-weight: 600; }
 .game-table .seat-position { width: 64px; }
 .game-table .seat-circle { width: 44px; height: 44px; min-width: 44px; min-height: 44px; transition: box-shadow .15s, background .15s, border-color .15s; }
-.game-table .seat-circle.on-team { background: #dbc18a; border-color: #f0d9a6; color: #1d3025; box-shadow: 0 0 0 4px #dbc18a40, 0 0 0 7px #132623; }
+.game-table .seat-circle.on-team { background: #ffe7a3; border: 3px solid #fff6d0; color: #1a1408; box-shadow: 0 0 0 5px #ffe7a3, 0 0 0 9px #132623, 0 0 22px #ffe7a3cc; }
 .game-table .seat-circle.mine:not(.on-team) { background: #2b463b; border-color: #dbc18a; color: var(--primary); }
 .game-table .seat-circle.marked-good { box-shadow: 0 0 0 3px var(--success), 0 0 0 7px #132623; }
 .game-table .seat-circle.marked-evil { box-shadow: 0 0 0 3px var(--danger), 0 0 0 7px #132623; }
