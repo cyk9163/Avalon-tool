@@ -27,7 +27,7 @@
 :root[data-theme="light"] body { background: radial-gradient(ellipse at 17% 0%, #d9e3e055, transparent 55%), var(--background); color: var(--foreground); }
 :root[data-theme="light"] button:focus-visible, :root[data-theme="light"] a:focus-visible, :root[data-theme="light"] input:focus-visible, :root[data-theme="light"] summary:focus-visible, :root[data-theme="light"] label:has(:focus-visible) { outline: 2px solid var(--ring); }
 :root[data-theme="light"] a { color: inherit; text-decoration: none; }
-:root[data-theme="light"] .text-fold summary { color: #6b510f; }
+:root[data-theme="light"] .menu-links a { color: #6b510f; }
 :root[data-theme="light"] .topbar { border-bottom: 1px solid #30403418; }
 :root[data-theme="light"] .brand-icon { border: 1px solid #6b510f55; background: #6b510f06; color: var(--primary); }
 :root[data-theme="light"] .brand-sub { color: #3c4a3f; }

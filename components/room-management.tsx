@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Check, ChevronDown, Crown, Settings2, Square, UserMinus } from "lucide-react";
+import { Check, Crown, Square, UserMinus } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import type { RoomView } from "@/lib/game";
 import { useI18n } from "@/lib/i18n/react";
@@ -12,6 +12,7 @@ type Props = {
   connected: boolean;
   error: string;
   act: (action: string, input?: Record<string, unknown>) => Promise<RoomView | null>;
+  inMenu?: boolean;
 };
 
 type ManagementAction = "transfer-host" | "kick" | "abort";
@@ -27,7 +28,7 @@ type Pending = {
 
 const activePhases = new Set<RoomView["phase"]>(["identity", "ready", "team", "vote", "quest", "assassination"]);
 
-export function RoomManagement({ room, busy, connected, error, act }: Props) {
+export function RoomManagement({ room, busy, connected, error, act, inMenu = false }: Props) {
   const { t, ts } = useI18n();
   const [targetId, setTargetId] = useState<string | null>(null);
   const [pending, setPending] = useState<Pending | null>(null);
@@ -84,10 +85,8 @@ export function RoomManagement({ room, busy, connected, error, act }: Props) {
   if (!isHost || room.phase === "closed") return null;
 
   return <>
-    <details className="room-management">
-      <summary><span className="management-summary-icon"><Settings2 size={17} aria-hidden="true" /></span><span>{t("房间管理")}</span><small>{t("仅房主可操作")}</small><ChevronDown className="management-chevron" size={16} aria-hidden="true" /></summary>
-      <div className="management-content">
-        <p className="management-intro">{room.phase === "lobby" ? t("准备开局前，可移交房主或调整入座玩家。") : t("可以把房主交给另一位朋友，当前对局进度会保留。")}</p>
+    {inMenu && <div className="management-content"><h3>{t("房间管理")}</h3>
+      <p className="management-intro">{room.phase === "lobby" ? t("准备开局前，可移交房主或调整入座玩家。") : t("可以把房主交给另一位朋友，当前对局进度会保留。")}</p>
         {candidates.length ? <>
           <fieldset className="management-players">
             <legend>{t("选择一位玩家")}</legend>
@@ -111,8 +110,7 @@ export function RoomManagement({ room, busy, connected, error, act }: Props) {
           <button type="button" className="secondary-button management-remove" disabled={blocked} onClick={event => prepare("abort", event.currentTarget)}><Square size={15} aria-hidden="true" />{t("中止本局")}</button>
         </div>}
         {!connected && <p className="management-connection" role="status">{feedback}</p>}
-      </div>
-    </details>
+      </div>}
     <AlertDialog open={pendingIsCurrent} onOpenChange={open => { if (!open && !busy) setPending(null); }}>
       <AlertDialogContent className={`management-dialog ${pending?.action === "kick" || pending?.action === "abort" ? "management-dialog-destructive" : ""}`} onCloseAutoFocus={event => {
         if (opener.current?.isConnected) { event.preventDefault(); opener.current.focus(); }
