@@ -1,13 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { BUILT_IN_TEMPLATES, fillCustomRoles, loadSavedTemplates, sameBoard, templateFits, templateMinimum, type BoardTemplate } from "@/lib/board-templates";
 import { CUSTOM_EVIL_ROLES, CUSTOM_GOOD_ROLES, EVIL_COUNTS, PRESETS, ROLES, type Preset, type Role, type RoomView } from "@/lib/game";
+import { hostKeyBody, hostKeyForSubmit, formatHostKey } from "@/lib/host-key-input";
 import { useI18n } from "@/lib/i18n/react";
-import { SOLO_NAMES, isSoloHost } from "@/lib/solo";
+import { SOLO_NAMES, isControlHost, isSoloHost } from "@/lib/solo";
 
 type Table = { code: string; invite: string | null; capacity: number; devices: string[] };
+type Desk = "local" | "staging" | "blocked";
+
+function deskMode(): Desk {
+  if (!isControlHost(location.hostname)) return "blocked";
+  return isSoloHost(location.hostname) ? "local" : "staging";
+}
 
 function deviceId() {
   const bytes = new Uint8Array(32);
@@ -31,7 +38,9 @@ export default function SoloPage() {
   const [phoneSeat, setPhoneSeat] = useState<number | null>(null);
   const [qrImage, setQrImage] = useState<{ url: string; data: string } | null>(null);
   const [copied, setCopied] = useState(false);
-  const local = typeof location === "undefined" || isSoloHost(location.hostname);
+  const [hostKey, setHostKey] = useState("");
+  const desk = useSyncExternalStore(() => () => {}, deskMode, () => "local" as const);
+  const remote = desk === "staging";
   const customRoles = fillCustomRoles(capacity, customSpecials);
 
   const toggleCustomRole = (role: Role) => {
@@ -52,9 +61,12 @@ export default function SoloPage() {
     setError("");
     setBooting(true);
     try {
-      const setup = await fetch("/api/solo");
-      if (!setup.ok) throw new Error(t("本地测试接口不可用。"));
-      const { hostKey } = await setup.json() as { hostKey: string };
+      let roomKey = hostKeyForSubmit(hostKey);
+      if (!remote) {
+        const setup = await fetch("/api/solo");
+        if (!setup.ok) throw new Error(t("本地测试接口不可用。"));
+        roomKey = (await setup.json() as { hostKey: string }).hostKey;
+      } else if (hostKey.length !== 16) throw new Error(t("请填写测试站的房主 Key。"));
       const devices = Array.from({ length: capacity }, deviceId);
       const response = await fetch("/api/room", {
         method: "POST",
@@ -63,7 +75,7 @@ export default function SoloPage() {
         body: JSON.stringify({
           action: "create",
           name: SOLO_NAMES[0],
-          hostKey,
+          hostKey: roomKey,
           capacity,
           preset,
           turnSpeech,
@@ -82,8 +94,9 @@ export default function SoloPage() {
     }
   };
 
+  const publicOrigin = remote ? location.origin : "";
   useEffect(() => {
-    if (!table) return;
+    if (!table || publicOrigin) return;
     let cancelled = false;
     fetch("/api/dev-lan").then(async response => {
       if (!response.ok) return;
@@ -94,7 +107,7 @@ export default function SoloPage() {
       setOrigin(current => current && next.includes(current) ? current : next.find(item => item.includes("://192.168.")) ?? next[0] ?? "");
     }).catch(() => {});
     return () => { cancelled = true; };
-  }, [table]);
+  }, [table, publicOrigin]);
 
   const phoneSrc = (seat: number) => {
     if (!table) return "";
@@ -107,7 +120,8 @@ export default function SoloPage() {
     if (table.invite) params.set("invite", table.invite);
     return `/?${params.toString()}`;
   };
-  const phoneTarget = table && phoneSeat && origin ? `${origin}${phoneSrc(phoneSeat)}` : "";
+  const phoneBase = publicOrigin || origin;
+  const phoneTarget = table && phoneSeat && phoneBase ? `${phoneBase}${phoneSrc(phoneSeat)}` : "";
   const qr = qrImage?.url === phoneTarget ? qrImage.data : "";
   useEffect(() => {
     if (!phoneTarget) return;
@@ -118,13 +132,13 @@ export default function SoloPage() {
     return () => { cancelled = true; };
   }, [phoneTarget]);
 
-  if (!local) return <main className="app-shell"><p>{t("一个人测试只在本地开发服务器上可用。")}</p></main>;
+  if (desk === "blocked") return <main className="app-shell"><p>{t("一个人测试只在本地开发服务器上可用。")}</p></main>;
 
   return <main className="app-shell solo-desk">
     <header className="solo-head">
       <div>
         <h1>{t("一个人测试整桌")}</h1>
-        <p>{t("每个窗口是一个独立座位。电脑上看整桌；手机和电脑连同一个 Wi-Fi 后，扫某一个座位的码，就能用手机看那一位的界面。")}</p>
+        <p>{t("电脑上每个窗口是一个座位，用来总控整桌。建好房间后，点某个号的「手机接管」，扫码即可用手机操作那一个号。")}</p>
       </div>
       {table && <p className="solo-code">{t("房间码")} {table.code} <button type="button" className="text-button" onClick={() => { setTable(null); setPhoneSeat(null); setError(""); }}>{t("再摆一桌")}</button></p>}
     </header>
@@ -134,20 +148,21 @@ export default function SoloPage() {
       <fieldset className="template-picker"><legend>{t("推荐板子")}</legend><div className="template-chips">{[...BUILT_IN_TEMPLATES, ...savedTemplates].map(template => { const fits = templateFits(template, capacity); const active = preset === "custom" && sameBoard(template, customSpecials, ladyOfLake); return <span key={template.id} className={`template-chip${active ? " selected" : ""}`}><button type="button" disabled={!fits} aria-pressed={active} onClick={() => { setPreset("custom"); setCustomSpecials(new Set(template.specials)); setLadyOfLake(template.ladyOfLake); }}><span>{template.builtIn ? t(template.name) : template.name}</span><small>{fits ? (template.hint ? t(template.hint) : template.ladyOfLake ? t("我的模板 · 湖中仙女") : t("我的模板")) : t("{n} 人起", { n: templateMinimum(template) ?? "" })}</small></button></span>; })}</div></fieldset>
       {preset === "custom" && <fieldset className="custom-board"><legend>{t("编辑自定义板子")}</legend><div className="custom-board-summary"><span>{t("正义 {n} 位", { n: capacity - EVIL_COUNTS[capacity] })}</span><span>{t("邪恶 {n} 位", { n: EVIL_COUNTS[capacity] })}</span></div><div className="custom-role-columns"><div><strong>{t("正义角色")}</strong>{CUSTOM_GOOD_ROLES.map(role => <button type="button" key={role} className={customSpecials.has(role) ? "selected" : ""} aria-pressed={customSpecials.has(role)} disabled={role === "merlin" || (capacity < 7 && ["goodLancelot", "cleric"].includes(role))} onClick={() => toggleCustomRole(role)}><span>{t(ROLES[role].name)}</span></button>)}</div><div><strong>{t("邪恶角色")}</strong>{CUSTOM_EVIL_ROLES.map(role => <button type="button" key={role} className={customSpecials.has(role) ? "selected" : ""} aria-pressed={customSpecials.has(role)} disabled={role === "assassin" || (capacity < 7 && ["evilLancelot", "lunatic", "brute", "revealer"].includes(role))} onClick={() => toggleCustomRole(role)}><span>{t(ROLES[role].name)}</span></button>)}</div></div><label className={`module-toggle ${capacity < 7 ? "disabled" : ""}`}><input type="checkbox" checked={ladyOfLake} disabled={capacity < 7} onChange={event => setLadyOfLake(event.target.checked)} /><span><strong>{t("启用湖中仙女")}</strong><small>{t("第 2、3、4 次任务后，持有者私密查验一位玩家的阵营")}</small></span></label></fieldset>}
       <label className="module-toggle"><input type="checkbox" checked={turnSpeech} onChange={event => setTurnSpeech(event.target.checked)} /><span><strong>{t("轮流发言")}</strong><small>{t("每人说完要点「我说完了」，并可以计时。不勾选时，队长亮车，大家讨论完直接表决。")}</small></span></label>
+      {remote && <label className="field">{t("房主 Key")}<input value={formatHostKey(hostKey)} onChange={event => setHostKey(hostKeyBody(event.target.value))} autoComplete="off" autoCapitalize="characters" spellCheck={false} inputMode="text" /></label>}
       {error && <p role="alert">{error}</p>}
-      <button className="primary-button" type="submit" disabled={booting || (preset !== "custom" && capacity < PRESETS[preset].minimum)}>{booting ? t("正在摆桌子…") : t("摆好一桌")}</button>
+      <button className="primary-button" type="submit" disabled={booting || (remote && hostKey.length !== 16) || (preset !== "custom" && capacity < PRESETS[preset].minimum)}>{booting ? t("正在摆桌子…") : t("摆好一桌")}</button>
     </form>}
     {table && <div className="solo-grid">{Array.from({ length: table.capacity }, (_, index) => {
       const seat = index + 1;
       const open = phoneSeat === seat;
       return <section key={seat} className="solo-phone">
-        <div className="solo-phone-bar"><h2>{t("{n} 号", { n: seat })} · {SOLO_NAMES[index]}</h2><button type="button" className="text-button" aria-expanded={open} onClick={() => { setCopied(false); setPhoneSeat(open ? null : seat); }}>{t("手机打开")}</button></div>
+        <div className="solo-phone-bar"><h2>{t("{n} 号", { n: seat })} · {SOLO_NAMES[index]}</h2><button type="button" className="text-button" aria-expanded={open} onClick={() => { setCopied(false); setPhoneSeat(open ? null : seat); }}>{t("手机接管")}</button></div>
         {open && <div className="solo-phone-link">
           {origins.length > 1 && <label className="field">{t("手机要打开的地址")}<select value={origin} onChange={event => setOrigin(event.target.value)}>{origins.map(item => <option key={item} value={item}>{item}</option>)}</select></label>}
           {qr ? /* eslint-disable-next-line @next/next/no-img-element -- a locally generated data: URL; image optimisation does not apply. */
             <img src={qr} alt={t("用手机打开 {name} 的界面", { name: SOLO_NAMES[index] ?? String(seat) })} width={168} height={168} /> : <p>{phoneTarget ? t("正在生成二维码…") : t("这台电脑的局域网地址还没找到。重启本地开发服务器后再试。")}</p>}
           {phoneTarget && <button type="button" className="text-button" onClick={async () => { try { await navigator.clipboard.writeText(phoneTarget); setCopied(true); } catch { setCopied(false); } }}>{copied ? t("已复制手机链接") : t("复制手机链接")}</button>}
-          <p>{t("扫码后就是这一位玩家。电脑上的窗口仍可操作整桌。")}</p>
+          <p>{t("扫码后，这台手机会接管这个号。电脑上的其他窗口仍可总控整桌。")}</p>
         </div>}
         <iframe title={t("{n} 号", { n: seat })} src={phoneSrc(seat)} />
       </section>;

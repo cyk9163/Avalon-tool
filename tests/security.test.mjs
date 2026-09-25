@@ -27,6 +27,12 @@ test("pages and API responses carry the security baseline without losing their o
   assert.match(local.headers.get("content-security-policy"), /frame-ancestors 'self'/);
   assert.equal(local.headers.get("x-frame-options"), "SAMEORIGIN");
   assert.ok(!local.headers.get("content-security-policy").includes("upgrade-insecure-requests"));
+  const staging = applySecurityHeaders(new Request("https://avalon-roundtable-staging.yunkangchen2017.workers.dev/"), new Response("ok"));
+  assert.match(staging.headers.get("content-security-policy"), /frame-ancestors 'self'/);
+  assert.equal(staging.headers.get("x-frame-options"), "SAMEORIGIN");
+  const production = applySecurityHeaders(new Request("https://avalon-roundtable.yunkangchen2017.workers.dev/"), new Response("ok"));
+  assert.match(production.headers.get("content-security-policy"), /frame-ancestors 'none'/);
+  assert.equal(production.headers.get("x-frame-options"), "DENY");
 });
 
 test("static assets use the same policy as Worker responses", () => {

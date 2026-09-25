@@ -26,13 +26,21 @@ export function isSoloHost(hostname: string): boolean {
     || host.endsWith(".localhost") || host.endsWith(".local") || isPrivateIPv4(host);
 }
 
+/** The temporary friends-test site. Production never qualifies. */
+export const STAGING_HOSTNAME = "avalon-roundtable-staging.yunkangchen2017.workers.dev";
+
+/** Where the computer may run every seat, and a phone may open one of them. */
+export function isControlHost(hostname: string): boolean {
+  return isSoloHost(hostname) || bareHost(hostname) === STAGING_HOSTNAME;
+}
+
 const SOLO_DEVICE = /^[a-f0-9]{64}$/;
 
-/** A per-seat device id, accepted only when the request itself is on a local host. */
+/** A per-seat device id, accepted only on the local machine or the test site. */
 export function soloDeviceOverride(request: Request): string | null {
   const header = request.headers.get("x-avalon-solo");
   if (!header || !SOLO_DEVICE.test(header)) return null;
-  return isSoloHost(new URL(request.url).hostname) ? header : null;
+  return isControlHost(new URL(request.url).hostname) ? header : null;
 }
 
 export const SOLO_NAMES = ["小明", "阿花", "老王", "Kiki", "大雄", "阿强", "小美", "石头", "圆圆", "阿凯"] as const;

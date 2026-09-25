@@ -2,13 +2,13 @@
 
 import type { RoomView } from "@/lib/game";
 import { msg } from "@/lib/i18n/core";
-import { isSoloHost } from "@/lib/solo";
+import { isControlHost } from "@/lib/solo";
 
 let sessionBootstrap: Promise<unknown> | null = null;
 let soloDevice: string | null = null;
 
 function soloHeader(): Record<string, string> {
-  if (!soloDevice && typeof location !== "undefined" && isSoloHost(location.hostname)) {
+  if (!soloDevice && typeof location !== "undefined" && isControlHost(location.hostname)) {
     const token = new URLSearchParams(location.search).get("solo");
     if (token && /^[a-f0-9]{64}$/.test(token)) soloDevice = token;
   }

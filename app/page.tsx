@@ -33,7 +33,7 @@ import { useI18n } from "@/lib/i18n/react";
 import { msg, type Vars } from "@/lib/i18n/core";
 import { LangToggle } from "@/components/lang-toggle";
 import { HOST_KEY_LENGTH, formatHostKey, formattedCaret, hostKeyCharacters, hostKeyForSubmit } from "@/lib/host-key-input";
-import { isSoloHost } from "@/lib/solo";
+import { isControlHost } from "@/lib/solo";
 
 type Mode="create"|"join";
 function roomPath(code:string){
@@ -88,7 +88,7 @@ export default function Home(){
   const load=useCallback(async(target:string)=>{const data=await request(`/api/room?code=${encodeURIComponent(target)}`,undefined,target);accept(data);return data as RoomView;},[accept]);
   const live=useRoomSync(room,goneCode,currentCode,latest,load,setError,setConnected,setGoneCode,setReveal);
   useEffect(()=>{
-    if(isSoloHost(location.hostname)){
+    if(isControlHost(location.hostname)){
       const pending=new URLSearchParams(location.search);
       const seat=Number(pending.get("soloSeat")),soloName=pending.get("soloName")??"";
       if(Number.isInteger(seat)&&seat>=1&&seat<=10&&soloName)soloJoin.current={seat,name:soloName.slice(0,12)};
