@@ -35,7 +35,9 @@ if (health.status !== "ok") fail(`health status ${health.status}`);
 const page = await fetch(`${target}/`, { cache: "no-store" });
 if (!page.ok) fail(`home page returned ${page.status}`);
 const csp = page.headers.get("content-security-policy") ?? "";
-for (const directive of ["frame-ancestors 'none'", "object-src 'none'", "default-src 'self'"]) {
+// The test site embeds each seat in the computer's control desk. Production stays locked.
+const frameAncestors = target === ENVIRONMENTS.staging.url ? "frame-ancestors 'self'" : "frame-ancestors 'none'";
+for (const directive of [frameAncestors, "object-src 'none'", "default-src 'self'"]) {
   if (!csp.includes(directive)) fail(`home page CSP is missing ${directive}`);
 }
 if (target.startsWith("https:") && !page.headers.get("strict-transport-security")) fail("HSTS header missing");
@@ -44,7 +46,7 @@ if (target.startsWith("https:") && !page.headers.get("strict-transport-security"
 for (const path of ["/rules", "/privacy", "/me"]) {
   const doc = await fetch(`${target}${path}`, { cache: "no-store" });
   if (!doc.ok) fail(`${path} returned ${doc.status}`);
-  if (!(doc.headers.get("content-security-policy") ?? "").includes("frame-ancestors 'none'")) fail(`${path} is missing the CSP`);
+  if (!(doc.headers.get("content-security-policy") ?? "").includes(frameAncestors)) fail(`${path} is missing the CSP`);
 }
 // The admin API must refuse a request without a key (and never serve stats).
 const adminProbe = await fetch(`${target}/api/admin`, { cache: "no-store" });
