@@ -31,7 +31,6 @@
 :root[data-theme="light"] .brand-icon { border: 1px solid #6b510f55; background: #6b510f06; color: var(--primary); }
 :root[data-theme="light"] .brand-sub { color: #3c4a3f; }
 :root[data-theme="light"] .solo-head p { color: #41504a; }
-:root[data-theme="light"] .solo-form label { color: #41504a; }
 :root[data-theme="light"] .solo-phone { border: 1px solid #cad2d0; background: #eaf0ef; }
 :root[data-theme="light"] .solo-phone h2 { color: #6b510f; }
 :root[data-theme="light"] .solo-phone iframe { border: 0; background: #f0f5f4; }

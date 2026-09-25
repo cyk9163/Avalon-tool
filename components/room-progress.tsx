@@ -1,6 +1,4 @@
-import { Check } from "lucide-react";
 import type { RoomView } from "@/lib/game";
-import { msg } from "@/lib/i18n/core";
 import { useI18n } from "@/lib/i18n/react";
 
 type RoomProgressProps = {
@@ -23,16 +21,6 @@ type StageSummary = {
   progress?: Progress;
   tone?: "good" | "evil";
 };
-
-const steps = [msg("入座"), msg("身份"), msg("对局"), msg("复盘")];
-
-function currentStep(phase: RoomView["phase"]): number {
-  if (phase === "lobby") return 0;
-  if (phase === "identity" || phase === "ready") return 1;
-  if (phase === "finished") return 3;
-  if (phase === "closed") return -1;
-  return 2;
-}
 
 function stageSummary(room: RoomView, t: ReturnType<typeof useI18n>["t"]): StageSummary {
   const game = room.game;
@@ -138,56 +126,30 @@ function stageSummary(room: RoomView, t: ReturnType<typeof useI18n>["t"]): Stage
 
 export function RoomProgress({ room, connected, live = false }: RoomProgressProps) {
   const { t } = useI18n();
-  const activeStep = currentStep(room.phase);
   const summary = stageSummary(room, t);
   const progress = summary.progress;
-  const value = progress ? Math.max(0, Math.min(progress.value, progress.max)) : 0;
+  if (!progress) return null;
+  const value = Math.max(0, Math.min(progress.value, progress.max));
 
   return (
-    <section className={`room-progress${room.game ? " room-progress--playing" : ""}${summary.tone ? ` room-progress--${summary.tone}` : ""}`} aria-label={t("房间进度")}>
-      <div className="room-progress-topline">
-        <ol className="room-progress-steps" aria-label={t("对局阶段")}>
-          {steps.map((label, index) => (
-            <li
-              key={label}
-              className={index === activeStep ? "is-current" : index < activeStep ? "is-complete" : undefined}
-              aria-current={index === activeStep ? "step" : undefined}
-            >
-              <span className="room-progress-step-number" aria-hidden="true">
-                {index < activeStep ? <Check size={12} strokeWidth={2} /> : index + 1}
-              </span>
-              <span>{t(label)}</span>
-            </li>
-          ))}
-        </ol>
-        <span className={`room-progress-connection${connected ? (live ? " is-live" : "") : " is-reconnecting"}`} role="status" title={connected ? (live ? t("实时连接：其他人的操作会立即显示") : t("定时同步：每隔几秒刷新一次")) : undefined}>
-          <span aria-hidden="true" />
-          {connected ? (live ? t("实时") : t("已同步")) : t("重连中")}
-        </span>
-      </div>
-
-      <div className="room-progress-summary" aria-live="polite" aria-atomic="true">
-        <h2>{summary.title}</h2>
-        <p>{summary.description}</p>
-        {progress && (
-          <div className="room-progress-meter">
-            <div className="room-progress-meter-caption">
-              <span>{progress.label}</span>
-              <span>{progress.detail}</span>
-            </div>
-            <div
-              className="room-progress-meter-track"
-              role="progressbar"
-              aria-label={progress.label}
-              aria-valuemin={0}
-              aria-valuemax={progress.max}
-              aria-valuenow={value}
-              aria-valuetext={progress.detail}
-            >
-              <span style={{ width: `${progress.max > 0 ? value / progress.max * 100 : 0}%` }} />
-            </div>
-          </div>
-        )}
+    <section className="room-progress" aria-label={t("房间进度")}>
+      <div className="room-progress-meter">
+        <div className="room-progress-meter-caption">
+          <span>{progress.label}</span>
+          <span>{progress.detail}</span>
+          <span className={`room-progress-connection${connected ? (live ? " is-live" : "") : " is-reconnecting"}`} role="status">{connected ? (live ? t("实时") : t("已同步")) : t("重连中")}</span>
+        </div>
+        <div
+          className="room-progress-meter-track"
+          role="progressbar"
+          aria-label={progress.label}
+          aria-valuemin={0}
+          aria-valuemax={progress.max}
+          aria-valuenow={value}
+          aria-valuetext={progress.detail}
+        >
+          <span style={{ width: `${progress.max > 0 ? value / progress.max * 100 : 0}%` }} />
+        </div>
       </div>
     </section>
   );
