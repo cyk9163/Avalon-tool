@@ -279,6 +279,9 @@ body:has(.is-lobby), body:has(.is-notes), body:has(.is-identity), body:has(.is-p
 .is-play .game-topline, .is-play .game-score, .is-play .quest-context, .is-play .speech-bar, .is-play .proposed-team { flex-shrink: 0; }
 .is-play .game-table-wrap { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; container-type: size; margin: 0; }
 .is-play .game-table { width: min(100cqw, 100cqh); max-width: 100%; max-height: 100%; height: auto; margin: 0; }
+.is-play .phase-vote .proposed-team { margin-top: 10px; margin-bottom: 0; }
+.is-play:has(.action-dock) .game-panel { padding-bottom: 8px; }
+.is-play .action-dock { margin: 8px 0; }
 @media (max-width: 720px) and (orientation: portrait) {
   .app-shell.is-room:has(.is-lobby),
   .app-shell.is-room:has(.is-play),

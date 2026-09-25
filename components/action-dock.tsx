@@ -45,6 +45,7 @@ export function ActionDock({ room, busy, connected, error, act }: { room: RoomVi
       <div className="vote-actions">
         {[true, false].map(choice => <button key={String(choice)} type="button" className={`ballot-choice ${choice ? "approve" : "reject"}`} disabled={blocked} onClick={() => setApprove(choice)}>{choice ? <ThumbsUp size={23} /> : <ThumbsDown size={23} />}<strong>{choice ? t("赞成") : t("反对")}</strong></button>)}
       </div>
+      <div className="voter-progress" aria-label={t("已有 {n} 人表决", { n: game.votedSeats.length })}>{room.players.map(player => <span key={player.id} title={game.votedSeats.includes(player.seat) ? t("{n} 号 · {name}：已提交", { n: player.seat, name: player.name }) : t("{n} 号 · {name}：等待表决", { n: player.seat, name: player.name })} className={game.votedSeats.includes(player.seat) ? "submitted" : ""}>{player.seat}{game.votedSeats.includes(player.seat) && <Check size={12} aria-hidden="true" />}</span>)}</div>
       <AlertDialog open={approve !== null} onOpenChange={open => { if (!open && !busy) setApprove(null); }}>
         <AlertDialogContent className="game-confirm-dialog">
           <AlertDialogTitle>{approve ? t("确认赞成这支队伍？") : t("确认反对这支队伍？")}</AlertDialogTitle>

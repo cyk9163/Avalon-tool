@@ -141,11 +141,9 @@ export function GamePanel({ room, busy, connected, error, act, onNewGame }: Prop
 
     {(room.phase === "vote" || room.phase === "quest") && <div className="proposed-team"><span>{room.phase === "vote" ? t("提议队伍") : t("执行任务")}</span><div>{game.team.map(seat => <span className="team-member" key={seat}><b>{seat}</b>{playerName(seat)}</span>)}</div></div>}
 
-    {room.phase === "vote" && <div className="game-action">
-      <div className="game-action-heading"><span className="step-icon"><ThumbsUp size={24} aria-hidden="true" /></span><div><span className="action-kicker">{game.myTeamVote === null ? t("每个人都有一票") : t("你的表决已锁定")}</span><h2>{t("这支队伍，值得信任吗？")}</h2><p>{t("全员提交后统一公开结果。需 {n} 人赞成，平票不通过。", { n: Math.floor(room.capacity / 2) + 1 })}</p></div></div>
+    {room.phase === "vote" && !(me && game.myTeamVote === null) && <div className="game-action">
       <div className="voter-progress" aria-label={t("已有 {n} 人表决", { n: game.votedSeats.length })}>{room.players.map(player => <span key={player.id} title={game.votedSeats.includes(player.seat) ? t("{n} 号 · {name}：已提交", { n: player.seat, name: player.name }) : t("{n} 号 · {name}：等待表决", { n: player.seat, name: player.name })} className={game.votedSeats.includes(player.seat) ? "submitted" : ""}>{player.seat}{game.votedSeats.includes(player.seat) && <Check size={12} aria-hidden="true" />}</span>)}</div>
-      <p className="action-note" role="status">{t("已提交 {n} / {total} 票 · 提交后不能改票", { n: game.votedSeats.length, total: room.capacity })}</p>
-      {me && game.myTeamVote === null ? <p className="waiting-note" role="status">{t("请在屏幕底部表决。")}</p> : <p className="waiting-note" role="status">{me ? t("你的表决已锁定，等待全员揭晓。") : t("等待房间成员完成表决。")}</p>}
+      <p className="waiting-note" role="status">{me ? t("你的表决已锁定，等待全员揭晓。") : t("等待房间成员完成表决。")}</p>
     </div>}
 
     {room.phase === "quest" && <div className="game-action">
