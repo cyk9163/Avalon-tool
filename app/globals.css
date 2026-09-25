@@ -62,40 +62,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, summary:focus-visibl
 a { color: inherit; text-decoration: none; }
 button svg { flex-shrink: 0; }
 .app-shell { max-width: 1264px; margin: auto; padding: 0 48px; min-height: 100dvh; }
-.app-shell.is-room { height: 100dvh; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
-.app-shell.is-room .topbar { height: 64px; flex-shrink: 0; }
-.app-shell.is-room .page-footer { display: none; }
-.app-shell.is-room .room-page { flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; padding: 6px 0 0; }
-.app-shell.is-room .room-progress { flex-shrink: 0; padding-top: 6px; padding-bottom: 6px; }
-.app-shell.is-room .room-panel-nav { flex-shrink: 0; }
-.app-shell.is-room .room-fit { flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
-.app-shell.is-room .room-fit > div:not([hidden]) { flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
-.app-shell.is-room .game-panel { flex: 1; min-height: 0; margin: 0; padding: 12px; overflow: hidden; display: flex; flex-direction: column; }
-.app-shell.is-room .game-topline { margin-bottom: 8px; }
-.app-shell.is-room .game-score { margin-bottom: 8px; }
-.app-shell.is-room .game-score-side { min-height: 40px; padding: 6px 12px; }
-.app-shell.is-room .game-score-side > strong { font-size: 20px; }
-.app-shell.is-room .game-table-wrap { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; }
-.app-shell.is-room .game-table.roundtable { width: min(100%, 38vh); max-width: 280px; margin: 0; }
-.app-shell.is-room .quest-track { flex-shrink: 0; }
-.app-shell.is-room .quest-track li { min-height: 0; padding: 6px 4px; gap: 2px; }
-.app-shell.is-room .game-panel:not(.copy-open) .game-action-heading p,
-.app-shell.is-room .game-panel:not(.copy-open) .quest-rule-note,
-.app-shell.is-room .game-panel:not(.copy-open) .loyalty-track small,
-.app-shell.is-room .game-panel:not(.copy-open) .draft-status,
-.app-shell.is-room .game-panel:not(.copy-open) .table-pick-hint,
-.app-shell.is-room .game-panel:not(.copy-open) .action-note,
-.app-shell.is-room .game-panel:not(.copy-open) .game-history,
-.app-shell.is-room .game-panel:not(.copy-open) .leader-order,
-.app-shell.is-room .game-panel:not(.copy-open) .hammer-warning { display: none; }
-.app-shell.is-room .room-management { flex-shrink: 0; max-height: 38%; overflow: auto; }
-.app-shell.is-room .room-layout { flex: 1; min-height: 0; overflow: hidden; align-items: stretch; }
-.app-shell.is-room .room-table .roundtable { width: min(100%, 34vh); margin: 8px auto; }
 .text-fold { margin-top: 8px; }
 .text-fold summary { cursor: pointer; color: #dbc18a; font-size: 13px; }
-@media (max-width: 720px) {
-  .app-shell.is-room .room-layout { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; }
-}
 .topbar { height: 96px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #b6c9ba18; gap: 16px; }
 .brand { display: flex; align-items: center; gap: 13px; font-weight: 600; font-size: 23px; letter-spacing: 3px; flex-shrink: 0; }
 .brand-icon { display: grid; place-items: center; border: 1px solid #dbc18a55; background: #dbc18a06; color: var(--primary); width: 46px; height: 46px; padding: 0; border-radius: 13px; flex-shrink: 0; }

@@ -218,7 +218,7 @@
 :root[data-theme="light"] .voter-progress .submitted { color: #1d2c20; border-color: #477156; background: #c4cec9; }
 :root[data-theme="light"] .voter-progress .submitted svg { border: 1px solid #c4cec9; background: #386046; color: #dae4e0; }
 :root[data-theme="light"] .game-panel .action-note { color: #3d4b49; }
-:root[data-theme="light"] .action-dock { border-top: 1px solid #6b510f55; background: #eaf0eff2; box-shadow: 0 -16px 40px #00000044; }
+:root[data-theme="light"] .action-dock { border: 1px solid #6b510f55; background: #eaf0eff2; }
 :root[data-theme="light"] .action-dock-title { color: #211e17; }
 :root[data-theme="light"] .action-dock-note { color: #2f382e; }
 :root[data-theme="light"] .ballot-choice { border: 2px solid #00673c; background: #75cc97; color: #121a15; }
@@ -702,12 +702,4 @@
     background: transparent; color: #3d4b49;
   }
   :root[data-theme="light"] .room-section-nav button.active { background: #6b510f1a; border-color: #6b510f55; color: var(--primary); }
-  :root[data-theme="light"] .game-action-footer, :root[data-theme="light"] .game-action .vote-actions, :root[data-theme="light"] .game-action > .primary-button {
-    background: #e7edeef2;
-    border-top: 1px solid #30403426; box-shadow: 0 -10px 30px #00000033;
-  }
-  :root[data-theme="light"] .game-action > .primary-button { border: 0; border-top: 1px solid #68521a; }
-  :root[data-theme="light"] .game-action.lake-action .primary-button, :root[data-theme="light"] .game-action.assassination .assassination-button {
-    box-shadow: 0 8px 24px #0000004d, 0 -10px 18px -4px #dee6e7;
-  }
 }
