@@ -57,7 +57,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: "mordred-regular", name: "再藏老手", hint: "至少两局出过坏票，之后又上了成功的任务。" },
   { id: "loyal-sided", name: "平民之光", hint: "上过一车，且那车上好人比坏人多。" },
   { id: "loyal-regular", name: "铁票忠臣", hint: "至少三局上过好人更多的车。" },
-  { id: "loyal-shiver", name: "瑟瑟发抖", hint: "和至少两个坏人上了同一车。" },
+  { id: "loyal-shiver", name: "瑟瑟发抖", hint: "作为好人，上过坏人比好人多的车。" },
   { id: "oberon-sided", name: "盲狼站对", hint: "上过一车，且那车上好人比坏人多。" },
   { id: "oberon-regular", name: "盲狼老手", hint: "至少两局上过好人更多的车。" },
   { id: "wolf-car", name: "一车全狼", hint: "上过一支全是坏人的车。" },
@@ -264,7 +264,11 @@ export function gameAchievementIds(input: {
   const myQuests = input.quests.filter(quest => quest.team.includes(input.seat));
   const mix = (quest: Quest) => questMix(input, quest);
   if ((input.role === "loyal" || input.role === "oberon") && myQuests.some(quest => { const sides = mix(quest); return sides.good > sides.evil; })) ids.push(input.role === "loyal" ? "loyal-sided" : "oberon-sided");
-  if (input.role === "loyal" && myQuests.some(quest => mix(quest).evil >= 2)) ids.push("loyal-shiver");
+  if (myQuests.some(quest => {
+    const sides = mix(quest);
+    const mine = input.sideAt?.(input.seat, quest.quest ?? 0) ?? input.side;
+    return mine === "good" && sides.evil > sides.good;
+  })) ids.push("loyal-shiver");
   if (input.side === "evil" && myQuests.some(quest => { const sides = mix(quest); return sides.size >= 2 && sides.good === 0 && sides.evil === sides.size; })) ids.push("wolf-car");
   if (input.side === "evil" && input.quests.some(quest => quest.success && quest.team.includes(input.seat))) ids.push("deep-cover");
   const failedQuests = new Set(input.quests.filter(quest => !quest.success).map(quest => quest.quest));

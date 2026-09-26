@@ -191,6 +191,8 @@ test("Mordred has to play a fail and still board a later success; a loyal stands
   const shiver = gameAchievementIds({ ...base, role: "loyal", seat: 2, seats, quests: [{ team: [2, 4, 6], quest: 1, success: false }] });
   assert.ok(shiver.includes("loyal-shiver"));
   assert.equal(shiver.includes("loyal-sided"), false);
+  assert.ok(gameAchievementIds({ ...base, role: "merlin", seat: 1, seats, quests: [{ team: [1, 4, 6], quest: 1, success: false }] }).includes("loyal-shiver"));
+  assert.equal(gameAchievementIds({ ...base, role: "assassin", seat: 4, side: "evil", seats, result: { winner: "evil", reason: "three-failures" }, quests: [{ team: [2, 4, 6], quest: 1, success: false }] }).includes("loyal-shiver"), false);
   assert.ok(gameAchievementIds({
     ...base,
     role: "assassin",
