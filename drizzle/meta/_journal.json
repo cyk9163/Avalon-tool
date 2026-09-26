@@ -29,6 +29,13 @@
       "when": 1758931200000,
       "tag": "0003_achievements",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1759017600000,
+      "tag": "0004_game_facts",
+      "breakpoints": true
     }
   ]
 }

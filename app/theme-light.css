@@ -176,6 +176,16 @@
 :root[data-theme="light"] .mvp-choices button { border: 1px solid #cad2d0; background: transparent; color: inherit; }
 :root[data-theme="light"] .mvp-choices button.selected { border-color: #6b510f; color: #6b510f; }
 :root[data-theme="light"] .worn-title { color: #6b510f; }
+:root[data-theme="light"] .worn-title.is-bronze { color: #8a4300; }
+:root[data-theme="light"] .worn-title.is-silver { color: #262c31; }
+:root[data-theme="light"] .worn-title.is-gold { color: #6b510f; }
+:root[data-theme="light"] .rank-track { border: 1px solid #cad2d0; }
+:root[data-theme="light"] .rank-mark { border: 1px solid #cad2d0; background: transparent; color: inherit; }
+:root[data-theme="light"] .rank-mark i { background: #c7cecc; }
+:root[data-theme="light"] .rank-mark.bronze.owned i { background: #8a4300; }
+:root[data-theme="light"] .rank-mark.silver.owned i { background: #262c31; }
+:root[data-theme="light"] .rank-mark.gold.owned i { background: #6b510f; }
+:root[data-theme="light"] .rank-mark.selected { border-color: #6b510f; }
 :root[data-theme="light"] .account-titles button { border: 1px solid #cad2d0; background: transparent; color: inherit; }
 :root[data-theme="light"] .account-titles button.selected { border-color: #6b510f; }
 /* from app/game.css */

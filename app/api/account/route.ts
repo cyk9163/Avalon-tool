@@ -23,8 +23,8 @@ export async function GET(request: Request) {
     const account = await readAccount(request);
     if (!account || !env.DB) return json({ account: null, games: [], stats: null });
     const games = await env.DB.prepare(
-      "SELECT code, round, played_at as at, capacity, preset, role, side, winner, mvp FROM account_games WHERE account_id = ? ORDER BY played_at DESC LIMIT 200",
-    ).bind(account.id).all<{ code: string; round: number; at: number; capacity: number; preset: string; role: string; side: "good" | "evil"; winner: "good" | "evil"; mvp: number }>();
+      "SELECT code, round, played_at as at, capacity, preset, role, side, winner, mvp, fact FROM account_games WHERE account_id = ? ORDER BY played_at DESC LIMIT 200",
+    ).bind(account.id).all<{ code: string; round: number; at: number; capacity: number; preset: string; role: string; side: "good" | "evil"; winner: "good" | "evil"; mvp: number; fact: string | null }>();
     const rows = games.results ?? [];
     const byRole = new Map<string, { played: number; won: number }>();
     let won = 0;

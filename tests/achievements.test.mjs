@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { careerAchievementIds, gameAchievementIds } from "../lib/achievements.ts";
+import { careerAchievementIds, gameAchievementIds, gameFact, rankTracks } from "../lib/achievements.ts";
 
 const base = {
   role: "merlin",
@@ -45,9 +45,28 @@ test("career titles count games, MVPs, both sides and roles", () => {
     { role: "morgana", side: "evil", winner: "evil", mvp: 1 },
   ];
   const ids = careerAchievementIds(games);
-  assert.ok(ids.includes("first-table"));
-  assert.ok(ids.includes("mvp-thrice"));
+  assert.ok(ids.includes("tenure-1"));
+  assert.equal(ids.includes("tenure-2"), false);
+  assert.ok(ids.includes("mvp-rank-1"));
+  assert.ok(ids.includes("mvp-rank-2"));
+  assert.equal(ids.includes("mvp-rank-3"), false);
   assert.ok(ids.includes("both-sides"));
   assert.ok(ids.includes("many-faces"));
-  assert.equal(ids.includes("regular"), false);
+});
+
+test("an assassin rank needs both enough knives and a high enough hit rate", () => {
+  const hit = (fact) => ({ role: "assassin", side: "evil", winner: fact === "hit" ? "evil" : "good", mvp: 0, fact });
+  const sharp = [hit("hit"), hit("hit"), hit("hit"), hit("miss")];
+  const ids = careerAchievementIds(sharp);
+  assert.ok(ids.includes("blade-1"));
+  assert.ok(ids.includes("blade-2"));
+  assert.equal(ids.includes("blade-3"), false);
+  const wild = [hit("hit"), hit("miss"), hit("miss"), hit("miss")];
+  assert.equal(careerAchievementIds(wild).includes("blade-1"), false);
+  const blade = rankTracks(sharp).find(track => track.id === "blade");
+  assert.equal(blade.statVars.n, 4);
+  assert.equal(blade.statVars.p, 75);
+  assert.equal(gameFact("assassin", { reason: "merlin-assassinated" }), "hit");
+  assert.equal(gameFact("assassin", { reason: "assassin-missed" }), "miss");
+  assert.equal(gameFact("merlin", { reason: "quests" }), null);
 });

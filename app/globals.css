@@ -518,7 +518,27 @@ html[lang="en"] .count-option span:empty { display: none; }
 .mvp-choices button.selected { border-color: #dbc18a; color: #dbc18a; }
 .app-shell:has(.account-tabs) { padding-bottom: 80px; }
 .worn-title { margin: 0 0 4px; color: #dbc18a; letter-spacing: 0.14em; font-size: 13px; }
+.worn-title.is-bronze { color: #d08a4c; }
+.worn-title.is-silver { color: #d5dde4; }
+.worn-title.is-gold { color: #dbc18a; }
+.worn-title.is-legend { color: #8fd0e0; }
+.worn-title.is-bronze::before, .worn-title.is-silver::before, .worn-title.is-gold::before, .worn-title.is-legend::before { content: ""; display: inline-block; width: 8px; height: 8px; margin-right: 6px; border-radius: 2px 2px 6px 6px; background: currentColor; transform: rotate(45deg); }
 .eyebrow .worn-title { letter-spacing: 0.18em; }
+.rank-tracks { list-style: none; padding: 0; display: grid; gap: 12px; }
+.rank-track { border: 1px solid #344c46; border-radius: 16px; padding: 12px; }
+.rank-head, .rank-next { display: flex; justify-content: space-between; gap: 8px; margin: 0; }
+.rank-head span, .rank-next { font-size: 12px; opacity: 0.75; }
+.rank-marks { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 10px 0; }
+.rank-mark { min-height: 88px; border: 1px solid #344c46; border-radius: 12px; background: transparent; color: inherit; padding: 8px 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+.rank-mark i { width: 22px; height: 26px; clip-path: polygon(50% 0, 100% 22%, 82% 100%, 18% 100%, 0 22%); background: #3d524c; }
+.rank-mark.bronze.owned i { background: #d08a4c; }
+.rank-mark.silver.owned i { background: #d5dde4; }
+.rank-mark.gold.owned i { background: #dbc18a; }
+.rank-mark.legend.owned i { background: #8fd0e0; }
+.rank-mark b { font-size: 11px; font-weight: 600; line-height: 1.2; }
+.rank-mark span { font-size: 10px; opacity: 0.75; }
+.rank-mark:disabled { opacity: 0.45; }
+.rank-mark.selected { border-color: #dbc18a; }
 .account-titles { list-style: none; padding: 0; display: grid; gap: 8px; }
 .account-titles button { width: 100%; text-align: left; border: 1px solid #344c46; border-radius: 12px; background: transparent; color: inherit; padding: 10px 12px; }
 .account-titles button.selected { border-color: #dbc18a; }

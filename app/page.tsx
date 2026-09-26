@@ -237,7 +237,7 @@ export default function Home(){
 
     {booting ? <section className="connection-splash" aria-live="polite"><span className="splash-emblem"><Crown size={32}/></span><h1>{t("圆桌正在就位")}</h1><p><LoaderCircle size={16} className="spin"/>{t("正在连接，恢复你的房间…")}</p></section> : !room ? <div className="home-layout">
       <section className="home-intro">
-        <div className="eyebrow">{account?.title ? <span className="worn-title">{t(achievementById(account.title)?.name ?? account.title)}</span> : <><span className="eyebrow-line"/>THE ROUND TABLE</>}</div>
+        <div className="eyebrow">{account?.title ? <span className={`worn-title${achievementById(account.title)?.mark ? ` is-${achievementById(account.title)?.mark}` : ""}`}>{t(achievementById(account.title)?.name ?? account.title)}</span> : <><span className="eyebrow-line"/>THE ROUND TABLE</>}</div>
         <h1>{t("让秘密归位，")}<br/><span>{t("让推理发生。")}</span></h1>
         <p className="intro">{t("和朋友围坐在一起。")}<br/>{t("身份、投票与任务，让圆桌替你记住。")}</p>
         <div className="home-benefits"><span><KeyRound size={15}/>{t("无需注册")}</span><span><Shield size={15}/>{t("私密身份")}</span><span><Smartphone size={15}/>{t("手机即用")}</span></div>
