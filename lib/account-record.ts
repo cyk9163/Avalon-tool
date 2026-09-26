@@ -1,7 +1,7 @@
 // Finished games for signed-in players. One row per account, room and round.
 import { env } from "cloudflare:workers";
 import { careerAchievementIds, gameAchievementIds, recordFact } from "./achievements.ts";
-import { currentSide, type Role, type Room } from "./game.ts";
+import { LANCELOTS, ROLES, currentSide, lancelotsSwitched, type Role, type Room } from "./game.ts";
 import { mvpSeat, type MvpVote } from "./mvp.ts";
 
 export type { MvpVote };
@@ -33,6 +33,13 @@ export async function recordAccountGames(room: Room): Promise<void> {
       lakeCheckedSeats,
       revealed: (room.game!.publicReveals ?? []).some(item => item.seat === player.seat),
       seesOberon: room.evilSeesOberon === true,
+      sideAt: (seat: number, quest: number) => {
+        const role = roleAt(seat);
+        if (!role) return null;
+        const side = ROLES[role].side;
+        if (!LANCELOTS.includes(role) || !lancelotsSwitched(room.game!, quest)) return side;
+        return side === "good" ? "evil" : "good";
+      },
     };
   };
   const statements = room.players.filter(player => player.accountId && player.role).map(player => {

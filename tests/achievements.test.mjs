@@ -117,19 +117,7 @@ test("a unanimous pass that fails, a lone fail card, and riding a quest that suc
   assert.ok(cover.includes("deep-cover"));
 });
 
-test("Percival leading a success, Morgana pulling Percival, and Mordred staying unseen are their own records", () => {
-  const drove = gameAchievementIds({
-    ...base,
-    role: "percival",
-    seat: 2,
-    proposals: [
-      { team: [2, 3], quest: 1, approved: true, leaderSeat: 2, votes: [{ seat: 2, approve: true }] },
-      { team: [2, 4], quest: 2, approved: true, leaderSeat: 2, votes: [{ seat: 2, approve: true }] },
-    ],
-    quests: [{ team: [2, 3], quest: 1, success: true }, { team: [2, 4], quest: 2, success: true }],
-  });
-  assert.ok(drove.includes("percival-drove"));
-  assert.ok(drove.includes("percival-drove-two"));
+test("Morgana still earns the title when Percival approves her team and not Merlin", () => {
   const stole = gameAchievementIds({
     ...base,
     role: "morgana",
@@ -141,34 +129,77 @@ test("Percival leading a success, Morgana pulling Percival, and Mordred staying 
     result: { winner: "evil", reason: "three-failures" },
   });
   assert.ok(stole.includes("morgana-stole"));
+});
+
+test("Percival's pace is boarding two or three quests, and the career title needs that inside enough games", () => {
+  const two = gameAchievementIds({
+    ...base,
+    role: "percival",
+    seat: 2,
+    quests: [{ team: [2, 3], quest: 1, success: true }, { team: [2, 4], quest: 2, success: false }, { team: [1, 4], quest: 3, success: true }],
+  });
+  assert.ok(two.includes("percival-drove"));
+  assert.equal(two.includes("percival-drove-two"), false);
+  const three = gameAchievementIds({
+    ...base,
+    role: "percival",
+    seat: 2,
+    quests: [{ team: [2], quest: 1, success: true }, { team: [2], quest: 2, success: true }, { team: [2], quest: 3, success: false }],
+  });
+  assert.ok(three.includes("percival-drove-two"));
+  const games = [
+    { role: "percival", side: "good", winner: "good", mvp: 0, fact: "b2" },
+    { role: "percival", side: "good", winner: "good", mvp: 0, fact: "b3" },
+    { role: "percival", side: "good", winner: "evil", mvp: 0, fact: null },
+    { role: "percival", side: "good", winner: "good", mvp: 0, fact: "b3" },
+    { role: "percival", side: "good", winner: "good", mvp: 0, fact: null },
+  ];
+  const ids = careerAchievementIds(games);
+  assert.ok(ids.includes("percival-regular"));
+  assert.ok(ids.includes("percival-three"));
+});
+
+test("Mordred has to play a fail and still board a later success; a loyal stands with the good majority or shakes beside wolves", () => {
   const hidden = gameAchievementIds({
     ...base,
     role: "mordred",
     seat: 5,
     side: "evil",
-    result: { winner: "evil", reason: "merlin-assassinated" },
-    quests: [{ team: [1, 2], quest: 1, success: false }],
-    lakeCheckedSeats: [1],
+    result: { winner: "evil", reason: "three-failures" },
+    quests: [{ team: [5, 1], quest: 1, success: false }, { team: [5, 2], quest: 2, success: true }],
+    cards: [{ quest: 1, card: "fail", success: false, failCount: 1 }],
   });
   assert.ok(hidden.includes("mordred-hidden"));
-  const lit = gameAchievementIds({ ...hidden && {}, ...base, role: "mordred", seat: 5, side: "evil", result: { winner: "evil", reason: "merlin-assassinated" }, quests: [{ team: [1], success: true }], lakeCheckedSeats: [5] });
-  assert.equal(lit.includes("mordred-hidden"), false);
-});
-
-test("a loyal servant and Oberon earn the title when their votes match the quests", () => {
-  const proposals = [
-    { team: [1], quest: 1, approved: true, votes: [{ seat: 2, approve: true }] },
-    { team: [3], quest: 2, approved: true, votes: [{ seat: 2, approve: false }] },
+  const onlyFail = gameAchievementIds({
+    ...base,
+    role: "mordred",
+    seat: 5,
+    side: "evil",
+    result: { winner: "evil", reason: "three-failures" },
+    quests: [{ team: [5, 1], quest: 1, success: false }],
+    cards: [{ quest: 1, card: "fail", success: false, failCount: 1 }],
+  });
+  assert.equal(onlyFail.includes("mordred-hidden"), false);
+  const seats = [
+    { seat: 2, role: "loyal" },
+    { seat: 1, role: "merlin" },
+    { seat: 3, role: "percival" },
+    { seat: 4, role: "assassin" },
+    { seat: 6, role: "morgana" },
   ];
-  const quests = [{ team: [1], quest: 1, success: true }, { team: [3], quest: 2, success: false }];
-  assert.ok(gameAchievementIds({ ...base, role: "loyal", seat: 2, proposals, quests }).includes("loyal-sided"));
-  assert.ok(gameAchievementIds({ ...base, role: "oberon", seat: 2, side: "evil", result: { winner: "evil", reason: "three-failures" }, proposals, quests }).includes("oberon-sided"));
-  const games = [
-    { role: "percival", side: "good", winner: "good", mvp: 0, fact: "led" },
-    { role: "percival", side: "good", winner: "good", mvp: 0, fact: "led" },
-    { role: "percival", side: "good", winner: "evil", mvp: 0, fact: "led" },
-  ];
-  assert.ok(careerAchievementIds(games).includes("percival-regular"));
+  assert.ok(gameAchievementIds({ ...base, role: "loyal", seat: 2, seats, quests: [{ team: [2, 1, 3], quest: 1, success: true }] }).includes("loyal-sided"));
+  const shiver = gameAchievementIds({ ...base, role: "loyal", seat: 2, seats, quests: [{ team: [2, 4, 6], quest: 1, success: false }] });
+  assert.ok(shiver.includes("loyal-shiver"));
+  assert.equal(shiver.includes("loyal-sided"), false);
+  assert.ok(gameAchievementIds({
+    ...base,
+    role: "assassin",
+    seat: 4,
+    side: "evil",
+    seats,
+    result: { winner: "evil", reason: "three-failures" },
+    quests: [{ team: [4, 6], quest: 1, success: false }],
+  }).includes("wolf-car"));
 });
 
 test("an assassin rank needs both enough knives and a high enough hit rate", () => {
