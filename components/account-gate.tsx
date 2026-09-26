@@ -45,6 +45,6 @@ export function AccountGate({ onLogin, onGuest }: { onLogin: (account: SignedAcc
       <button className="primary-button" type="submit" disabled={busy}>{busy ? t("请稍候") : mode === "login" ? t("登录") : t("注册")}</button>
     </form>
     <button type="button" className="text-button" onClick={onGuest}>{t("游客模式")}</button>
-    {mode === "register" && <p className="action-note">{t("新账号还不能开房。管理员开通后，就不用再填房主 Key。")}</p>}
+    {mode === "register" && <p className="action-note">{t("新账号是普通账号。开通后变成高级账号，就不用再填房主 Key。")}</p>}
   </main>;
 }

@@ -203,7 +203,7 @@ export default function Home(){
     requestAnimationFrame(()=>{if(document.activeElement===input){const position=formattedCaret(before);input.setSelectionRange(position,position);}});
   };
   const create=async()=>{
-    if(account&&!account.canHost){setError(t("这个账号还不能开房。请用已开通的账号，或先用游客模式加入朋友的房间。"));return;}
+    if(account&&!account.canHost){setError(t("普通账号不能直接开房。请用高级账号，或先用游客模式加入朋友的房间。"));return;}
     if(!account?.canHost&&hostKey.length!==HOST_KEY_LENGTH){setError(t("房主 Key 是 {total} 位字母和数字，现在输入了 {n} 位。",{total:HOST_KEY_LENGTH,n:hostKey.length}));return;}
     createId.current ||= crypto.randomUUID();const boardHasOberon=preset==="full"||(preset==="custom"&&customSpecials.has("oberon"));const created=await act("create",{name,hostKey:hostKeyForSubmit(hostKey),capacity,preset,turnSpeech,evilSeesOberon:boardHasOberon&&knowsOberon,...(preset==="custom"?{roles:customRoles,ladyOfLake}:{}),requestId:createId.current});if(created)setHostKey("");};
   const me=room?.players.find(p=>p.id===room.meId),isHost=!!me&&room?.hostId===me.id;

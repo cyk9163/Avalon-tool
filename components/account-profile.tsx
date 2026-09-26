@@ -41,7 +41,7 @@ export function AccountProfile({ account, onLogout, onTitle, onAvatar }: { accou
   const ranks = unlocked.map(id => achievementById(id)).filter(item => item?.mark);
   return <section className="account-profile">
     <header className="account-profile-head">
-      <div className="player-home-id"><AvatarFace id={account.avatar} size={36} /><div><p className={`worn-title${worn?.mark ? ` is-${worn.mark}` : ""}`}>{worn ? t(worn.name) : t("还没有称号")}</p><h1>{account.name}</h1><p>{account.canHost ? t("可以开房") : t("还不能开房")}</p></div></div>
+      <div className="player-home-id"><AvatarFace id={account.avatar} size={36} /><div><p className={`worn-title${worn?.mark ? ` is-${worn.mark}` : ""}`}>{worn ? t(worn.name) : t("还没有称号")}</p><h1>{account.name}</h1><p>{account.canHost ? t("高级账号") : t("普通账号")}</p></div></div>
       <button type="button" className="text-button" onClick={onLogout}>{t("退出登录")}</button>
     </header>
     <FriendsPanel />
