@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { AVATAR_IDS, AvatarFace, avatarName } from "@/components/avatar-face";
-import { ACHIEVEMENTS, achievementById, rankTracks, type CareerGame } from "@/lib/achievements";
+import { ACHIEVEMENTS, achievementById, achievementProgress } from "@/lib/achievements";
 import { ROLES, type Role } from "@/lib/game";
 import { useI18n } from "@/lib/i18n/react";
 import type { SignedAccount } from "./account-gate";
@@ -35,9 +35,10 @@ export function AccountProfile({ account, onLogout, onTitle, onAvatar }: { accou
   };
   const rate = (won: number, played: number) => played ? `${Math.round(won / played * 100)}%` : "—";
   const worn = account.title ? achievementById(account.title) : undefined;
-  const career: CareerGame[] = games.map(game => ({ role: game.role, side: game.side, winner: game.winner, mvp: game.mvp, fact: game.fact }));
-  const tracks = rankTracks(career);
-  const owned = (id: string) => unlocked.includes(id) || tracks.some(track => track.tiers.some(tier => tier.id === id && tier.owned));
+  const owned = (id: string) => unlocked.includes(id);
+  const progress = achievementProgress(unlocked);
+  const percent = Math.round(progress.done / Math.max(progress.total, 1) * 100);
+  const ranks = unlocked.map(id => achievementById(id)).filter(item => item?.mark);
   return <section className="account-profile">
     <header className="account-profile-head">
       <div className="player-home-id"><AvatarFace id={account.avatar} size={36} /><div><p className={`worn-title${worn?.mark ? ` is-${worn.mark}` : ""}`}>{worn ? t(worn.name) : t("还没有称号")}</p><h1>{account.name}</h1><p>{account.canHost ? t("可以开房") : t("还不能开房")}</p></div></div>
@@ -54,20 +55,15 @@ export function AccountProfile({ account, onLogout, onTitle, onAvatar }: { accou
       <p><b>{rate(stats.bySide.evil.won, stats.bySide.evil.played)}</b><span>{t("坏人")}</span></p>
     </div>}
     {stats && <ul className="account-roles">{stats.byRole.map(row => <li key={row.role}><span>{t(ROLES[row.role as Role]?.name ?? row.role)}</span><b>{row.won}/{row.played}</b></li>)}</ul>}
-    <h2>{t("段位")}</h2>
-    <p>{t("拿到之后不会收回。后面胜率或比例掉下去，已经拿到的称号还在。")}</p>
-    <ul className="rank-tracks">{tracks.map(track => <li key={track.id} className="rank-track">
-      <div className="rank-head"><b>{t(track.name)}</b><span>{t(track.statKey, track.statVars)}</span></div>
-      <div className="rank-marks">{track.tiers.map(tier => {
-        const have = owned(tier.id);
-        const metal = tier.mark === "bronze" ? "铜" : tier.mark === "silver" ? "银" : tier.mark === "gold" ? "金" : "钻";
-        return <button key={tier.id} type="button" disabled={!have} className={`rank-mark ${tier.mark}${have ? " owned" : ""}${account.title === tier.id ? " selected" : ""}`} onClick={() => wear(tier.id)}><i aria-hidden="true" /><b>{t(tier.name)}</b><span>{account.title === tier.id ? t("已挂上") : t(metal)}</span></button>;
-      })}</div>
-      <p className="rank-next">{track.tiers.find(tier => !owned(tier.id)) ? t(track.tiers.find(tier => !owned(tier.id))!.hint) : t("已是最高段位")}</p>
-    </li>)}</ul>
+    <div className="achievement-progress">
+      <div><span>{t("成就")}</span><b>{t("{done} / {total}", { done: progress.done, total: progress.total })}</b></div>
+      <div className="achievement-bar" role="progressbar" aria-valuenow={progress.done} aria-valuemin={0} aria-valuemax={progress.total} aria-label={t("成就")}>
+        <i style={{ width: `${percent}%` }} />
+      </div>
+    </div>
     <h2>{t("称号")}</h2>
     {unlocked.length === 0 && games.length === 0 && <p>{t("打完一局，高光和搞笑瞬间会变成可以挂上的称号。")}</p>}
-    <ul className="account-titles">{ACHIEVEMENTS.map(item => {
+    <ul className="account-titles">{ranks.map(item => item && <li key={item.id}><button type="button" className={account.title === item.id ? "selected" : ""} onClick={() => wear(item.id)}><b>{t(item.name)}</b><span>{account.title === item.id ? t("已挂上") : t("挂上")}</span></button></li>)}{ACHIEVEMENTS.map(item => {
       const have = owned(item.id);
       return <li key={item.id}><button type="button" disabled={!have} className={account.title === item.id ? "selected" : ""} onClick={() => wear(item.id)}><b>{t(item.name)}</b><span>{have ? (account.title === item.id ? t("已挂上") : t("挂上")) : t(item.hint)}</span></button></li>;
     })}</ul>
