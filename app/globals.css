@@ -561,3 +561,10 @@ html[lang="en"] .count-option span:empty { display: none; }
 .profile-facts { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
 .profile-facts span, .mvp-badge { border: 1px solid #344c46; border-radius: 999px; padding: 2px 8px; font-size: 12px; }
 .mvp-badge { border-color: #dbc18a; color: #dbc18a; letter-spacing: 0.08em; }
+.friends-panel { margin: 8px 0 16px; }
+.friend-search { display: flex; gap: 8px; }
+.friend-search input { flex: 1; min-height: 44px; background: #102125; border: 1px solid var(--input); border-radius: 9px; padding: 8px 12px; color: var(--foreground); }
+.friend-list { list-style: none; padding: 0; display: grid; gap: 8px; }
+.friend-list li { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.friend-open { display: flex; align-items: center; gap: 8px; border: 0; background: transparent; color: inherit; text-align: left; min-height: 44px; }
+.friend-open small { display: block; font-size: 12px; opacity: 0.75; }

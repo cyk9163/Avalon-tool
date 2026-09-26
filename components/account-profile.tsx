@@ -6,6 +6,7 @@ import { ACHIEVEMENTS, achievementById, rankTracks, type CareerGame } from "@/li
 import { ROLES, type Role } from "@/lib/game";
 import { useI18n } from "@/lib/i18n/react";
 import type { SignedAccount } from "./account-gate";
+import { FriendsPanel } from "./friends";
 
 type GameRow = { code: string; round: number; at: number; capacity: number; preset: string; role: string; side: "good" | "evil"; winner: "good" | "evil"; mvp: number; fact?: string | null };
 type Stats = { total: number; won: number; mvp: number; bySide: { good: { played: number; won: number }; evil: { played: number; won: number } }; byRole: { role: string; played: number; won: number }[] };
@@ -42,6 +43,7 @@ export function AccountProfile({ account, onLogout, onTitle, onAvatar }: { accou
       <div className="player-home-id"><AvatarFace id={account.avatar} size={36} /><div><p className={`worn-title${worn?.mark ? ` is-${worn.mark}` : ""}`}>{worn ? t(worn.name) : t("还没有称号")}</p><h1>{account.name}</h1><p>{account.canHost ? t("可以开房") : t("还不能开房")}</p></div></div>
       <button type="button" className="text-button" onClick={onLogout}>{t("退出登录")}</button>
     </header>
+    <FriendsPanel />
     <h2>{t("头像")}</h2>
     <div className="avatar-picker">{AVATAR_IDS.map(id => <button key={id} type="button" className={account.avatar === id ? "selected" : ""} aria-label={avatarName(t, id)} aria-pressed={account.avatar === id} onClick={() => pickAvatar(id)}><AvatarFace id={id} size={22} /><span>{avatarName(t, id)}</span></button>)}</div>
     {stats && <div className="account-stats">

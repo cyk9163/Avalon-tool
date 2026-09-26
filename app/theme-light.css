@@ -195,6 +195,8 @@
 :root[data-theme="light"] .profile-game-card { border: 1px solid #cad2d0; }
 :root[data-theme="light"] .profile-facts span, :root[data-theme="light"] .mvp-badge { border: 1px solid #cad2d0; }
 :root[data-theme="light"] .mvp-badge { border-color: #6b510f; color: #6b510f; }
+:root[data-theme="light"] .friend-search input { background: #e8eef0; border: 1px solid var(--input); color: var(--foreground); }
+:root[data-theme="light"] .friend-open { border: 0; background: transparent; color: inherit; }
 /* from app/game.css */
 :root[data-theme="light"] .game-panel {
   border: 1px solid #d1d9da;

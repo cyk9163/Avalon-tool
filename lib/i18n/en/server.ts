@@ -220,4 +220,8 @@ export const SERVER: Record<string, string> = {
   "还没有解锁这个成就。": "You have not unlocked this achievement yet.",
   "没有这个头像。": "That portrait is not available.",
   "找不到这位玩家。": "That player could not be found.",
+  "好友服务暂时不可用。": "Friends are unavailable right now.",
+  "请输入要搜索的名字。": "Enter a name to search.",
+  "没有找到这个账号。": "No account with that name.",
+  "不能加自己。": "You can't add yourself.",
 };
