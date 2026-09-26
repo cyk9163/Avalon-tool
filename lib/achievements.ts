@@ -208,11 +208,11 @@ export const RANK_TRACKS: Track[] = [
     ["节奏大师", "至少 6 局莫甘娜，其中 4 局带成车或拐走派西维尔。", "morgana", ["paced"], 6, 4],
     ["假面梅林", "至少 8 局莫甘娜，其中 6 局带成车或拐走派西维尔。", "morgana", ["paced"], 8, 6],
   ]),
-  roleTrack("mordred-rank", "莫德雷德", games => ({ n: ofRole(games, "mordred").length, a: withFact(games, "mordred", ["hidden"]).length }), "莫德雷德 {n} 局，坏票再藏 {a}", [
-    ["初藏坏票", "至少 2 局莫德雷德，其中 1 局出了坏票还能再上成功的车。", "mordred", ["hidden"], 2, 1],
-    ["坏票再藏", "至少 4 局莫德雷德，其中 2 局出了坏票还能再上成功的车。", "mordred", ["hidden"], 4, 2],
-    ["深水再上", "至少 6 局莫德雷德，其中 4 局出了坏票还能再上成功的车。", "mordred", ["hidden"], 6, 4],
-    ["再藏老手", "至少 8 局莫德雷德，其中 6 局出了坏票还能再上成功的车。", "mordred", ["hidden"], 8, 6],
+  roleTrack("mordred-rank", "莫德雷德", games => ({ n: ofRole(games, "mordred").length, a: withFact(games, "mordred", ["hidden"]).length }), "莫德雷德 {n} 局，出红仍藏 {a}", [
+    ["暗中出红", "至少 2 局莫德雷德，其中 1 局出了坏票还能再上成功的车。", "mordred", ["hidden"], 2, 1],
+    ["出红不露", "至少 4 局莫德雷德，其中 2 局出了坏票还能再上成功的车。", "mordred", ["hidden"], 4, 2],
+    ["深水金身", "至少 6 局莫德雷德，其中 4 局出了坏票还能再上成功的车。", "mordred", ["hidden"], 6, 4],
+    ["莫德无踪", "至少 8 局莫德雷德，其中 6 局出了坏票还能再上成功的车。", "mordred", ["hidden"], 8, 6],
   ]),
   roleTrack("loyal-rank", "亚瑟的忠臣", games => ({ n: ofRole(games, "loyal").length, a: withFact(games, "loyal", ["sided"]).length }), "忠臣 {n} 局，好人车 {a}", [
     ["平民之光", "至少 3 局忠臣，其中 2 局上了好人更多的车。", "loyal", ["sided"], 3, 2],
