@@ -27,7 +27,7 @@ const LEGACY: Achievement[] = [
   { id: "percival-regular", name: "带队熟手", hint: "至少打满 3 局派西维尔，其中 2 局上了至少两车。" },
   { id: "percival-three", name: "三车老手", hint: "至少打满 5 局派西维尔，其中 2 局上了至少三车。" },
   { id: "morgana-drove", name: "悍跳开车", hint: "作为莫甘娜，你带的车做成了任务。" },
-  { id: "morgana-regular", name: "节奏大师", hint: "作为莫甘娜，至少三局带成过车，或带走过派西维尔。" },
+  { id: "morgana-regular", name: "假戏真做", hint: "作为莫甘娜，至少三局带成过车，或带走过派西维尔。" },
   { id: "mordred-hidden", name: "坏票再藏", hint: "出过失败牌，之后又上了成功的任务。" },
   { id: "mordred-regular", name: "再藏老手", hint: "至少两局出过坏票，之后又上了成功的任务。" },
   { id: "loyal-sided", name: "平民之光", hint: "上过一车，且那车上好人比坏人多。" },
@@ -199,13 +199,13 @@ export const RANK_TRACKS: Track[] = [
   roleTrack("percival-rank", "派西维尔", games => ({ n: ofRole(games, "percival").length, a: withFact(games, "percival", ["b2", "b3"]).length, b: withFact(games, "percival", ["b3"]).length }), "派西 {n} 局，两车 {a}，三车 {b}", [
     ["当仁不让", "至少 3 局派西维尔，其中 2 局上了至少两车。", "percival", ["b2", "b3"], 3, 2],
     ["身先士卒", "至少 5 局派西维尔，其中 3 局上了至少两车。", "percival", ["b2", "b3"], 5, 3],
-    ["一马当先", "至少 6 局派西维尔，其中 2 局上了至少三车。", "percival", ["b3"], 6, 2],
+    ["节奏大师", "至少 6 局派西维尔，其中 2 局上了至少三车。", "percival", ["b3"], 6, 2],
     ["舍我其谁", "至少 8 局派西维尔，其中 4 局上了至少三车。", "percival", ["b3"], 8, 4],
   ]),
   roleTrack("morgana-rank", "莫甘娜", games => ({ n: ofRole(games, "morgana").length, a: withFact(games, "morgana", ["paced"]).length }), "莫甘娜 {n} 局，带节奏 {a}", [
     ["以假乱真", "至少 2 局莫甘娜，其中 1 局带成车或拐走派西维尔。", "morgana", ["paced"], 2, 1],
     ["鱼目混珠", "至少 4 局莫甘娜，其中 2 局带成车或拐走派西维尔。", "morgana", ["paced"], 4, 2],
-    ["节奏大师", "至少 6 局莫甘娜，其中 4 局带成车或拐走派西维尔。", "morgana", ["paced"], 6, 4],
+    ["假戏真做", "至少 6 局莫甘娜，其中 4 局带成车或拐走派西维尔。", "morgana", ["paced"], 6, 4],
     ["假面梅林", "至少 8 局莫甘娜，其中 6 局带成车或拐走派西维尔。", "morgana", ["paced"], 8, 6],
   ]),
   roleTrack("mordred-rank", "莫德雷德", games => ({ n: ofRole(games, "mordred").length, a: withFact(games, "mordred", ["hidden"]).length }), "莫德雷德 {n} 局，出红仍藏 {a}", [

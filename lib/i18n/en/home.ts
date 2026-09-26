@@ -379,6 +379,7 @@ export const HOME: Record<string, string> = {
   "舍我其谁": "Who else but me",
   "以假乱真": "The fake passes for real",
   "鱼目混珠": "A fish eye among the pearls",
+  "假戏真做": "The act became real",
   "至少 3 局派西维尔，其中 2 局上了至少两车。": "At least 3 games as Percival, 2 of them with two or more quests.",
   "至少 5 局派西维尔，其中 3 局上了至少两车。": "At least 5 games as Percival, 3 of them with two or more quests.",
   "至少 6 局派西维尔，其中 2 局上了至少三车。": "At least 6 games as Percival, 2 of them with three or more quests.",
