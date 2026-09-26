@@ -1,5 +1,6 @@
 // Account sessions live in an HttpOnly cookie so a phone stays signed in.
 import { env } from "cloudflare:workers";
+import { isAvatarId } from "./avatars.ts";
 import { GameError } from "./game.ts";
 import { hash } from "./request-context.ts";
 
@@ -7,7 +8,7 @@ export const ACCOUNT_COOKIE = "avalon_account";
 const YEAR = 60 * 60 * 24 * 365;
 const PBKDF2_ITERATIONS = 10000;
 
-export type Account = { id: string; name: string; canHost: boolean; title: string | null };
+export type Account = { id: string; name: string; canHost: boolean; title: string | null; avatar: string | null };
 
 function db() {
   if (!env.DB) throw new GameError("账号服务暂时不可用，请稍后再试。", 503);
@@ -50,10 +51,10 @@ export async function readAccount(request: Request): Promise<Account | null> {
   if (!token) return null;
   const tokenHash = await hash(token);
   const row = await db().prepare(
-    "SELECT a.id, a.name, a.can_host as canHost, a.title as title FROM account_sessions s JOIN accounts a ON a.id = s.account_id WHERE s.token_hash = ? AND s.expires_at > ?",
-  ).bind(tokenHash, Date.now()).first<{ id: string; name: string; canHost: number; title: string | null }>();
+    "SELECT a.id, a.name, a.can_host as canHost, a.title as title, a.avatar as avatar FROM account_sessions s JOIN accounts a ON a.id = s.account_id WHERE s.token_hash = ? AND s.expires_at > ?",
+  ).bind(tokenHash, Date.now()).first<{ id: string; name: string; canHost: number; title: string | null; avatar: string | null }>();
   if (!row) return null;
-  return { id: row.id, name: row.name, canHost: row.canHost === 1, title: row.title };
+  return { id: row.id, name: row.name, canHost: row.canHost === 1, title: row.title, avatar: row.avatar };
 }
 
 export async function registerAccount(nameInput: unknown, passwordInput: unknown): Promise<{ account: Account; token: string }> {
@@ -66,20 +67,20 @@ export async function registerAccount(nameInput: unknown, passwordInput: unknown
   const id = crypto.randomUUID().replace(/-/g, "");
   await db().prepare("INSERT INTO accounts (id, name, password_hash, can_host, created_at) VALUES (?, ?, ?, 0, ?)").bind(id, name, passwordHash, Date.now()).run();
   const token = await startSession(id);
-  return { account: { id, name, canHost: false, title: null }, token };
+  return { account: { id, name, canHost: false, title: null, avatar: null }, token };
 }
 
 export async function loginAccount(nameInput: unknown, passwordInput: unknown): Promise<{ account: Account; token: string }> {
   const name = nameOf(nameInput);
   const password = passwordOf(passwordInput);
-  const row = await db().prepare("SELECT id, name, password_hash, can_host as canHost, title FROM accounts WHERE name = ?").bind(name).first<{ id: string; name: string; password_hash: string; canHost: number; title: string | null }>();
+  const row = await db().prepare("SELECT id, name, password_hash, can_host as canHost, title, avatar FROM accounts WHERE name = ?").bind(name).first<{ id: string; name: string; password_hash: string; canHost: number; title: string | null; avatar: string | null }>();
   if (!row) throw new GameError("账号或密码不正确。", 403);
   const [saltHex, expected] = row.password_hash.split(":");
   if (!saltHex || !expected || saltHex.length !== 32) throw new GameError("账号或密码不正确。", 403);
   const salt = new Uint8Array(saltHex.match(/../g)!.map(byte => parseInt(byte, 16)));
   const actual = await derivePassword(password, salt);
   if (actual !== expected) throw new GameError("账号或密码不正确。", 403);
-  return { account: { id: row.id, name: row.name, canHost: row.canHost === 1, title: row.title }, token: await startSession(row.id) };
+  return { account: { id: row.id, name: row.name, canHost: row.canHost === 1, title: row.title, avatar: row.avatar }, token: await startSession(row.id) };
 }
 
 async function startSession(accountId: string): Promise<string> {
@@ -93,6 +94,11 @@ export async function logoutAccount(request: Request): Promise<void> {
   const token = readAccountCookie(request);
   if (!token) return;
   await db().prepare("DELETE FROM account_sessions WHERE token_hash = ?").bind(await hash(token)).run();
+}
+
+export async function setAccountAvatar(accountId: string, avatar: unknown): Promise<void> {
+  if (!isAvatarId(avatar)) throw new GameError("没有这个头像。", 400);
+  await db().prepare("UPDATE accounts SET avatar = ? WHERE id = ?").bind(avatar, accountId).run();
 }
 
 export async function setAccountTitle(accountId: string, achievementId: string): Promise<void> {

@@ -85,11 +85,12 @@ test("Only the current host can rematch, and an explicit valid round and complet
 test("A rematch preserves the room and roster but removes every old identity, ballot, card receipt and leader", () => {
   const room = finished();
   assert.equal(room.game.questReceipts.length, 3, "fixture includes actual private task-card receipts");
+  const lastDriver = room.game.proposals.at(-1)?.leaderSeat ?? room.game.leaderSeat;
   const expected = {
     code: room.code, capacity: room.capacity, preset: room.preset, hostId: room.hostId,
     createdAt: room.createdAt, expiresAt: room.expiresAt, requestId: room.requestId,
     players: room.players.map(({id, key, name, seat}) => ({id, key, name, seat, ready: false, confirmed: false})),
-    phase: "lobby", round: 2, resetReason: "rematch",
+    phase: "lobby", round: 2, resetReason: "rematch", nextFirstLeader: lastDriver % room.capacity + 1,
     // v1.9: the finished game's public end record stays for the same-room record.
     history: structuredClone(room.history),
   };

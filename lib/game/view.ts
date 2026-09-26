@@ -1,5 +1,5 @@
 import {
-  DEFAULT_SPEECH_SECONDS, TAKEOVER_WAIT_MS, activeTakeovers, allowedQuestCards, currentSide, failsRequired, identityFor,
+  DEFAULT_SPEECH_SECONDS, TAKEOVER_WAIT_MS, activeTakeovers, allowedQuestCards, failsRequired, identityFor,
   lancelotsSwitched, roomRoles, sameSecret, speakingOrder, teamSize,
 } from "./model.ts";
 import { mvpSeat } from "../mvp.ts";
@@ -109,8 +109,10 @@ export function roomView(room: Room, key: string, version: number, invite?: stri
     hostRevision: room.hostRevision ?? 0,
     resetReason: room.resetReason ?? null,
     version,
-    players: room.players.map(({ id, name, seat, ready, confirmed }) => ({
+    players: room.players.map(({ id, name, seat, ready, confirmed, avatar, accountId }) => ({
       id, name: namesHidden ? "" : name, seat, ready, confirmed,
+      ...(avatar ? { avatar } : {}),
+      ...(accountId ? { profileId: accountId } : {}),
     })).sort((a, b) => a.seat - b.seat),
     meId: me?.id ?? null,
     identity: me && !screen ? identityFor(room, me) : null,

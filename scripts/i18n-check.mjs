@@ -8,13 +8,13 @@ import { fileURLToPath } from "node:url";
 
 export const UI_FILES = [
   "app/page.tsx", "app/layout.tsx", "app/admin/page.tsx", "app/rules/page.tsx", "app/privacy/page.tsx", "app/me/page.tsx", "app/solo/page.tsx",
-  "components/action-dock.tsx", "components/device-recovery.tsx", "components/early-assassination.tsx", "components/player-notes.tsx", "components/room-section-nav.tsx", "components/game-table.tsx", "components/vote-matrix.tsx", "components/speech-bar.tsx", "components/reveal-overlay.tsx", "lib/turn.ts", "components/theme-toggle.tsx", "components/room-record.tsx", "components/big-screen.tsx", "app/screen/page.tsx", "components/role-info.tsx", "lib/role-info.ts", "lib/replay-image.ts", "lib/highlights.ts", "components/rules-card.tsx", "components/doc-page.tsx", "components/game-panel.tsx", "components/install-app.tsx",
+  "components/action-dock.tsx", "components/device-recovery.tsx", "components/early-assassination.tsx", "components/player-notes.tsx", "components/room-section-nav.tsx", "components/game-table.tsx", "components/vote-matrix.tsx", "components/speech-bar.tsx", "components/reveal-overlay.tsx", "lib/turn.ts", "components/theme-toggle.tsx", "components/room-record.tsx", "components/big-screen.tsx", "app/screen/page.tsx", "components/role-info.tsx", "lib/role-info.ts", "lib/replay-image.ts", "lib/highlights.ts", "components/rules-card.tsx", "components/doc-page.tsx", "components/game-panel.tsx", "components/install-app.tsx", "components/avatar-face.tsx", "components/player-home.tsx", "components/settlement.tsx", "components/mvp-vote.tsx",
   "components/lang-toggle.tsx", "components/replay-export.tsx", "components/replay-timeline.tsx", "components/personal-record.tsx", "components/push-toggle.tsx", "components/seat-table.tsx", "components/help-dialog.tsx", "lib/room-client.ts", "components/room-management.tsx", "components/room-progress.tsx",
   "components/takeover-requests.tsx", "lib/replay.ts", "lib/board-templates.ts",
 ];
 export const SERVER_FILES = [
   "lib/game.ts", "lib/game/model.ts", "lib/game/view.ts", "lib/game/play.ts", "lib/game/manage.ts", "lib/room-store.ts", "lib/push-store.ts", "lib/push-subscription.ts", "lib/request-context.ts", "lib/live-gateway.ts", "lib/room-hub.ts",
-  "app/api/room/route.ts", "app/api/admin/route.ts",
+  "app/api/room/route.ts", "app/api/admin/route.ts", "app/api/profile/route.ts",
 ];
 const CJK = /[㐀-鿿　-〿！-～]/;
 const root = new URL("../", import.meta.url);

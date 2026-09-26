@@ -78,6 +78,8 @@ export interface Player {
   recovery?: string;
   // Set when this seat was taken by a signed-in account. Never sent to clients.
   accountId?: string;
+  // Chosen portrait, copied from the account so the table can show it.
+  avatar?: string;
 }
 export interface TakeoverRequest {
   id: string;
@@ -262,7 +264,7 @@ export interface RoomView {
   hostRevision: number;
   resetReason: "rematch" | "abort" | null;
   version: number;
-  players: { id: string; name: string; seat: number; ready: boolean; confirmed: boolean }[];
+  players: { id: string; name: string; seat: number; ready: boolean; confirmed: boolean; avatar?: string; profileId?: string }[];
   meId: string | null;
   identity: Identity | null;
   expiresAt: number;

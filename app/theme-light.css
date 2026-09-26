@@ -188,6 +188,8 @@
 :root[data-theme="light"] .rank-mark.selected { border-color: #6b510f; }
 :root[data-theme="light"] .account-titles button { border: 1px solid #cad2d0; background: transparent; color: inherit; }
 :root[data-theme="light"] .account-titles button.selected { border-color: #6b510f; }
+:root[data-theme="light"] .avatar-picker button { border: 1px solid #cad2d0; background: transparent; color: inherit; }
+:root[data-theme="light"] .avatar-picker button.selected { border-color: #6b510f; }
 /* from app/game.css */
 :root[data-theme="light"] .game-panel {
   border: 1px solid #d1d9da;
@@ -422,6 +424,8 @@
 :root[data-theme="light"] .mark-menu-grid button { border: 1px solid #c0cac6; background: #e6eeeb; color: #1d1e16; }
 :root[data-theme="light"] .mark-menu-grid button.good.on { background: #2f604f; color: #e7eeec; border-color: #2f604f; }
 :root[data-theme="light"] .mark-menu-grid button.evil.on { background: #804039; color: #f8edec; border-color: #804039; }
+:root[data-theme="light"] .settlement-layer, :root[data-theme="light"] .player-home-layer { background: #f1f6f5cc; }
+:root[data-theme="light"] .settlement, :root[data-theme="light"] .player-home { border: 1px solid #cad2d0; background: #dde6e3; }
 :root[data-theme="light"] .game-table .seat-circle.speaking { box-shadow: 0 0 0 3px #2f604faa, 0 0 0 7px #e5ecea; }
 :root[data-theme="light"] .game-table .seat-circle.on-team.speaking { box-shadow: 0 0 0 3px #2f604f, 0 0 0 7px #e5ecea; }
 :root[data-theme="light"] .room-section-nav button.your-turn::after { background: var(--danger); box-shadow: 0 0 0 2px #eaf0ef; }

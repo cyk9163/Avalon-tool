@@ -40,11 +40,15 @@ test("the big screen never shows roles or card owners, even after the game or on
   act(room, 1, "vote", {turnId: game.turnId, approve: true});
   assert.deepEqual(screen(room).game.votedSeats, [1], "who has voted is public");
   assert.equal(screen(room).game.proposals.length, 0, "votes stay hidden until everyone has voted");
-  for (let attempt = 0; attempt < 5; attempt++) {
+  for (const seat of [2, 3, 4, 5]) act(room, seat, "vote", {turnId: game.turnId, approve: false});
+  const evil = new Set(room.players.filter(player => player.role === "assassin" || player.role === "morgana").map(player => player.seat));
+  for (let quest = 0; quest < 3; quest++) {
     ({game} = roomView(room, "secret-0", 1));
-    if (room.phase === "team") act(room, game.leaderSeat, "propose", {turnId: game.turnId, team: [1, 2]});
-    for (const seat of [1, 2, 3, 4, 5]) { try { act(room, seat, "vote", {turnId: game.turnId, approve: false}); } catch { /* already voted */ } }
-    if (room.phase === "finished") break;
+    const team = [...room.players.map(player => player.seat)].sort((a, b) => Number(evil.has(b)) - Number(evil.has(a))).slice(0, game.teamSize);
+    act(room, game.leaderSeat, "propose", {turnId: game.turnId, team});
+    if (room.phase === "vote") for (const seat of [1, 2, 3, 4, 5]) act(room, seat, "vote", {turnId: game.turnId, approve: true});
+    ({game} = roomView(room, "secret-0", 1));
+    for (const seat of game.team) act(room, seat, "quest", {turnId: game.turnId, card: evil.has(seat) ? "fail" : "success"});
   }
   assert.equal(room.phase, "finished");
   const member = roomView(room, "secret-0", 1, INVITE, true);

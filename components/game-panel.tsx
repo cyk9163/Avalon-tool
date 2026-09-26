@@ -16,7 +16,8 @@ import { GameTable } from "@/components/game-table";
 import { SpeechBar } from "@/components/speech-bar";
 import { VoteMatrix } from "@/components/vote-matrix";
 import { clueMarks, markChangeAllowed, usePlayerNotes, visibleMarks } from "@/lib/player-notes";
-import { MvpVote } from "@/components/mvp-vote";
+import { PlayerHome } from "@/components/player-home";
+import { Settlement } from "@/components/settlement";
 import { msg } from "@/lib/i18n/core";
 import { useI18n } from "@/lib/i18n/react";
 
@@ -63,6 +64,9 @@ export function GamePanel({ room, busy, connected, error, act, onNewGame }: Prop
   const [selection, setSelection] = useState<number[]>(() => room.game?.draftTeam ?? []);
   const [target, setTarget] = useState<number | null>(null);
   const [pending, setPending] = useState<Pending | null>(null);
+  const [profileId, setProfileId] = useState<string | null>(null);
+  const [dismissed, setDismissed] = useState("");
+  const settlementKey = `${room.code}:${room.round}`;
   const blocked = busy || !connected;
   const feedback = !connected ? t("连接暂时中断，恢复后可以继续提交。") : ts(error);
   const me = room.players.find(player => player.id === room.meId);
@@ -126,7 +130,7 @@ export function GamePanel({ room, busy, connected, error, act, onNewGame }: Prop
     </div>
     {teammates.length > 0 && <p className="teammate-line"><span>{t("你的队友")}</span>{teammates.map(item => <b key={item.seat}>{t("{n} 号", { n: item.seat })} · {t(ROLES[item.role].name)}</b>)}</p>}
     {room.phase === "team" && <div className="game-table-wrap">
-      <GameTable room={room} game={game} selection={selection} onToggle={room.phase === "team" && leader && !blocked ? toggleSeat : undefined} marks={marks} lockedSeats={Object.keys(clue.locked).map(Number)} evilSeats={clue.merlinSeats} onMark={room.meId && !blocked ? (seat, mark) => { if (markChangeAllowed(seat, mark, clue)) setMark(seat, mark); } : undefined} center={room.phase === "team" && leader && selection.length > 0 ? <div className="table-center-actions">
+      <GameTable room={room} game={game} selection={selection} onToggle={room.phase === "team" && leader && !blocked ? toggleSeat : undefined} marks={marks} lockedSeats={Object.keys(clue.locked).map(Number)} evilSeats={clue.merlinSeats} onMark={room.meId && !blocked ? (seat, mark) => { if (markChangeAllowed(seat, mark, clue)) setMark(seat, mark); } : undefined} onProfile={setProfileId} center={room.phase === "team" && leader && selection.length > 0 ? <div className="table-center-actions">
         <button type="button" className="secondary-button" disabled={blocked || !draftChanged} onClick={() => void act("draft", { turnId: game.turnId, team: selection })}><Eye size={16} aria-hidden="true" />{drafted ? t("改车") : t("亮车")}</button>
         <button className="primary-button" disabled={blocked || selection.length !== game.teamSize} onClick={() => setPending({ action: "propose", input: { turnId: game.turnId, team: selection }, title: game.rejections >= 2 ? t("第三车直接出发？") : t("发起表决？"), description: game.rejections >= 2 ? t("队员：{seats}。这支队伍不表决，马上执行任务。", { seats: seatsLabel(selection) }) : t("队员：{seats}。发起后全员表决，这一车不能再改。", { seats: seatsLabel(selection) }), label: game.rejections >= 2 ? t("直接出发") : t("发起表决") })}>{game.rejections >= 2 ? t("直接出发") : t("发起表决")}<ArrowRight size={17} /></button>
       </div> : undefined} />
@@ -183,7 +187,7 @@ export function GamePanel({ room, busy, connected, error, act, onNewGame }: Prop
       {game.revealedRoles && <HighlightList game={game} playerName={playerName} />}
       {game.revealedRoles && <div className="result-identity-list"><h3>{t("此刻，身份揭晓。")}</h3><div className="revealed-roles">{game.revealedRoles.map(player => <div key={player.seat}><span className="member-seat">{player.seat}</span><span>{playerName(player.seat)}</span><strong className={finalSide(player.role)}>{finalSide(player.role) === "good" ? <Shield size={13} aria-hidden="true" /> : <Swords size={13} aria-hidden="true" />}<RoleInfoButton role={player.role} className="revealed-role-name" />{finalSide(player.role) !== ROLES[player.role].side && <small>{finalSide(player.role) === "good" ? t("（最终属于正义）") : t("（最终属于邪恶）")}</small>}</strong></div>)}</div></div>}
       {!me && <p className="action-note">{t("完整身份仅向本局成员揭晓。")}</p>}
-      <MvpVote room={room} busy={busy} act={act} />
+      <button type="button" className="secondary-button" onClick={() => setDismissed("")}>{t("结算投票")}</button>
       <ReplayTimeline room={room} />
       <div className="rematch-actions">{me?.id === room.hostId ? <button className="primary-button" disabled={blocked} onClick={() => setPending({ action: "rematch", input: { round: room.round }, title: t("同房再来一局？"), description: t("保留房间码、玩家和座位，清除本局身份与全部投票记录。请先完成复盘；重开后所有人重新准备、重新发身份。房间仍在创建 24 小时后过期。"), label: t("确认重开") })}><RotateCcw size={17} />{t("同房再来一局")}</button> : me && <p className="waiting-note" role="status">{t("复盘完成后，可以请房主开启同房新一局。")}</p>}
       <button className="secondary-button" onClick={onNewGame}>{t("返回首页")}<ArrowRight size={16} /></button></div>
@@ -203,6 +207,8 @@ export function GamePanel({ room, busy, connected, error, act, onNewGame }: Prop
       <p className="action-note">{t("组队表决公开记录；任务牌在对局中只公布总数，结局后公开每个人出的牌。")}</p>
     </details>
 
+    {room.phase === "finished" && dismissed !== settlementKey && <Settlement room={room} busy={busy} act={act} onClose={() => setDismissed(settlementKey)} />}
+    {profileId && <PlayerHome id={profileId} onClose={() => setProfileId(null)} />}
     <AlertDialog open={!!pending} onOpenChange={open => { if (!open && !busy) setPending(null); }}>
       <AlertDialogContent className="game-confirm-dialog"><AlertDialogTitle>{pending?.title}</AlertDialogTitle><AlertDialogDescription>{pending?.description}</AlertDialogDescription>{feedback && <p className="ballot-error" role="alert">{feedback}</p>}<AlertDialogFooter><AlertDialogCancel disabled={busy}>{t("再想一下")}</AlertDialogCancel><AlertDialogAction disabled={blocked} onClick={event => { event.preventDefault(); void confirmPending(); }}>{busy ? t("正在提交…") : pending?.label}</AlertDialogAction></AlertDialogFooter></AlertDialogContent>
     </AlertDialog>

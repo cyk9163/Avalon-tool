@@ -1,4 +1,4 @@
-import { accountCookie, loginAccount, logoutAccount, readAccount, registerAccount, setAccountTitle } from "@/lib/account";
+import { accountCookie, loginAccount, logoutAccount, readAccount, registerAccount, setAccountAvatar, setAccountTitle } from "@/lib/account";
 import { careerAchievementIds, isAchievementId } from "@/lib/achievements";
 import { GameError } from "@/lib/game";
 import { newRequestId } from "@/lib/log";
@@ -68,6 +68,12 @@ export async function POST(request: Request) {
   const secure = new URL(request.url).protocol === "https:";
   try {
     const body = await request.json() as Record<string, unknown>;
+    if (body.action === "avatar") {
+      const account = await readAccount(request);
+      if (!account) throw new GameError("请先登录。", 401);
+      await setAccountAvatar(account.id, body.avatar);
+      return json({ account: { ...account, avatar: body.avatar } });
+    }
     if (body.action === "title") {
       const account = await readAccount(request);
       if (!account) throw new GameError("请先登录。", 401);

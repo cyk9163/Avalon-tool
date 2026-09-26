@@ -3,7 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { useI18n } from "@/lib/i18n/react";
 
-export type SignedAccount = { id: string; name: string; canHost: boolean; title?: string | null };
+export type SignedAccount = { id: string; name: string; canHost: boolean; title?: string | null; avatar?: string | null };
 
 export function AccountGate({ onLogin, onGuest }: { onLogin: (account: SignedAccount) => void; onGuest: () => void }) {
   const { t } = useI18n();

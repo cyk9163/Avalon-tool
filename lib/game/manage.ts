@@ -1,3 +1,4 @@
+import { isAvatarId } from "../avatars.ts";
 import { gameAction } from "./play.ts";
 import {
   GameError, MAX_RECOVERY_RECORDS, MAX_TAKEOVERS, MAX_TAKEOVERS_PER_SEAT, TAKEOVER_WAIT_MS,
@@ -269,7 +270,9 @@ function deviceRecovery(room: Room, me: Player | undefined, key: string, action:
 export function mutateRoom(room: Room, key: string, action: string, input: Record<string, unknown>): void {
   const me = room.players.find(player => player.key === key);
   const accountId = typeof input.accountId === "string" && /^[a-f0-9]{32}$/.test(input.accountId) ? input.accountId : undefined;
+  const avatar = isAvatarId(input.avatar) ? input.avatar : undefined;
   if (me && accountId) me.accountId = accountId;
+  if (me && avatar) me.avatar = avatar;
   if (["recover", "takeover-request", "takeover-cancel", "takeover-reject", "takeover-approve", "takeover-deny"].includes(action)) {
     deviceRecovery(room, me, key, action, input);
     return;
@@ -296,11 +299,12 @@ export function mutateRoom(room: Room, key: string, action: string, input: Recor
     if (room.players.length >= room.capacity) throw new GameError("房间已满。 ");
     room.players.push({ id: crypto.randomUUID(), key, name, seat, ready: false, confirmed: false,
       ...(room.schemaVersion ? { recovery: newRecoveryCode() } : {}),
-      ...(accountId ? { accountId } : {}) });
+      ...(accountId ? { accountId } : {}), ...(avatar ? { avatar } : {}) });
     room.takeovers = (room.takeovers ?? []).filter(request => request.key !== key);
     return;
   }
   if (!me) throw new GameError("请先加入房间。", 403);
+  if (action === "refresh-profile") return;
   if (action === "mvp") {
     if (room.phase !== "finished" || !room.game?.result) throw new GameError("本局还没结束。", 403);
     if (!me.accountId) throw new GameError("登录后才能给己方投票。", 403);

@@ -74,8 +74,9 @@ export async function POST(request:Request){
     const key=await hash(current);await rateLimit(`write:${key}`,90,60000);
     const ip=await ipKey(request);if(ip)await rateLimit(`write-ip:${ip}`,600,60000);
     delete input.accountId;
+    delete input.avatar;
     const account=await readAccount(request);
-    if(account)input.accountId=account.id;
+    if(account){input.accountId=account.id;if(account.avatar)input.avatar=account.avatar;}
     if(input.action==="create"){
       const {hostKey,...creation}=input;
       if(!account?.canHost){

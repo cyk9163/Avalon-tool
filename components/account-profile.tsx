@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { AVATAR_IDS, AvatarFace, avatarName } from "@/components/avatar-face";
 import { ACHIEVEMENTS, achievementById, rankTracks, type CareerGame } from "@/lib/achievements";
 import { ROLES, type Role } from "@/lib/game";
 import { useI18n } from "@/lib/i18n/react";
@@ -9,7 +10,7 @@ import type { SignedAccount } from "./account-gate";
 type GameRow = { code: string; round: number; at: number; capacity: number; preset: string; role: string; side: "good" | "evil"; winner: "good" | "evil"; mvp: number; fact?: string | null };
 type Stats = { total: number; won: number; mvp: number; bySide: { good: { played: number; won: number }; evil: { played: number; won: number } }; byRole: { role: string; played: number; won: number }[] };
 
-export function AccountProfile({ account, onLogout, onTitle }: { account: SignedAccount; onLogout: () => void; onTitle: (title: string) => void }) {
+export function AccountProfile({ account, onLogout, onTitle, onAvatar }: { account: SignedAccount; onLogout: () => void; onTitle: (title: string) => void; onAvatar: (avatar: string) => void }) {
   const { t } = useI18n();
   const [stats, setStats] = useState<Stats | null>(null);
   const [games, setGames] = useState<GameRow[]>([]);
@@ -21,6 +22,11 @@ export function AccountProfile({ account, onLogout, onTitle }: { account: Signed
       setUnlocked(data.achievements ?? []);
     });
   }, []);
+  const pickAvatar = (id: string) => {
+    void fetch("/api/account", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "avatar", avatar: id }) }).then(response => {
+      if (response.ok) onAvatar(id);
+    });
+  };
   const wear = (id: string) => {
     void fetch("/api/account", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "title", title: id }) }).then(response => {
       if (response.ok) onTitle(id);
@@ -33,9 +39,11 @@ export function AccountProfile({ account, onLogout, onTitle }: { account: Signed
   const owned = (id: string) => unlocked.includes(id) || tracks.some(track => track.tiers.some(tier => tier.id === id && tier.owned));
   return <section className="account-profile">
     <header className="account-profile-head">
-      <div><p className={`worn-title${worn?.mark ? ` is-${worn.mark}` : ""}`}>{worn ? t(worn.name) : t("还没有称号")}</p><h1>{account.name}</h1><p>{account.canHost ? t("可以开房") : t("还不能开房")}</p></div>
+      <div className="player-home-id"><AvatarFace id={account.avatar} size={36} /><div><p className={`worn-title${worn?.mark ? ` is-${worn.mark}` : ""}`}>{worn ? t(worn.name) : t("还没有称号")}</p><h1>{account.name}</h1><p>{account.canHost ? t("可以开房") : t("还不能开房")}</p></div></div>
       <button type="button" className="text-button" onClick={onLogout}>{t("退出登录")}</button>
     </header>
+    <h2>{t("头像")}</h2>
+    <div className="avatar-picker">{AVATAR_IDS.map(id => <button key={id} type="button" className={account.avatar === id ? "selected" : ""} aria-label={avatarName(t, id)} aria-pressed={account.avatar === id} onClick={() => pickAvatar(id)}><AvatarFace id={id} size={22} /><span>{avatarName(t, id)}</span></button>)}</div>
     {stats && <div className="account-stats">
       <p><b>{stats.total}</b><span>{t("局")}</span></p>
       <p><b>{rate(stats.won, stats.total)}</b><span>{t("胜率")}</span></p>

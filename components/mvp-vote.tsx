@@ -1,5 +1,6 @@
 "use client";
 
+import { AvatarFace } from "@/components/avatar-face";
 import { useI18n } from "@/lib/i18n/react";
 import { ROLES, currentSide, type Role, type RoomView } from "@/lib/game";
 
@@ -16,7 +17,7 @@ export function MvpVote({ room, busy, act }: { room: RoomView; busy: boolean; ac
   return <section className="mvp-vote">
     <h2>{t("投己方 MVP")}</h2>
     <p>{t("只能投给和你同一阵营的人，也可以投自己。票数最高且没有并列的人记一次 MVP。")}</p>
-    <div className="mvp-choices">{choices.map(player => <button key={player.seat} type="button" className={mvp.myVote === player.seat ? "selected" : ""} disabled={busy} onClick={() => void act("mvp", { seat: player.seat })}><b>{player.seat}</b>{room.players.find(item => item.seat === player.seat)?.name} · {t(ROLES[player.role as Role].name)}</button>)}</div>
-    <ul className="mvp-tally">{mvp.winners.map(winner => <li key={winner.side}>{winner.side === "good" ? t("好人") : t("坏人")} MVP：{winner.seat ? `${winner.seat} ${room.players.find(item => item.seat === winner.seat)?.name ?? ""}` : t("还没有")}</li>)}</ul>
+    <div className="mvp-choices">{choices.map(player => { const seated = room.players.find(item => item.seat === player.seat); return <button key={player.seat} type="button" className={mvp.myVote === player.seat ? "selected" : ""} disabled={busy} onClick={() => void act("mvp", { seat: player.seat })}><AvatarFace id={seated?.avatar} size={16} /><b>{player.seat}</b>{seated?.name} · {t(ROLES[player.role as Role].name)}</button>; })}</div>
+    <ul className="mvp-tally">{mvp.winners.map(winner => { const seated = room.players.find(item => item.seat === winner.seat); const who = winner.seat ? `${winner.seat} ${seated?.name ?? ""}` : t("还没有"); return <li key={winner.side}>{winner.side === "good" ? t("好人 MVP：{who}", { who }) : t("坏人 MVP：{who}", { who })}</li>; })}</ul>
   </section>;
 }

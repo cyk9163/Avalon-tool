@@ -4,6 +4,7 @@ import {log} from "./log";
 import {notifyNewTurns} from "./push-store";
 import {turnMap} from "./turn";
 import {recordAccountGames} from "./account-record";
+import {isAvatarId} from "./avatars";
 import {GameError,type Room,mutateRoom,roomView,type Preset,rolePool,nickname,randomInt,newRecoveryCode,newInviteToken,ROOM_SCHEMA_VERSION} from "./game";
 function db(){if(!env.DB)throw new GameError("房间服务暂时不可用，请稍后再试。",503);return env.DB;}
 type Row={state:string;version:number;expires_at:number};
@@ -47,11 +48,12 @@ export async function createRoom(key:string,input:Record<string,unknown>){
     db().prepare("DELETE FROM rate_limits WHERE key IN (SELECT key FROM rate_limits WHERE expires_at < ? LIMIT 50)").bind(Date.now()),
   ]);
   const accountId=typeof input.accountId==="string"&&/^[a-f0-9]{32}$/.test(input.accountId)?input.accountId:undefined;
+  const avatar=isAvatarId(input.avatar)?input.avatar:undefined;
   const count=await db().prepare("SELECT count(*) as n FROM rooms WHERE owner_key = ? AND expires_at > ?").bind(key,Date.now()).first<{n:number}>();
   if(count&&count.n>=8)throw new GameError("今天建立的房间有点多，请先使用已有房间。",429);
   for(let i=0;i<8;i++){
     const code=String(100000+randomInt(900000)),id=crypto.randomUUID();
-    const room:Room={code,round:1,capacity,preset,turnSpeech,evilSeesOberon,...(preset==="custom"?{customRoles:roles,ladyOfLake}:{}),phase:"lobby",hostId:id,hostRevision:0,players:[{id,key,name,seat:1,ready:false,confirmed:false,recovery:newRecoveryCode(),...(accountId?{accountId}:{})}],createdAt:Date.now(),expiresAt:Date.now()+86400000,requestId,schemaVersion:ROOM_SCHEMA_VERSION,inviteToken:newInviteToken(),takeovers:[],recoveries:[]};
+    const room:Room={code,round:1,capacity,preset,turnSpeech,evilSeesOberon,...(preset==="custom"?{customRoles:roles,ladyOfLake}:{}),phase:"lobby",hostId:id,hostRevision:0,players:[{id,key,name,seat:1,ready:false,confirmed:false,recovery:newRecoveryCode(),...(accountId?{accountId}:{}),...(avatar?{avatar}:{})}],createdAt:Date.now(),expiresAt:Date.now()+86400000,requestId,schemaVersion:ROOM_SCHEMA_VERSION,inviteToken:newInviteToken(),takeovers:[],recoveries:[]};
     const result=await db().prepare("INSERT OR IGNORE INTO rooms (code,state,version,expires_at,owner_key,request_id) VALUES (?,?,1,?,?,?)").bind(code,JSON.stringify(room),room.expiresAt,key,requestId).run();
     if(result.meta.changes===1)return roomView(room,key,1);
     const duplicate=await db().prepare("SELECT state,version,expires_at FROM rooms WHERE request_id=?").bind(requestId).first<Row>();

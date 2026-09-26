@@ -544,3 +544,10 @@ html[lang="en"] .count-option span:empty { display: none; }
 .account-titles button.selected { border-color: #dbc18a; }
 .account-titles button:disabled { opacity: 0.45; }
 .account-titles span { display: block; font-size: 12px; opacity: 0.75; }
+.avatar-picker { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.avatar-picker button { min-height: 72px; border: 1px solid #344c46; border-radius: 12px; background: transparent; color: inherit; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+.avatar-picker button.selected { border-color: #dbc18a; }
+.avatar-picker span { font-size: 12px; }
+.player-home-id { display: flex; align-items: center; gap: 12px; }
+.player-home-id h1, .player-home-id h2 { margin: 0; }
+.avatar-face { display: grid; place-items: center; }

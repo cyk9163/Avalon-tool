@@ -4,6 +4,7 @@ import { useState, type ReactNode } from "react";
 import { Check, Crown, Mic, Waves } from "lucide-react";
 import { ROLES, type GameView, type Role, type RoomView } from "@/lib/game";
 import { useI18n } from "@/lib/i18n/react";
+import { AvatarFace } from "@/components/avatar-face";
 import { MARK_CORNER, MARK_GLYPH, SIDE_GLYPH, markGlyph, type Mark } from "@/lib/player-notes";
 import type { TableReplay } from "@/lib/replay-steps";
 
@@ -13,13 +14,14 @@ import type { TableReplay } from "@/lib/replay-steps";
  * own private marks. During team selection the leader picks seats right here.
  * Presentation only: every choice still goes through the existing actions.
  */
-export function GameTable({ room, game, selection, onToggle, marks, onMark, replay, center, lockedSeats = [], evilSeats = [] }: {
+export function GameTable({ room, game, selection, onToggle, marks, onMark, onProfile, replay, center, lockedSeats = [], evilSeats = [] }: {
   room: RoomView;
   game: GameView;
   selection?: number[];
   onToggle?: (seat: number) => void;
   marks: Record<number, Mark>;
   onMark?: (seat: number, mark: Mark | null) => void;
+  onProfile?: (profileId: string) => void;
   replay?: TableReplay;
   center?: ReactNode;
   lockedSeats?: number[];
@@ -91,9 +93,10 @@ export function GameTable({ room, game, selection, onToggle, marks, onMark, repl
                   onClick: () => { if (picking) onToggle?.(seat); else openMenu(); },
                 } : { role: "img" })}
                 aria-label={label}
-                className={`seat-circle occupied${mine ? " mine" : ""}${team ? " on-team" : ""}${leader ? " leader" : ""}${mark?.side ? ` marked-${mark.side} has-mark` : ""}${!replay && room.phase === "vote" && !voted ? " pending" : ""}${speaking ? " speaking" : ""}`}
+                className={`seat-circle occupied${player?.avatar ? " has-avatar" : ""}${mine ? " mine" : ""}${team ? " on-team" : ""}${leader ? " leader" : ""}${mark?.side ? ` marked-${mark.side} has-mark` : ""}${!replay && room.phase === "vote" && !voted ? " pending" : ""}${speaking ? " speaking" : ""}`}
               >
-                <span>{String(seat).padStart(2, "0")}</span>
+                {player?.avatar && <AvatarFace id={player.avatar} size={18} />}
+                <span className={player?.avatar ? "seat-index" : undefined}>{String(seat).padStart(2, "0")}</span>
                 {leader && <Crown className="seat-badge seat-badge-leader" size={14} aria-hidden="true" />}
                 {voted && <Check className="seat-check" size={14} aria-hidden="true" />}
                 {speaking && <Mic className="seat-badge seat-badge-speaking" size={13} aria-hidden="true" />}
@@ -115,6 +118,7 @@ export function GameTable({ room, game, selection, onToggle, marks, onMark, repl
           {(!evilSeats.includes(menuSeat) ? (["good", "evil"] as const) : (["evil"] as const)).map(side => <button type="button" key={side} className={`${side}${!menuMark?.role && menuMark?.side === side ? " on" : ""}`} aria-label={side === "good" ? t("好人") : t("坏人")} aria-pressed={!menuMark?.role && menuMark?.side === side} onClick={() => choose({ side })}>{SIDE_GLYPH[side]}</button>)}
           {boardRoles.filter(role => !evilSeats.includes(menuSeat) || ROLES[role].side === "evil").map(role => <button type="button" key={role} className={`${ROLES[role].side}${menuMark?.role === role ? " on" : ""}`} aria-label={t(ROLES[role].name)} aria-pressed={menuMark?.role === role} onClick={() => choose({ role: role as Role })}>{MARK_GLYPH[role]}</button>)}
         </div>
+        {onProfile && <button type="button" className="secondary-button mark-profile" disabled={!menuPlayer?.profileId} onClick={() => { if (!menuPlayer?.profileId) return; onProfile(menuPlayer.profileId); setMenuSeat(null); }}>{menuPlayer?.profileId ? t("查看个人主页") : t("这位玩家还没有主页")}</button>}
         <div className="mark-menu-actions">
           <button type="button" className="text-button" disabled={!menuMark || (evilSeats.includes(menuSeat) && !menuMark.role)} onClick={() => { onMark(menuSeat, null); setMenuSeat(null); }}>{t("消除标记")}</button>
           <button type="button" className="text-button" onClick={() => setMenuSeat(null)}>{t("取消")}</button>

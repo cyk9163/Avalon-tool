@@ -218,4 +218,6 @@ export const SERVER: Record<string, string> = {
   "请先登录。": "Please log in first.",
   "没有这个成就。": "There is no such achievement.",
   "还没有解锁这个成就。": "You have not unlocked this achievement yet.",
+  "没有这个头像。": "That portrait is not available.",
+  "找不到这位玩家。": "That player could not be found.",
 };
