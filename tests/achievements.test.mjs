@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { careerAchievementIds, gameAchievementIds, gameFact, rankTracks } from "../lib/achievements.ts";
+import { careerAchievementIds, gameAchievementIds, gameFact, rankTracks, recordFact } from "../lib/achievements.ts";
 
 const base = {
   role: "merlin",
@@ -47,9 +47,7 @@ test("career titles count games, MVPs, both sides and roles", () => {
   const ids = careerAchievementIds(games);
   assert.ok(ids.includes("tenure-1"));
   assert.equal(ids.includes("tenure-2"), false);
-  assert.ok(ids.includes("mvp-rank-1"));
-  assert.ok(ids.includes("mvp-rank-2"));
-  assert.equal(ids.includes("mvp-rank-3"), false);
+  assert.equal(ids.includes("mvp-rank-1"), false);
   assert.ok(ids.includes("both-sides"));
   assert.ok(ids.includes("many-faces"));
 });
@@ -132,21 +130,20 @@ test("Morgana still earns the title when Percival approves her team and not Merl
 });
 
 test("Percival's pace is boarding two or three quests, and the career title needs that inside enough games", () => {
-  const two = gameAchievementIds({
+  const two = {
     ...base,
     role: "percival",
     seat: 2,
     quests: [{ team: [2, 3], quest: 1, success: true }, { team: [2, 4], quest: 2, success: false }, { team: [1, 4], quest: 3, success: true }],
-  });
-  assert.ok(two.includes("percival-drove"));
-  assert.equal(two.includes("percival-drove-two"), false);
-  const three = gameAchievementIds({
+  };
+  assert.equal(recordFact(two), "b2");
+  const three = {
     ...base,
     role: "percival",
     seat: 2,
     quests: [{ team: [2], quest: 1, success: true }, { team: [2], quest: 2, success: true }, { team: [2], quest: 3, success: false }],
-  });
-  assert.ok(three.includes("percival-drove-two"));
+  };
+  assert.equal(recordFact(three), "b3");
   const games = [
     { role: "percival", side: "good", winner: "good", mvp: 0, fact: "b2" },
     { role: "percival", side: "good", winner: "good", mvp: 0, fact: "b3" },
@@ -155,12 +152,13 @@ test("Percival's pace is boarding two or three quests, and the career title need
     { role: "percival", side: "good", winner: "good", mvp: 0, fact: null },
   ];
   const ids = careerAchievementIds(games);
-  assert.ok(ids.includes("percival-regular"));
-  assert.ok(ids.includes("percival-three"));
+  assert.ok(ids.includes("percival-rank-1"));
+  assert.ok(ids.includes("percival-rank-2"));
+  assert.equal(ids.includes("percival-rank-3"), false);
 });
 
 test("Mordred has to play a fail and still board a later success; a loyal stands with the good majority or shakes beside wolves", () => {
-  const hidden = gameAchievementIds({
+  const hidden = {
     ...base,
     role: "mordred",
     seat: 5,
@@ -168,9 +166,9 @@ test("Mordred has to play a fail and still board a later success; a loyal stands
     result: { winner: "evil", reason: "three-failures" },
     quests: [{ team: [5, 1], quest: 1, success: false }, { team: [5, 2], quest: 2, success: true }],
     cards: [{ quest: 1, card: "fail", success: false, failCount: 1 }],
-  });
-  assert.ok(hidden.includes("mordred-hidden"));
-  const onlyFail = gameAchievementIds({
+  };
+  assert.equal(recordFact(hidden), "hidden");
+  const onlyFail = {
     ...base,
     role: "mordred",
     seat: 5,
@@ -178,8 +176,8 @@ test("Mordred has to play a fail and still board a later success; a loyal stands
     result: { winner: "evil", reason: "three-failures" },
     quests: [{ team: [5, 1], quest: 1, success: false }],
     cards: [{ quest: 1, card: "fail", success: false, failCount: 1 }],
-  });
-  assert.equal(onlyFail.includes("mordred-hidden"), false);
+  };
+  assert.equal(recordFact(onlyFail), null);
   const seats = [
     { seat: 2, role: "loyal" },
     { seat: 1, role: "merlin" },
@@ -187,7 +185,7 @@ test("Mordred has to play a fail and still board a later success; a loyal stands
     { seat: 4, role: "assassin" },
     { seat: 6, role: "morgana" },
   ];
-  assert.ok(gameAchievementIds({ ...base, role: "loyal", seat: 2, seats, quests: [{ team: [2, 1, 3], quest: 1, success: true }] }).includes("loyal-sided"));
+  assert.equal(recordFact({ ...base, role: "loyal", seat: 2, seats, quests: [{ team: [2, 1, 3], quest: 1, success: true }] }), "sided");
   const shiver = gameAchievementIds({ ...base, role: "loyal", seat: 2, seats, quests: [{ team: [2, 4, 6], quest: 1, success: false }] });
   assert.ok(shiver.includes("loyal-shiver"));
   assert.equal(shiver.includes("loyal-sided"), false);

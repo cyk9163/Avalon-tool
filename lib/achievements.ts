@@ -22,6 +22,18 @@ const LEGACY: Achievement[] = [
   { id: "resident", name: "牌桌常客", hint: "打满 10 局。" },
   { id: "mvp-once", name: "阵营门面", hint: "获得过一次 MVP。" },
   { id: "mvp-thrice", name: "三度封王", hint: "获得过三次 MVP。" },
+  { id: "percival-drove", name: "派西带队", hint: "这一局至少上了两车。" },
+  { id: "percival-drove-two", name: "连上三车", hint: "这一局至少上了三车。" },
+  { id: "percival-regular", name: "带队熟手", hint: "至少打满 3 局派西维尔，其中 2 局上了至少两车。" },
+  { id: "percival-three", name: "三车老手", hint: "至少打满 5 局派西维尔，其中 2 局上了至少三车。" },
+  { id: "morgana-drove", name: "悍跳开车", hint: "作为莫甘娜，你带的车做成了任务。" },
+  { id: "morgana-regular", name: "节奏大师", hint: "作为莫甘娜，至少三局带成过车，或带走过派西维尔。" },
+  { id: "mordred-hidden", name: "坏票再藏", hint: "出过失败牌，之后又上了成功的任务。" },
+  { id: "mordred-regular", name: "再藏老手", hint: "至少两局出过坏票，之后又上了成功的任务。" },
+  { id: "loyal-sided", name: "平民之光", hint: "上过一车，且那车上好人比坏人多。" },
+  { id: "loyal-regular", name: "铁票忠臣", hint: "至少三局上过好人更多的车。" },
+  { id: "oberon-sided", name: "盲狼站对", hint: "上过一车，且那车上好人比坏人多。" },
+  { id: "oberon-regular", name: "盲狼老手", hint: "至少两局上过好人更多的车。" },
   { id: "stab-morgana", name: "专刺莫甘娜", hint: "作为刺客，把刀给了莫甘娜。" },
   { id: "stab-mordred", name: "刀给了莫德雷德", hint: "作为刺客，把刀给了莫德雷德。" },
   { id: "stab-ally", name: "刀口向内", hint: "作为刺客，刺中了其他邪恶同伴。" },
@@ -46,20 +58,8 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: "stab-percival", name: "刀口派西", hint: "作为刺客，刺中了派西维尔。" },
   { id: "stab-loyal", name: "替梅挡刀", hint: "作为刺客，刺中了没有特殊身份的好人。" },
   { id: "stab-oberon", name: "盲狼挨刀", hint: "作为刺客，刺中了看不见的奥伯伦。" },
-  { id: "percival-drove", name: "派西带队", hint: "这一局至少上了两车。" },
-  { id: "percival-drove-two", name: "连上三车", hint: "这一局至少上了三车。" },
-  { id: "percival-regular", name: "带队熟手", hint: "至少打满 3 局派西维尔，其中 2 局上了至少两车。" },
-  { id: "percival-three", name: "三车老手", hint: "至少打满 5 局派西维尔，其中 2 局上了至少三车。" },
-  { id: "morgana-drove", name: "悍跳开车", hint: "作为莫甘娜，你带的车做成了任务。" },
   { id: "morgana-stole", name: "拐走派西", hint: "作为莫甘娜，派西维尔赞成了有你、没有梅林的队伍。" },
-  { id: "morgana-regular", name: "节奏大师", hint: "作为莫甘娜，至少三局带成过车，或带走过派西维尔。" },
-  { id: "mordred-hidden", name: "坏票再藏", hint: "出过失败牌，之后又上了成功的任务。" },
-  { id: "mordred-regular", name: "再藏老手", hint: "至少两局出过坏票，之后又上了成功的任务。" },
-  { id: "loyal-sided", name: "平民之光", hint: "上过一车，且那车上好人比坏人多。" },
-  { id: "loyal-regular", name: "铁票忠臣", hint: "至少三局上过好人更多的车。" },
   { id: "loyal-shiver", name: "瑟瑟发抖", hint: "作为好人，上过坏人比好人多的车。" },
-  { id: "oberon-sided", name: "盲狼站对", hint: "上过一车，且那车上好人比坏人多。" },
-  { id: "oberon-regular", name: "盲狼老手", hint: "至少两局上过好人更多的车。" },
   { id: "wolf-car", name: "一车全狼", hint: "上过一支全是坏人的车。" },
   { id: "deep-cover", name: "深水藏狼", hint: "作为坏人，上过成功的任务。" },
   { id: "unanimous-crash", name: "满票沉船", hint: "你赞成的队伍全票通过，任务却失败了。" },
@@ -104,11 +104,42 @@ function tiers(prefix: string, rows: { name: string; hint: string; met: (games: 
   return rows.map((row, index) => ({ id: `${prefix}-${index + 1}`, name: row.name, hint: row.hint, mark: MARKS[index] ?? "bronze", met: row.met }));
 }
 
+function ofRole(games: CareerGame[], role: string) {
+  return games.filter(game => game.role === role);
+}
+function withFact(games: CareerGame[], role: string, facts: string[]) {
+  return ofRole(games, role).filter(game => facts.includes(game.fact ?? ""));
+}
+function roleTrack(
+  id: string,
+  name: string,
+  stat: (games: CareerGame[]) => Record<string, string | number>,
+  statKey: string,
+  steps: [string, string, string, string[], number, number][],
+  byWin = false,
+): Track {
+  return {
+    id,
+    name,
+    statKey,
+    stat,
+    tiers: tiers(id, steps.map(([title, hint, role, facts, needSample, needQualify]) => ({
+      name: title,
+      hint,
+      met: (games: CareerGame[]) => {
+        const sample = ofRole(games, role);
+        const got = byWin ? sample.filter(game => game.side === game.winner).length : withFact(games, role, facts).length;
+        return sample.length >= needSample && got >= needQualify;
+      },
+    }))),
+  };
+}
+
 export const RANK_TRACKS: Track[] = [
   {
     id: "tenure",
-    name: "圆桌资历",
-    statKey: "资历 {n} 局",
+    name: "总局数",
+    statKey: "一共 {n} 局",
     stat: games => ({ n: games.length }),
     tiers: tiers("tenure", [
       { name: "初出茅庐", hint: "完成 1 局。", met: games => games.length >= 1 },
@@ -126,7 +157,7 @@ export const RANK_TRACKS: Track[] = [
       { name: "初试刀锋", hint: "出刀至少 2 次，刺中不少于一半。", met: blade(2, 50) },
       { name: "刀刀见血", hint: "出刀至少 4 次，刺中不少于六成。", met: blade(4, 60) },
       { name: "刀无虚发", hint: "出刀至少 6 次，刺中不少于四分之三。", met: blade(6, 75) },
-      { name: "取梅首级", hint: "出刀至少 8 次，刺中不少于八成五。", met: blade(8, 85) },
+      { name: "梅林克星", hint: "出刀至少 8 次，刺中不少于八成五。", met: blade(8, 85) },
     ]),
   },
   {
@@ -143,7 +174,7 @@ export const RANK_TRACKS: Track[] = [
   },
   {
     id: "win-rank",
-    name: "胜率段位",
+    name: "胜率",
     statKey: "打了 {n} 局，胜率 {p}%",
     stat: games => ({ n: games.length, p: percent(wins(games), games.length) }),
     tiers: tiers("win-rank", [
@@ -155,16 +186,88 @@ export const RANK_TRACKS: Track[] = [
   },
   {
     id: "mvp-rank",
-    name: "MVP 段位",
-    statKey: "累计 MVP {n} 次",
-    stat: games => ({ n: mvps(games) }),
+    name: "MVP率",
+    statKey: "{n} 局，MVP 率 {p}%",
+    stat: games => ({ n: games.length, p: percent(mvps(games), games.length) }),
     tiers: tiers("mvp-rank", [
-      { name: "阵营门面", hint: "累计 1 次 MVP。", met: games => mvps(games) >= 1 },
-      { name: "三度封王", hint: "累计 3 次 MVP。", met: games => mvps(games) >= 3 },
-      { name: "五度封神", hint: "累计 5 次 MVP。", met: games => mvps(games) >= 5 },
-      { name: "冠冕之主", hint: "累计 10 次 MVP。", met: games => mvps(games) >= 10 },
+      { name: "偶得冠冕", hint: "至少 5 局，MVP 率不少于两成。", met: games => enough(games.length, mvps(games), 5, 20) },
+      { name: "冠冕常客", hint: "至少 10 局，MVP 率不少于三成。", met: games => enough(games.length, mvps(games), 10, 30) },
+      { name: "冠冕加身", hint: "至少 15 局，MVP 率不少于四成。", met: games => enough(games.length, mvps(games), 15, 40) },
+      { name: "冠冕之主", hint: "至少 20 局，MVP 率不少于一半。", met: games => enough(games.length, mvps(games), 20, 50) },
     ]),
   },
+  roleTrack("percival-rank", "派西维尔", games => ({ n: ofRole(games, "percival").length, a: withFact(games, "percival", ["b2", "b3"]).length, b: withFact(games, "percival", ["b3"]).length }), "派西 {n} 局，两车 {a}，三车 {b}", [
+    ["派西带队", "至少 3 局派西维尔，其中 2 局上了至少两车。", "percival", ["b2", "b3"], 3, 2],
+    ["两车常客", "至少 5 局派西维尔，其中 3 局上了至少两车。", "percival", ["b2", "b3"], 5, 3],
+    ["连上三车", "至少 6 局派西维尔，其中 2 局上了至少三车。", "percival", ["b3"], 6, 2],
+    ["三车老手", "至少 8 局派西维尔，其中 4 局上了至少三车。", "percival", ["b3"], 8, 4],
+  ]),
+  roleTrack("morgana-rank", "莫甘娜", games => ({ n: ofRole(games, "morgana").length, a: withFact(games, "morgana", ["paced"]).length }), "莫甘娜 {n} 局，带节奏 {a}", [
+    ["初试悍跳", "至少 2 局莫甘娜，其中 1 局带成车或拐走派西维尔。", "morgana", ["paced"], 2, 1],
+    ["假面带队", "至少 4 局莫甘娜，其中 2 局带成车或拐走派西维尔。", "morgana", ["paced"], 4, 2],
+    ["节奏大师", "至少 6 局莫甘娜，其中 4 局带成车或拐走派西维尔。", "morgana", ["paced"], 6, 4],
+    ["假面梅林", "至少 8 局莫甘娜，其中 6 局带成车或拐走派西维尔。", "morgana", ["paced"], 8, 6],
+  ]),
+  roleTrack("mordred-rank", "莫德雷德", games => ({ n: ofRole(games, "mordred").length, a: withFact(games, "mordred", ["hidden"]).length }), "莫德雷德 {n} 局，坏票再藏 {a}", [
+    ["初藏坏票", "至少 2 局莫德雷德，其中 1 局出了坏票还能再上成功的车。", "mordred", ["hidden"], 2, 1],
+    ["坏票再藏", "至少 4 局莫德雷德，其中 2 局出了坏票还能再上成功的车。", "mordred", ["hidden"], 4, 2],
+    ["深水再上", "至少 6 局莫德雷德，其中 4 局出了坏票还能再上成功的车。", "mordred", ["hidden"], 6, 4],
+    ["再藏老手", "至少 8 局莫德雷德，其中 6 局出了坏票还能再上成功的车。", "mordred", ["hidden"], 8, 6],
+  ]),
+  roleTrack("loyal-rank", "亚瑟的忠臣", games => ({ n: ofRole(games, "loyal").length, a: withFact(games, "loyal", ["sided"]).length }), "忠臣 {n} 局，好人车 {a}", [
+    ["平民之光", "至少 3 局忠臣，其中 2 局上了好人更多的车。", "loyal", ["sided"], 3, 2],
+    ["跟对好人", "至少 5 局忠臣，其中 3 局上了好人更多的车。", "loyal", ["sided"], 5, 3],
+    ["铁票忠臣", "至少 8 局忠臣，其中 5 局上了好人更多的车。", "loyal", ["sided"], 8, 5],
+    ["忠心耿耿", "至少 12 局忠臣，其中 8 局上了好人更多的车。", "loyal", ["sided"], 12, 8],
+  ]),
+  roleTrack("oberon-rank", "奥伯伦", games => ({ n: ofRole(games, "oberon").length, a: withFact(games, "oberon", ["sided"]).length }), "奥伯伦 {n} 局，好人车 {a}", [
+    ["盲狼站对", "至少 2 局奥伯伦，其中 1 局上了好人更多的车。", "oberon", ["sided"], 2, 1],
+    ["误上好车", "至少 4 局奥伯伦，其中 2 局上了好人更多的车。", "oberon", ["sided"], 4, 2],
+    ["盲狼老手", "至少 6 局奥伯伦，其中 4 局上了好人更多的车。", "oberon", ["sided"], 6, 4],
+    ["盲眼金水", "至少 8 局奥伯伦，其中 6 局上了好人更多的车。", "oberon", ["sided"], 8, 6],
+  ]),
+  roleTrack("minion-rank", "莫德雷德的爪牙", games => ({ n: ofRole(games, "minion").length, a: withFact(games, "minion", ["red"]).length }), "爪牙 {n} 局，出红 {a}", [
+    ["初试红牌", "至少 2 局爪牙，其中 1 局出了失败牌或上了失败的车。", "minion", ["red"], 2, 1],
+    ["红牌助手", "至少 4 局爪牙，其中 2 局出了失败牌或上了失败的车。", "minion", ["red"], 4, 2],
+    ["爪牙冲锋", "至少 6 局爪牙，其中 4 局出了失败牌或上了失败的车。", "minion", ["red"], 6, 4],
+    ["破坏常客", "至少 8 局爪牙，其中 6 局出了失败牌或上了失败的车。", "minion", ["red"], 8, 6],
+  ]),
+  roleTrack("cleric-rank", "牧师", games => ({ n: ofRole(games, "cleric").length, a: withFact(games, "cleric", ["read"]).length }), "牧师 {n} 局，看对 {a}", [
+    ["初读风向", "至少 2 局牧师，其中 1 局至少两张票和任务结果一致。", "cleric", ["read"], 2, 1],
+    ["牧师站对", "至少 4 局牧师，其中 2 局至少两张票和任务结果一致。", "cleric", ["read"], 4, 2],
+    ["风向老手", "至少 6 局牧师，其中 4 局至少两张票和任务结果一致。", "cleric", ["read"], 6, 4],
+    ["开局先知", "至少 8 局牧师，其中 6 局至少两张票和任务结果一致。", "cleric", ["read"], 8, 6],
+  ]),
+  roleTrack("good-lance-rank", "正义兰斯洛特", games => ({ n: ofRole(games, "goodLancelot").length, a: ofRole(games, "goodLancelot").filter(game => game.side === game.winner).length }), "正义兰斯洛特 {n} 局，胜 {a}", [
+    ["初换阵营", "至少 3 局正义兰斯洛特，其中 2 局获胜。", "goodLancelot", [], 3, 2],
+    ["换边仍胜", "至少 5 局正义兰斯洛特，其中 3 局获胜。", "goodLancelot", [], 5, 3],
+    ["双面骑士", "至少 8 局正义兰斯洛特，其中 5 局获胜。", "goodLancelot", [], 8, 5],
+    ["忠诚无常", "至少 12 局正义兰斯洛特，其中 8 局获胜。", "goodLancelot", [], 12, 8],
+  ], true),
+  roleTrack("evil-lance-rank", "邪恶兰斯洛特", games => ({ n: ofRole(games, "evilLancelot").length, a: ofRole(games, "evilLancelot").filter(game => game.side === game.winner).length }), "邪恶兰斯洛特 {n} 局，胜 {a}", [
+    ["黑骑初胜", "至少 3 局邪恶兰斯洛特，其中 2 局获胜。", "evilLancelot", [], 3, 2],
+    ["换边黑胜", "至少 5 局邪恶兰斯洛特，其中 3 局获胜。", "evilLancelot", [], 5, 3],
+    ["双面黑骑", "至少 8 局邪恶兰斯洛特，其中 5 局获胜。", "evilLancelot", [], 8, 5],
+    ["无常黑骑", "至少 12 局邪恶兰斯洛特，其中 8 局获胜。", "evilLancelot", [], 12, 8],
+  ], true),
+  roleTrack("lunatic-rank", "疯子", games => ({ n: ofRole(games, "lunatic").length, a: withFact(games, "lunatic", ["boardwin"]).length }), "疯子 {n} 局，上车仍胜 {a}", [
+    ["疯牌上车", "至少 2 局疯子，其中 1 局上了车且邪恶获胜。", "lunatic", ["boardwin"], 2, 1],
+    ["身不由己", "至少 4 局疯子，其中 2 局上了车且邪恶获胜。", "lunatic", ["boardwin"], 4, 2],
+    ["疯牌常胜", "至少 6 局疯子，其中 4 局上了车且邪恶获胜。", "lunatic", ["boardwin"], 6, 4],
+    ["失控仍胜", "至少 8 局疯子，其中 6 局上了车且邪恶获胜。", "lunatic", ["boardwin"], 8, 6],
+  ]),
+  roleTrack("brute-rank", "野蛮人", games => ({ n: ofRole(games, "brute").length, a: withFact(games, "brute", ["held"]).length }), "野蛮人 {n} 局，后期收手 {a}", [
+    ["初学收手", "至少 2 局野蛮人，其中 1 局第四或第五次任务交出成功且任务成功。", "brute", ["held"], 2, 1],
+    ["后期收刀", "至少 4 局野蛮人，其中 2 局第四或第五次任务交出成功且任务成功。", "brute", ["held"], 4, 2],
+    ["收刀回鞘", "至少 6 局野蛮人，其中 4 局第四或第五次任务交出成功且任务成功。", "brute", ["held"], 6, 4],
+    ["金盆洗手", "至少 8 局野蛮人，其中 6 局第四或第五次任务交出成功且任务成功。", "brute", ["held"], 8, 6],
+  ]),
+  roleTrack("revealer-rank", "揭露者", games => ({ n: ofRole(games, "revealer").length, a: withFact(games, "revealer", ["outwin"]).length }), "揭露者 {n} 局，曝光后胜 {a}", [
+    ["揭牌仍在", "至少 2 局揭露者，其中 1 局身份公开后邪恶获胜。", "revealer", ["outwin"], 2, 1],
+    ["曝光不败", "至少 4 局揭露者，其中 2 局身份公开后邪恶获胜。", "revealer", ["outwin"], 4, 2],
+    ["揭牌老手", "至少 6 局揭露者，其中 4 局身份公开后邪恶获胜。", "revealer", ["outwin"], 6, 4],
+    ["公开仍胜", "至少 8 局揭露者，其中 6 局身份公开后邪恶获胜。", "revealer", ["outwin"], 8, 6],
+  ]),
 ];
 
 const ALL: Achievement[] = [
@@ -249,21 +352,13 @@ export function gameAchievementIds(input: {
     else if (target === "oberon" && !input.seesOberon) ids.push("stab-oberon");
     else if (target === "loyal" || target === "cleric" || target === "goodLancelot") ids.push("stab-loyal");
   }
-  const led = new Set(input.proposals.filter(proposal => proposal.approved && proposal.leaderSeat === input.seat && input.quests.some(quest => quest.quest === proposal.quest && quest.success)).map(proposal => proposal.quest));
-  const boarded = new Set(input.quests.filter(quest => quest.team.includes(input.seat) && quest.quest !== undefined).map(quest => quest.quest));
-  if (input.role === "percival" && boarded.size >= 2) ids.push("percival-drove");
-  if (input.role === "percival" && boarded.size >= 3) ids.push("percival-drove-two");
-  if (input.role === "morgana" && led.size >= 1) ids.push("morgana-drove");
   const percivalSeat = input.seats?.find(player => player.role === "percival")?.seat;
   if (input.role === "morgana" && percivalSeat && input.merlinSeat && input.proposals.some(proposal => {
     const vote = proposal.votes.find(item => item.seat === percivalSeat);
     return vote?.approve && proposal.team.includes(input.seat) && !proposal.team.includes(input.merlinSeat!);
   })) ids.push("morgana-stole");
-  const failQuests = (input.cards ?? []).filter(card => card.card === "fail").map(card => card.quest);
-  if (input.role === "mordred" && input.quests.some(quest => quest.success && quest.team.includes(input.seat) && quest.quest !== undefined && failQuests.some(fail => fail < quest.quest!))) ids.push("mordred-hidden");
   const myQuests = input.quests.filter(quest => quest.team.includes(input.seat));
   const mix = (quest: Quest) => questMix(input, quest);
-  if ((input.role === "loyal" || input.role === "oberon") && myQuests.some(quest => { const sides = mix(quest); return sides.good > sides.evil; })) ids.push(input.role === "loyal" ? "loyal-sided" : "oberon-sided");
   if (myQuests.some(quest => {
     const sides = mix(quest);
     const mine = input.sideAt?.(input.seat, quest.quest ?? 0) ?? input.side;
@@ -311,33 +406,46 @@ function questMix(input: { seats?: { seat: number; role: Role }[]; sideAt?: (sea
   return { good, evil, size: quest.team.length };
 }
 
-/** Fact stored on the game row. Knife results stay; other roles store the moment used for career titles. */
+function votesMatched(input: Parameters<typeof gameAchievementIds>[0]): boolean {
+  const comparable = (input.proposals ?? []).filter(proposal => proposal.approved && proposal.votes.some(vote => vote.seat === input.seat) && input.quests.some(quest => quest.quest === proposal.quest));
+  if (comparable.length < 2) return false;
+  return comparable.every(proposal => {
+    const vote = proposal.votes.find(item => item.seat === input.seat);
+    const quest = input.quests.find(item => item.quest === proposal.quest);
+    return !!vote && !!quest && vote.approve === quest.success;
+  });
+}
+
+/** One token per finished game, used by the four-step role ranks. */
 export function recordFact(input: Parameters<typeof gameAchievementIds>[0]): string | null {
   const knife = gameFact(input.role, input.result);
   if (knife) return knife;
-  const ids = gameAchievementIds(input);
-  if (ids.includes("percival-drove-two")) return "b3";
-  if (ids.includes("percival-drove")) return "b2";
-  if (ids.includes("morgana-drove") || ids.includes("morgana-stole")) return "paced";
-  if (ids.includes("mordred-hidden")) return "hidden";
-  if (ids.includes("loyal-sided") || ids.includes("oberon-sided")) return "sided";
+  const boarded = new Set(input.quests.filter(quest => quest.team.includes(input.seat) && quest.quest !== undefined).map(quest => quest.quest));
+  if (input.role === "percival" && boarded.size >= 3) return "b3";
+  if (input.role === "percival" && boarded.size >= 2) return "b2";
+  const ledSuccess = (input.proposals ?? []).some(proposal => proposal.approved && proposal.leaderSeat === input.seat && input.quests.some(quest => quest.quest === proposal.quest && quest.success));
+  const percivalSeat = input.seats?.find(player => player.role === "percival")?.seat;
+  const stole = input.role === "morgana" && !!percivalSeat && !!input.merlinSeat && (input.proposals ?? []).some(proposal => {
+    const vote = proposal.votes.find(item => item.seat === percivalSeat);
+    return vote?.approve && proposal.team.includes(input.seat) && !proposal.team.includes(input.merlinSeat!);
+  });
+  if (input.role === "morgana" && (ledSuccess || stole)) return "paced";
+  const failQuests = (input.cards ?? []).filter(card => card.card === "fail").map(card => card.quest);
+  if (input.role === "mordred" && input.quests.some(quest => quest.success && quest.team.includes(input.seat) && quest.quest !== undefined && failQuests.some(fail => fail < quest.quest!))) return "hidden";
+  const myQuests = input.quests.filter(quest => quest.team.includes(input.seat));
+  if ((input.role === "loyal" || input.role === "oberon") && myQuests.some(quest => { const sides = questMix(input, quest); return sides.good > sides.evil; })) return "sided";
+  if (input.role === "minion" && (failQuests.length > 0 || input.quests.some(quest => !quest.success && quest.team.includes(input.seat)))) return "red";
+  if (input.role === "cleric" && votesMatched(input)) return "read";
+  if (input.role === "lunatic" && myQuests.length > 0 && input.side === input.result.winner) return "boardwin";
+  if (input.role === "brute" && (input.cards ?? []).some(card => card.quest >= 4 && card.card === "success" && card.success)) return "held";
+  if (input.role === "revealer" && input.revealed && input.side === "evil" && input.side === input.result.winner) return "outwin";
   return null;
 }
 
-/** Rank badges and career titles across every stored game. */
+/** Rank badges and the few career titles that are not a four-step ladder. */
 export function careerAchievementIds(games: CareerGame[]): string[] {
   const ids = RANK_TRACKS.flatMap(track => track.tiers.filter(tier => tier.met(games)).map(tier => tier.id));
   if (games.some(game => game.side === "good" && game.side === game.winner) && games.some(game => game.side === "evil" && game.side === game.winner)) ids.push("both-sides");
   if (new Set(games.map(game => game.role)).size >= 4) ids.push("many-faces");
-  const count = (role: string, fact: string) => games.filter(game => game.role === role && game.fact === fact).length;
-  const percivalGames = games.filter(game => game.role === "percival");
-  const twoCars = percivalGames.filter(game => game.fact === "b2" || game.fact === "b3").length;
-  const threeCars = percivalGames.filter(game => game.fact === "b3").length;
-  if (percivalGames.length >= 3 && twoCars >= 2) ids.push("percival-regular");
-  if (percivalGames.length >= 5 && threeCars >= 2) ids.push("percival-three");
-  if (count("morgana", "paced") >= 3) ids.push("morgana-regular");
-  if (count("mordred", "hidden") >= 2) ids.push("mordred-regular");
-  if (count("loyal", "sided") >= 3) ids.push("loyal-regular");
-  if (count("oberon", "sided") >= 2) ids.push("oberon-regular");
   return ids;
 }
