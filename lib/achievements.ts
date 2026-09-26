@@ -22,6 +22,9 @@ const LEGACY: Achievement[] = [
   { id: "resident", name: "常驻骑士", hint: "打满 10 局。" },
   { id: "mvp-once", name: "本阵营的脸", hint: "获得过一次 MVP。" },
   { id: "mvp-thrice", name: "三度加冕", hint: "获得过三次 MVP。" },
+  { id: "stab-morgana", name: "专刺莫甘娜", hint: "作为刺客，把刀给了莫甘娜。" },
+  { id: "stab-mordred", name: "刀给了莫德雷德", hint: "作为刺客，把刀给了莫德雷德。" },
+  { id: "stab-ally", name: "刀口向内", hint: "作为刺客，刺中了其他邪恶同伴。" },
 ];
 
 export const ACHIEVEMENTS: Achievement[] = [
@@ -40,12 +43,21 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: "lone-wolf", name: "孤狼也赢了", hint: "作为奥伯伦获胜。" },
   { id: "both-sides", name: "两面派", hint: "正义和邪恶都赢过。" },
   { id: "many-faces", name: "百变圆桌", hint: "玩过至少四种角色。" },
-  { id: "stab-morgana", name: "专刺莫甘娜", hint: "作为刺客，把刀给了莫甘娜。" },
-  { id: "stab-mordred", name: "刀给了莫德雷德", hint: "作为刺客，把刀给了莫德雷德。" },
   { id: "stab-percival", name: "刺中了影子", hint: "作为刺客，刺中了派西维尔。" },
   { id: "stab-loyal", name: "忠臣挡刀", hint: "作为刺客，刺中了没有特殊身份的好人。" },
-  { id: "stab-oberon", name: "奥伯伦挨刀", hint: "作为刺客，刺中了奥伯伦。" },
-  { id: "stab-ally", name: "刀口向内", hint: "作为刺客，刺中了其他邪恶同伴。" },
+  { id: "stab-oberon", name: "奥伯伦挨刀", hint: "作为刺客，刺中了看不见的奥伯伦。" },
+  { id: "percival-drove", name: "派西维尔开成了", hint: "作为派西维尔，你带的车做成了任务。" },
+  { id: "percival-drove-two", name: "派西维尔连开两车", hint: "作为派西维尔，你带成了至少两车。" },
+  { id: "percival-regular", name: "派车熟手", hint: "作为派西维尔，至少三局带成过任务。" },
+  { id: "morgana-drove", name: "莫甘娜开成了", hint: "作为莫甘娜，你带的车做成了任务。" },
+  { id: "morgana-stole", name: "带走了派西维尔", hint: "作为莫甘娜，派西维尔赞成了有你、没有梅林的队伍。" },
+  { id: "morgana-regular", name: "节奏熟手", hint: "作为莫甘娜，至少三局带成过车，或带走过派西维尔。" },
+  { id: "mordred-hidden", name: "藏到最后", hint: "作为莫德雷德获胜，没上过失败的任务，也没被湖照到。" },
+  { id: "mordred-regular", name: "影子老板", hint: "作为莫德雷德，至少两局这样藏赢。" },
+  { id: "loyal-sided", name: "忠臣站对了", hint: "作为忠臣，至少两支已出结果的车，你的票和任务结果一致。" },
+  { id: "loyal-regular", name: "票站得住", hint: "作为忠臣，至少三局把票站对。" },
+  { id: "oberon-sided", name: "奥伯伦站对了", hint: "作为奥伯伦，至少两支已出结果的车，你的票和任务结果一致。" },
+  { id: "oberon-regular", name: "盲也能站对", hint: "作为奥伯伦，至少两局把票站对。" },
   { id: "deep-cover", name: "深水", hint: "作为坏人，上过成功的任务。" },
   { id: "unanimous-crash", name: "全票翻车", hint: "你赞成的队伍全票通过，任务却失败了。" },
   { id: "lone-reject", name: "就我反对", hint: "全桌只有你投了反对，队伍被否决。" },
@@ -199,7 +211,9 @@ export function gameAchievementIds(input: {
   seats?: { seat: number; role: Role }[];
   cards?: Card[];
   lakeTargets?: Role[];
+  lakeCheckedSeats?: number[];
   revealed?: boolean;
+  seesOberon?: boolean;
 }): string[] {
   const ids: string[] = [];
   const won = input.side === input.result.winner;
@@ -227,13 +241,24 @@ export function gameAchievementIds(input: {
 
   const target = input.seats?.find(player => player.seat === input.result.targetSeat)?.role;
   if (input.role === "assassin" && target && target !== "merlin") {
-    if (target === "morgana") ids.push("stab-morgana");
-    else if (target === "mordred") ids.push("stab-mordred");
-    else if (target === "percival") ids.push("stab-percival");
-    else if (target === "oberon") ids.push("stab-oberon");
+    if (target === "percival") ids.push("stab-percival");
+    else if (target === "oberon" && !input.seesOberon) ids.push("stab-oberon");
     else if (target === "loyal" || target === "cleric" || target === "goodLancelot") ids.push("stab-loyal");
-    else if (ROLES[target].side === "evil") ids.push("stab-ally");
   }
+  const led = new Set(input.proposals.filter(proposal => proposal.approved && proposal.leaderSeat === input.seat && input.quests.some(quest => quest.quest === proposal.quest && quest.success)).map(proposal => proposal.quest));
+  if (input.role === "percival" && led.size >= 1) ids.push("percival-drove");
+  if (input.role === "percival" && led.size >= 2) ids.push("percival-drove-two");
+  if (input.role === "morgana" && led.size >= 1) ids.push("morgana-drove");
+  const percivalSeat = input.seats?.find(player => player.role === "percival")?.seat;
+  if (input.role === "morgana" && percivalSeat && input.merlinSeat && input.proposals.some(proposal => {
+    const vote = proposal.votes.find(item => item.seat === percivalSeat);
+    return vote?.approve && proposal.team.includes(input.seat) && !proposal.team.includes(input.merlinSeat!);
+  })) ids.push("morgana-stole");
+  const lakeLit = input.lakeCheckedSeats?.includes(input.seat) ?? false;
+  if (input.role === "mordred" && won && !input.quests.some(quest => !quest.success && quest.team.includes(input.seat)) && !lakeLit) ids.push("mordred-hidden");
+  const sided = sidedWithQuests(input);
+  if (input.role === "loyal" && sided) ids.push("loyal-sided");
+  if (input.role === "oberon" && sided) ids.push("oberon-sided");
   if (input.side === "evil" && input.quests.some(quest => quest.success && quest.team.includes(input.seat))) ids.push("deep-cover");
   const failedQuests = new Set(input.quests.filter(quest => !quest.success).map(quest => quest.quest));
   if (input.proposals.some(proposal => proposal.approved && proposal.votes.length > 1 && proposal.votes.every(vote => vote.approve) && proposal.votes.some(vote => vote.seat === input.seat) && failedQuests.has(proposal.quest))) ids.push("unanimous-crash");
@@ -263,10 +288,38 @@ export function gameAchievementIds(input: {
   return ids;
 }
 
+function sidedWithQuests(input: { seat: number; proposals: Proposal[]; quests: Quest[] }): boolean {
+  const comparable = input.proposals.filter(proposal => proposal.approved && proposal.votes.some(vote => vote.seat === input.seat) && input.quests.some(quest => quest.quest === proposal.quest));
+  if (comparable.length < 2) return false;
+  return comparable.every(proposal => {
+    const vote = proposal.votes.find(item => item.seat === input.seat);
+    const quest = input.quests.find(item => item.quest === proposal.quest);
+    return !!vote && !!quest && vote.approve === quest.success;
+  });
+}
+
+/** Fact stored on the game row. Knife results stay; other roles store the moment used for career titles. */
+export function recordFact(input: Parameters<typeof gameAchievementIds>[0]): string | null {
+  const knife = gameFact(input.role, input.result);
+  if (knife) return knife;
+  const ids = gameAchievementIds(input);
+  if (ids.includes("percival-drove")) return "led";
+  if (ids.includes("morgana-drove") || ids.includes("morgana-stole")) return "paced";
+  if (ids.includes("mordred-hidden")) return "hidden";
+  if (ids.includes("loyal-sided") || ids.includes("oberon-sided")) return "sided";
+  return null;
+}
+
 /** Rank badges and career titles across every stored game. */
 export function careerAchievementIds(games: CareerGame[]): string[] {
   const ids = RANK_TRACKS.flatMap(track => track.tiers.filter(tier => tier.met(games)).map(tier => tier.id));
   if (games.some(game => game.side === "good" && game.side === game.winner) && games.some(game => game.side === "evil" && game.side === game.winner)) ids.push("both-sides");
   if (new Set(games.map(game => game.role)).size >= 4) ids.push("many-faces");
+  const count = (role: string, fact: string) => games.filter(game => game.role === role && game.fact === fact).length;
+  if (count("percival", "led") >= 3) ids.push("percival-regular");
+  if (count("morgana", "paced") >= 3) ids.push("morgana-regular");
+  if (count("mordred", "hidden") >= 2) ids.push("mordred-regular");
+  if (count("loyal", "sided") >= 3) ids.push("loyal-regular");
+  if (count("oberon", "sided") >= 2) ids.push("oberon-regular");
   return ids;
 }

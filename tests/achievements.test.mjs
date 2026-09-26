@@ -54,17 +54,26 @@ test("career titles count games, MVPs, both sides and roles", () => {
   assert.ok(ids.includes("many-faces"));
 });
 
-test("the assassin who knives Morgana gets that joke, not a generic teammate stab", () => {
-  const ids = gameAchievementIds({
+test("stabbing a teammate the assassin can see is not an achievement; Oberon still is", () => {
+  const morgana = gameAchievementIds({
     ...base,
     role: "assassin",
     side: "evil",
     result: { winner: "good", reason: "assassin-missed", targetSeat: 3 },
-    seats: [{ seat: 1, role: "assassin" }, { seat: 2, role: "merlin" }, { seat: 3, role: "morgana" }],
+    seats: [{ seat: 1, role: "assassin" }, { seat: 3, role: "morgana" }],
   });
-  assert.ok(ids.includes("stab-morgana"));
-  assert.ok(ids.includes("blade-missed"));
-  assert.equal(ids.includes("stab-ally"), false);
+  assert.equal(morgana.includes("stab-morgana"), false);
+  assert.ok(morgana.includes("blade-missed"));
+  const oberon = gameAchievementIds({
+    ...base,
+    role: "assassin",
+    side: "evil",
+    result: { winner: "good", reason: "assassin-missed", targetSeat: 4 },
+    seats: [{ seat: 4, role: "oberon" }],
+  });
+  assert.ok(oberon.includes("stab-oberon"));
+  const seen = gameAchievementIds({ ...oberon && {}, ...base, role: "assassin", side: "evil", result: { winner: "good", reason: "assassin-missed", targetSeat: 4 }, seats: [{ seat: 4, role: "oberon" }], seesOberon: true });
+  assert.equal(seen.includes("stab-oberon"), false);
 });
 
 test("Percival can hug Morgana, and evil can vote down a teammate's team", () => {
@@ -106,6 +115,60 @@ test("a unanimous pass that fails, a lone fail card, and riding a quest that suc
     quests: [{ team: [1, 2], success: true }],
   });
   assert.ok(cover.includes("deep-cover"));
+});
+
+test("Percival leading a success, Morgana pulling Percival, and Mordred staying unseen are their own records", () => {
+  const drove = gameAchievementIds({
+    ...base,
+    role: "percival",
+    seat: 2,
+    proposals: [
+      { team: [2, 3], quest: 1, approved: true, leaderSeat: 2, votes: [{ seat: 2, approve: true }] },
+      { team: [2, 4], quest: 2, approved: true, leaderSeat: 2, votes: [{ seat: 2, approve: true }] },
+    ],
+    quests: [{ team: [2, 3], quest: 1, success: true }, { team: [2, 4], quest: 2, success: true }],
+  });
+  assert.ok(drove.includes("percival-drove"));
+  assert.ok(drove.includes("percival-drove-two"));
+  const stole = gameAchievementIds({
+    ...base,
+    role: "morgana",
+    seat: 3,
+    side: "evil",
+    merlinSeat: 4,
+    proposals: [{ team: [3], quest: 1, approved: true, votes: [{ seat: 2, approve: true }] }],
+    seats: [{ seat: 2, role: "percival" }, { seat: 4, role: "merlin" }],
+    result: { winner: "evil", reason: "three-failures" },
+  });
+  assert.ok(stole.includes("morgana-stole"));
+  const hidden = gameAchievementIds({
+    ...base,
+    role: "mordred",
+    seat: 5,
+    side: "evil",
+    result: { winner: "evil", reason: "merlin-assassinated" },
+    quests: [{ team: [1, 2], quest: 1, success: false }],
+    lakeCheckedSeats: [1],
+  });
+  assert.ok(hidden.includes("mordred-hidden"));
+  const lit = gameAchievementIds({ ...hidden && {}, ...base, role: "mordred", seat: 5, side: "evil", result: { winner: "evil", reason: "merlin-assassinated" }, quests: [{ team: [1], success: true }], lakeCheckedSeats: [5] });
+  assert.equal(lit.includes("mordred-hidden"), false);
+});
+
+test("a loyal servant and Oberon earn the title when their votes match the quests", () => {
+  const proposals = [
+    { team: [1], quest: 1, approved: true, votes: [{ seat: 2, approve: true }] },
+    { team: [3], quest: 2, approved: true, votes: [{ seat: 2, approve: false }] },
+  ];
+  const quests = [{ team: [1], quest: 1, success: true }, { team: [3], quest: 2, success: false }];
+  assert.ok(gameAchievementIds({ ...base, role: "loyal", seat: 2, proposals, quests }).includes("loyal-sided"));
+  assert.ok(gameAchievementIds({ ...base, role: "oberon", seat: 2, side: "evil", result: { winner: "evil", reason: "three-failures" }, proposals, quests }).includes("oberon-sided"));
+  const games = [
+    { role: "percival", side: "good", winner: "good", mvp: 0, fact: "led" },
+    { role: "percival", side: "good", winner: "good", mvp: 0, fact: "led" },
+    { role: "percival", side: "good", winner: "evil", mvp: 0, fact: "led" },
+  ];
+  assert.ok(careerAchievementIds(games).includes("percival-regular"));
 });
 
 test("an assassin rank needs both enough knives and a high enough hit rate", () => {
