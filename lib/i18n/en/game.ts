@@ -390,6 +390,7 @@ export const GAME: Record<string, string> = {
   "票跟对了": "Votes matched the quests",
   "上车仍胜": "Boarded and the side won",
   "揭牌仍胜": "Revealed and the side still won",
+  "历史战绩": "Record",
   "好友": "Friends",
   "搜索好友": "Search for a friend",
   "搜索": "Search",

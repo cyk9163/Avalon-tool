@@ -37,6 +37,7 @@ import { isControlHost } from "@/lib/solo";
 import { achievementById } from "@/lib/achievements";
 import { AccountGate, type SignedAccount } from "@/components/account-gate";
 import { AccountProfile } from "@/components/account-profile";
+import { MatchHistory } from "@/components/match-history";
 
 type Mode="create"|"join";
 function roomPath(code:string){
@@ -66,7 +67,7 @@ export default function Home(){
   const soloJoin=useRef<{seat:number;name:string}|null>(null),soloTries=useRef(0);
   const soloEmbed=useSyncExternalStore(()=>()=>{},()=>new URLSearchParams(location.search).has("solo"),()=>false);
   const openedRoom=useSyncExternalStore(()=>()=>{},()=>new URLSearchParams(location.search).has("room"),()=>false);
-  const [account,setAccount]=useState<SignedAccount|null|undefined>(undefined),[guest,setGuest]=useState(false),[homeTab,setHomeTab]=useState<"play"|"me">("play");
+  const [account,setAccount]=useState<SignedAccount|null|undefined>(undefined),[guest,setGuest]=useState(false),[homeTab,setHomeTab]=useState<"play"|"me"|"history">("play");
   useEffect(()=>{
     void Promise.resolve().then(()=>setGuest(localStorage.getItem("avalon:guest")==="1"));
     void fetch("/api/account",{cache:"no-store"}).then(response=>response.json() as Promise<{account?: SignedAccount|null}>).then(data=>setAccount(data.account??null)).catch(()=>setAccount(null));
@@ -341,7 +342,8 @@ export default function Home(){
     <AlertDialog open={swapSeat!==null} onOpenChange={open=>{if(!open)setSwapSeat(null);}}><AlertDialogContent><AlertDialogTitle>{t("向 {name} 申请换成 {n} 号？",{name:room?.players.find(p=>p.seat===swapSeat)?.name??"",n:swapSeat??""})}</AlertDialogTitle><AlertDialogDescription>{t("你现在是 {from} 号。对方同意后，你坐到 {to} 号，对方坐到 {from} 号，两人都要重新准备。",{from:room?.players.find(p=>p.id===room.meId)?.seat??"",to:swapSeat??""})}</AlertDialogDescription><AlertDialogFooter><AlertDialogCancel>{t("再想一下")}</AlertDialogCancel><AlertDialogAction disabled={busy||!connected||swapSeat===null} onClick={()=>{const seat=swapSeat;setSwapSeat(null);if(seat)void act("swap-request",{seat});}}>{t("申请互换")}</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
     <AlertDialog open={confirmLeave} onOpenChange={setConfirmLeave}><AlertDialogContent><AlertDialogTitle>{t("离开这个房间？")}</AlertDialogTitle><AlertDialogDescription>{t("你的座位会空出来。若你是房主，管理权会交给下一位玩家。")}</AlertDialogDescription><AlertDialogFooter><AlertDialogCancel>{t("继续等朋友")}</AlertDialogCancel><AlertDialogAction variant="destructive" disabled={busy||!connected||room?.phase!=="lobby"} onClick={()=>void act("leave")}>{t("离开房间")}</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
     {account&&homeTab==="me"&&<AccountProfile account={account} onTitle={title=>setAccount({...account,title})} onAvatar={avatar=>{setAccount({...account,avatar});if(room?.meId)void act("refresh-profile");}} onLogout={()=>{void fetch("/api/account",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({action:"logout"})});localStorage.removeItem("avalon:guest");setAccount(null);setGuest(false);setHomeTab("play");}}/>}
-    {account&&<nav className="account-tabs" aria-label={t("账号")}><button type="button" className={homeTab==="me"?"active":""} onClick={()=>setHomeTab("me")}>{t("我")}</button><button type="button" className={homeTab==="play"?"active":""} onClick={()=>setHomeTab("play")}>{t("对局")}</button></nav>}
+    {account&&homeTab==="history"&&<MatchHistory/>}
+    {account&&<nav className="account-tabs" aria-label={t("账号")}><button type="button" className={homeTab==="me"?"active":""} onClick={()=>setHomeTab("me")}>{t("我")}</button><button type="button" className={homeTab==="history"?"active":""} onClick={()=>setHomeTab("history")}>{t("历史战绩")}</button><button type="button" className={homeTab==="play"?"active":""} onClick={()=>setHomeTab("play")}>{t("对局")}</button></nav>}
     <HelpDialog open={help} onOpenChange={setHelp}/>
     <Dialog open={menu} onOpenChange={setMenu}><DialogContent className="rules-dialog"><DialogTitle>{t("菜单")}</DialogTitle><DialogDescription>{room?t("房间码"):t("断线恢复")}</DialogDescription>{room&&<div className="share-code"><small>{t("房间码")}</small>{room.code}</div>}{room&&<button type="button" className="secondary-button" onClick={()=>{setMenu(false);setShare(true);}}><QrCode size={16}/>{t("邀请入座")}</button>}{room&&<RoomManagement key={`${room.code}:${room.round}:${room.meId}:${room.hostId}:${room.hostRevision}`} room={room} busy={busy} connected={connected} error={error} act={act} inMenu/>}<button type="button" className="secondary-button" onClick={()=>{setMenu(false);back();}}>{t("返回首页")}</button>{room&&me&&<RecoveryCodeCard room={room}/>}{room&&!me&&<SeatRecovery room={room} busy={busy} connected={connected} act={act}/>}{!room&&<p className="action-note">{t("进入房间后，可以在这里用恢复码回到原来的座位。")}</p>}<nav className="menu-links" aria-label={t("站点信息")}><Link href="/rules" onClick={()=>setMenu(false)}>{t("规则教学")}</Link><Link href="/me" onClick={()=>setMenu(false)}>{t("我的战绩")}</Link><Link href="/privacy" onClick={()=>setMenu(false)}>{t("隐私说明")}</Link></nav></DialogContent></Dialog>
   </main>;

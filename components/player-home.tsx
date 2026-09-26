@@ -14,7 +14,7 @@ type Profile = {
   games: { role: string; won: boolean; mvp: boolean; fact: string | null }[];
 };
 
-function factLabel(t: (zh: string) => string, fact: string | null): string | null {
+export function factLabel(t: (zh: string) => string, fact: string | null): string | null {
   if (fact === "hit") return t("刺中梅林");
   if (fact === "miss") return t("空刀一场");
   if (fact === "lived") return t("梅林未死");
