@@ -442,10 +442,21 @@ export function recordFact(input: Parameters<typeof gameAchievementIds>[0]): str
   return null;
 }
 
-/** Rank badges and the few career titles that are not a four-step ladder. */
-export function careerAchievementIds(games: CareerGame[]): string[] {
+function ranksMetNow(games: CareerGame[]): string[] {
   const ids = RANK_TRACKS.flatMap(track => track.tiers.filter(tier => tier.met(games)).map(tier => tier.id));
   if (games.some(game => game.side === "good" && game.side === game.winner) && games.some(game => game.side === "evil" && game.side === game.winner)) ids.push("both-sides");
   if (new Set(games.map(game => game.role)).size >= 4) ids.push("many-faces");
   return ids;
+}
+
+/**
+ * Ranks earned at any point in this career. `games` must be oldest first.
+ * A later drop in win rate or hit rate does not take a title away.
+ */
+export function careerAchievementIds(games: CareerGame[]): string[] {
+  const earned = new Set<string>();
+  for (let end = 1; end <= games.length; end += 1) {
+    for (const id of ranksMetNow(games.slice(0, end))) earned.add(id);
+  }
+  return [...earned];
 }

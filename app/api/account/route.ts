@@ -1,5 +1,5 @@
 import { accountCookie, loginAccount, logoutAccount, readAccount, registerAccount, setAccountTitle } from "@/lib/account";
-import { isAchievementId } from "@/lib/achievements";
+import { careerAchievementIds, isAchievementId } from "@/lib/achievements";
 import { GameError } from "@/lib/game";
 import { newRequestId } from "@/lib/log";
 import { env } from "cloudflare:workers";
@@ -42,10 +42,19 @@ export async function GET(request: Request) {
       byRole.set(row.role, role);
     }
     const unlocked = await env.DB.prepare("SELECT achievement_id as id FROM account_achievements WHERE account_id = ? ORDER BY unlocked_at").bind(account.id).all<{ id: string }>();
+    const have = new Set((unlocked.results ?? []).map(row => row.id));
+    const earned = careerAchievementIds([...rows].sort((a, b) => a.at - b.at).map(row => ({ role: row.role, side: row.side, winner: row.winner, mvp: row.mvp, fact: row.fact })));
+    const missing = earned.filter(id => !have.has(id));
+    if (missing.length) {
+      await env.DB.batch(missing.map(id => env.DB!.prepare(
+        "INSERT OR IGNORE INTO account_achievements (account_id, achievement_id, unlocked_at) VALUES (?, ?, ?)",
+      ).bind(account.id, id, Date.now())));
+      for (const id of missing) have.add(id);
+    }
     return json({
       account,
       games: rows,
-      achievements: (unlocked.results ?? []).map(row => row.id),
+      achievements: [...have],
       stats: { total: rows.length, won, mvp, bySide, byRole: [...byRole.entries()].map(([role, count]) => ({ role, ...count })) },
     });
   } catch (error) {

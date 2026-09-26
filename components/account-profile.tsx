@@ -45,7 +45,7 @@ export function AccountProfile({ account, onLogout, onTitle }: { account: Signed
     </div>}
     {stats && <ul className="account-roles">{stats.byRole.map(row => <li key={row.role}><span>{t(ROLES[row.role as Role]?.name ?? row.role)}</span><b>{row.won}/{row.played}</b></li>)}</ul>}
     <h2>{t("段位")}</h2>
-    <p>{t("局数更多，或者准头更高，标就更高。")}</p>
+    <p>{t("拿到之后不会收回。后面胜率或比例掉下去，已经拿到的称号还在。")}</p>
     <ul className="rank-tracks">{tracks.map(track => <li key={track.id} className="rank-track">
       <div className="rank-head"><b>{t(track.name)}</b><span>{t(track.statKey, track.statVars)}</span></div>
       <div className="rank-marks">{track.tiers.map(tier => {
@@ -53,7 +53,7 @@ export function AccountProfile({ account, onLogout, onTitle }: { account: Signed
         const metal = tier.mark === "bronze" ? "铜" : tier.mark === "silver" ? "银" : tier.mark === "gold" ? "金" : "钻";
         return <button key={tier.id} type="button" disabled={!have} className={`rank-mark ${tier.mark}${have ? " owned" : ""}${account.title === tier.id ? " selected" : ""}`} onClick={() => wear(tier.id)}><i aria-hidden="true" /><b>{t(tier.name)}</b><span>{account.title === tier.id ? t("已挂上") : t(metal)}</span></button>;
       })}</div>
-      <p className="rank-next">{track.nextHint ? t(track.nextHint) : t("已是最高段位")}</p>
+      <p className="rank-next">{track.tiers.find(tier => !owned(tier.id)) ? t(track.tiers.find(tier => !owned(tier.id))!.hint) : t("已是最高段位")}</p>
     </li>)}</ul>
     <h2>{t("称号")}</h2>
     {unlocked.length === 0 && games.length === 0 && <p>{t("打完一局，高光和搞笑瞬间会变成可以挂上的称号。")}</p>}

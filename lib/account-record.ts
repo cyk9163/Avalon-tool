@@ -55,7 +55,7 @@ export async function recordAccountGames(room: Room): Promise<void> {
   for (const player of room.players) {
     if (!player.accountId || !player.role || !room.game?.result) continue;
     const fromGame = gameAchievementIds(moment(player as { role: Role; seat: number }));
-    const stored = await env.DB.prepare("SELECT role, side, winner, mvp, fact FROM account_games WHERE account_id = ?").bind(player.accountId).all<{ role: string; side: string; winner: string; mvp: number; fact: string | null }>();
+    const stored = await env.DB.prepare("SELECT role, side, winner, mvp, fact FROM account_games WHERE account_id = ? ORDER BY played_at ASC").bind(player.accountId).all<{ role: string; side: string; winner: string; mvp: number; fact: string | null }>();
     const ids = [...new Set([...fromGame, ...careerAchievementIds(stored.results ?? [])])];
     if (!ids.length) continue;
     await env.DB.batch(ids.map(id => env.DB!.prepare(

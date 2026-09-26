@@ -202,6 +202,14 @@ test("Mordred has to play a fail and still board a later success; a loyal stands
   }).includes("wolf-car"));
 });
 
+test("a rank stays once any earlier point in the career met it, even if the later rate falls", () => {
+  const early = Array.from({ length: 5 }, (_, index) => ({ role: "loyal", side: "good", winner: "good", mvp: index === 0 ? 1 : 0 }));
+  const later = Array.from({ length: 20 }, () => ({ role: "loyal", side: "good", winner: "evil", mvp: 0 }));
+  const ids = careerAchievementIds([...early, ...later]);
+  assert.ok(ids.includes("mvp-rank-1"));
+  assert.equal(careerAchievementIds(later.concat(early)).includes("mvp-rank-1"), false);
+});
+
 test("an assassin rank needs both enough knives and a high enough hit rate", () => {
   const hit = (fact) => ({ role: "assassin", side: "evil", winner: fact === "hit" ? "evil" : "good", mvp: 0, fact });
   const sharp = [hit("hit"), hit("hit"), hit("hit"), hit("miss")];
@@ -209,7 +217,7 @@ test("an assassin rank needs both enough knives and a high enough hit rate", () 
   assert.ok(ids.includes("blade-1"));
   assert.ok(ids.includes("blade-2"));
   assert.equal(ids.includes("blade-3"), false);
-  const wild = [hit("hit"), hit("miss"), hit("miss"), hit("miss")];
+  const wild = [hit("miss"), hit("miss"), hit("hit"), hit("miss")];
   assert.equal(careerAchievementIds(wild).includes("blade-1"), false);
   const blade = rankTracks(sharp).find(track => track.id === "blade");
   assert.equal(blade.statVars.n, 4);

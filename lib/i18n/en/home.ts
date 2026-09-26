@@ -558,6 +558,7 @@ export const HOME: Record<string, string> = {
   "作为揭露者，身份被公开。": "As the Revealer, your role was shown to the table.",
   "段位": "Rank",
   "局数更多，或者准头更高，标就更高。": "More games, or a sharper record, and the badge climbs.",
+  "拿到之后不会收回。后面胜率或比例掉下去，已经拿到的称号还在。": "Once you earn a title it stays. A later drop in win rate or percentage does not take it away.",
   "已是最高段位": "Highest rank",
   "铜": "B",
   "银": "S",
