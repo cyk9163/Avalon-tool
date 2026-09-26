@@ -190,6 +190,11 @@
 :root[data-theme="light"] .account-titles button.selected { border-color: #6b510f; }
 :root[data-theme="light"] .avatar-picker button { border: 1px solid #cad2d0; background: transparent; color: inherit; }
 :root[data-theme="light"] .avatar-picker button.selected { border-color: #6b510f; }
+:root[data-theme="light"] .achievement-bar { background: #d5deda; }
+:root[data-theme="light"] .achievement-bar i { background: #6b510f; }
+:root[data-theme="light"] .profile-game-card { border: 1px solid #cad2d0; }
+:root[data-theme="light"] .profile-facts span, :root[data-theme="light"] .mvp-badge { border: 1px solid #cad2d0; }
+:root[data-theme="light"] .mvp-badge { border-color: #6b510f; color: #6b510f; }
 /* from app/game.css */
 :root[data-theme="light"] .game-panel {
   border: 1px solid #d1d9da;

@@ -1,4 +1,4 @@
-import { achievementById } from "@/lib/achievements";
+import { achievementById, achievementProgress } from "@/lib/achievements";
 import { GameError } from "@/lib/game";
 import { env } from "cloudflare:workers";
 
@@ -22,34 +22,25 @@ export async function GET(request: Request) {
     const account = await env.DB.prepare("SELECT id, name, title, avatar FROM accounts WHERE id = ?").bind(id).first<{ id: string; name: string; title: string | null; avatar: string | null }>();
     if (!account) throw new GameError("找不到这位玩家。", 404);
     const games = await env.DB.prepare(
-      "SELECT role, side, winner, mvp FROM account_games WHERE account_id = ? ORDER BY played_at DESC LIMIT 200",
-    ).bind(id).all<{ role: string; side: "good" | "evil"; winner: "good" | "evil"; mvp: number }>();
+      "SELECT role, side, winner, mvp, fact FROM account_games WHERE account_id = ? ORDER BY played_at DESC LIMIT 200",
+    ).bind(id).all<{ role: string; side: "good" | "evil"; winner: "good" | "evil"; mvp: number; fact: string | null }>();
     const rows = games.results ?? [];
-    const byRole = new Map<string, { played: number; won: number }>();
+    const bySide = { good: { played: 0, won: 0 }, evil: { played: 0, won: 0 } };
     let won = 0;
-    let mvp = 0;
     for (const row of rows) {
       const victory = row.side === row.winner;
       if (victory) won += 1;
-      if (row.mvp) mvp += 1;
-      const role = byRole.get(row.role) ?? { played: 0, won: 0 };
-      role.played += 1;
-      if (victory) role.won += 1;
-      byRole.set(row.role, role);
+      bySide[row.side].played += 1;
+      if (victory) bySide[row.side].won += 1;
     }
-    const unlocked = await env.DB.prepare("SELECT achievement_id as id FROM account_achievements WHERE account_id = ? ORDER BY unlocked_at DESC").bind(id).all<{ id: string }>();
-    const titles = (unlocked.results ?? []).map(row => achievementById(row.id)?.name).filter((name): name is string => Boolean(name));
+    const unlocked = await env.DB.prepare("SELECT achievement_id as id FROM account_achievements WHERE account_id = ?").bind(id).all<{ id: string }>();
     return json({
       name: account.name,
       title: account.title ? achievementById(account.title)?.name ?? null : null,
       avatar: account.avatar,
-      titles,
-      stats: {
-        total: rows.length,
-        won,
-        mvp,
-        byRole: [...byRole.entries()].map(([role, count]) => ({ role, ...count })),
-      },
+      achievements: achievementProgress((unlocked.results ?? []).map(row => row.id)),
+      stats: { total: rows.length, won, bySide },
+      games: rows.map(row => ({ role: row.role, won: row.side === row.winner, mvp: row.mvp === 1, fact: row.fact })),
     });
   } catch (error) {
     const message = error instanceof GameError ? error.message : "主页暂时打不开。";

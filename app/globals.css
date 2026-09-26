@@ -551,3 +551,13 @@ html[lang="en"] .count-option span:empty { display: none; }
 .player-home-id { display: flex; align-items: center; gap: 12px; }
 .player-home-id h1, .player-home-id h2 { margin: 0; }
 .avatar-face { display: grid; place-items: center; }
+.achievement-progress { display: grid; gap: 6px; margin: 12px 0; }
+.achievement-progress > div:first-child { display: flex; justify-content: space-between; gap: 8px; }
+.achievement-bar { height: 8px; border-radius: 999px; background: #233c32; overflow: hidden; }
+.achievement-bar i { display: block; height: 100%; background: #dbc18a; }
+.profile-game { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+.profile-game-card { min-height: 96px; border: 1px solid #344c46; border-radius: 16px; padding: 12px; display: grid; gap: 8px; justify-items: center; text-align: center; }
+.profile-game-card strong { font-size: 18px; }
+.profile-facts { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+.profile-facts span, .mvp-badge { border: 1px solid #344c46; border-radius: 999px; padding: 2px 8px; font-size: 12px; }
+.mvp-badge { border-color: #dbc18a; color: #dbc18a; letter-spacing: 0.08em; }

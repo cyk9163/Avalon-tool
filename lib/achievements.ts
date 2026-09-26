@@ -22,6 +22,7 @@ const LEGACY: Achievement[] = [
   { id: "resident", name: "牌桌常客", hint: "打满 10 局。" },
   { id: "mvp-once", name: "阵营门面", hint: "获得过一次 MVP。" },
   { id: "mvp-thrice", name: "三度封王", hint: "获得过三次 MVP。" },
+  { id: "fifth-rejection", name: "五票封盘", hint: "坏人因连续五次否决获胜，而你在邪恶阵营。" },
   { id: "percival-drove", name: "派西带队", hint: "这一局至少上了两车。" },
   { id: "percival-drove-two", name: "连上三车", hint: "这一局至少上了三车。" },
   { id: "percival-regular", name: "带队熟手", hint: "至少打满 3 局派西维尔，其中 2 局上了至少两车。" },
@@ -50,7 +51,6 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: "yes-man", name: "逢车就上", hint: "至少三次组队表决，全部赞成。" },
   { id: "no-man", name: "逢车就拒", hint: "至少三次组队表决，全部反对。" },
   { id: "rejected-own-car", name: "自砸其车", hint: "人在车上，却投了反对。" },
-  { id: "fifth-rejection", name: "五票封盘", hint: "坏人因连续五次否决获胜，而你在邪恶阵营。" },
   { id: "percival-instinct", name: "眼跟对了", hint: "作为派西维尔，你赞成的队伍里都有梅林。" },
   { id: "lone-wolf", name: "孤狼称王", hint: "作为奥伯伦获胜。" },
   { id: "both-sides", name: "左右逢源", hint: "正义和邪恶都赢过。" },
@@ -286,6 +286,17 @@ export function isAchievementId(id: string): boolean {
   return BY_ID.has(id);
 }
 
+const LIVE_IDS = new Set([
+  ...ACHIEVEMENTS.map(item => item.id),
+  ...RANK_TRACKS.flatMap(track => track.tiers.map(tier => tier.id)),
+]);
+
+export function achievementProgress(ids: Iterable<string>): { done: number; total: number } {
+  let done = 0;
+  for (const id of ids) if (LIVE_IDS.has(id)) done += 1;
+  return { done, total: LIVE_IDS.size };
+}
+
 export type RankTierView = { id: string; name: string; hint: string; mark: RankMark; owned: boolean };
 export type RankTrackView = { id: string; name: string; statKey: string; statVars: Record<string, string | number>; tiers: RankTierView[]; nextHint: string | null };
 
@@ -336,7 +347,6 @@ export function gameAchievementIds(input: {
   if (mine.length >= 3 && mine.every(vote => vote.approve)) ids.push("yes-man");
   if (mine.length >= 3 && mine.every(vote => !vote.approve)) ids.push("no-man");
   if (input.proposals.some(proposal => proposal.team.includes(input.seat) && proposal.votes.some(vote => vote.seat === input.seat && !vote.approve))) ids.push("rejected-own-car");
-  if (input.side === "evil" && input.result.reason === "five-rejections") ids.push("fifth-rejection");
   if (input.role === "percival" && input.merlinSeat && input.proposals.length >= 2) {
     const aligned = input.proposals.every(proposal => {
       const vote = proposal.votes.find(item => item.seat === input.seat);
