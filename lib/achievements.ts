@@ -1,14 +1,15 @@
 // Titles and rank badges. A one-off moment is a title. A running count
 // climbs a ladder: more games, or a higher rate, unlocks a higher mark.
-import type { Role } from "./game.ts";
+import { ROLES, type Role } from "./game/model.ts";
 
 export type RankMark = "bronze" | "silver" | "gold" | "legend";
 
 export type Achievement = { id: string; name: string; hint: string; mark?: RankMark };
 
 type Vote = { seat: number; approve: boolean };
-type Proposal = { team: number[]; votes: Vote[] };
-type Quest = { team: number[]; success: boolean };
+type Proposal = { team: number[]; votes: Vote[]; quest?: number; attempt?: number; leaderSeat?: number; approved?: boolean };
+type Quest = { team: number[]; success: boolean; quest?: number; failCount?: number };
+type Card = { quest: number; card: "success" | "fail"; success: boolean; failCount: number };
 
 export type CareerGame = { role: string; side: string; winner: string; mvp: number; fact?: string | null };
 
@@ -39,6 +40,26 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: "lone-wolf", name: "孤狼也赢了", hint: "作为奥伯伦获胜。" },
   { id: "both-sides", name: "两面派", hint: "正义和邪恶都赢过。" },
   { id: "many-faces", name: "百变圆桌", hint: "玩过至少四种角色。" },
+  { id: "stab-morgana", name: "专刺莫甘娜", hint: "作为刺客，把刀给了莫甘娜。" },
+  { id: "stab-mordred", name: "刀给了莫德雷德", hint: "作为刺客，把刀给了莫德雷德。" },
+  { id: "stab-percival", name: "刺中了影子", hint: "作为刺客，刺中了派西维尔。" },
+  { id: "stab-loyal", name: "忠臣挡刀", hint: "作为刺客，刺中了没有特殊身份的好人。" },
+  { id: "stab-oberon", name: "奥伯伦挨刀", hint: "作为刺客，刺中了奥伯伦。" },
+  { id: "stab-ally", name: "刀口向内", hint: "作为刺客，刺中了其他邪恶同伴。" },
+  { id: "deep-cover", name: "深水", hint: "作为坏人，上过成功的任务。" },
+  { id: "unanimous-crash", name: "全票翻车", hint: "你赞成的队伍全票通过，任务却失败了。" },
+  { id: "lone-reject", name: "就我反对", hint: "全桌只有你投了反对，队伍被否决。" },
+  { id: "merlin-nod", name: "梅林点了头", hint: "作为梅林，赞成了一支后来失败的队伍。" },
+  { id: "wrong-thigh", name: "抱错大腿", hint: "作为派西维尔，赞成了有莫甘娜、没有梅林的队伍。" },
+  { id: "sold-teammate", name: "卖了队友", hint: "作为坏人，反对一支有队友、没有你的队伍。" },
+  { id: "hammer", name: "锤在我手里", hint: "连续两次否决后，由你带队直接执行任务。" },
+  { id: "clean-sweep", name: "三蓝收工", hint: "作为好人，三次任务全部成功并获胜。" },
+  { id: "lunatic-card", name: "身不由己", hint: "作为疯子，提交了失败牌。" },
+  { id: "brute-held", name: "后期收手", hint: "作为野蛮人，第四或第五次任务交出成功牌，并且任务成功。" },
+  { id: "solo-fail", name: "独苗红牌", hint: "任务失败，失败牌只有你这一张。" },
+  { id: "lake-merlin", name: "湖里的梅林", hint: "用湖中仙女查到了梅林。" },
+  { id: "lake-assassin", name: "湖里的刺客", hint: "用湖中仙女查到了刺客。" },
+  { id: "revealed", name: "身份曝光", hint: "作为揭露者，身份被公开。" },
 ];
 
 type Tier = { id: string; name: string; hint: string; mark: RankMark; met: (games: CareerGame[]) => boolean };
@@ -171,10 +192,14 @@ export function gameAchievementIds(input: {
   role: Role;
   seat: number;
   side: "good" | "evil";
-  result: { winner: "good" | "evil"; reason: string; early?: boolean };
+  result: { winner: "good" | "evil"; reason: string; early?: boolean; targetSeat?: number };
   quests: Quest[];
   proposals: Proposal[];
   merlinSeat?: number;
+  seats?: { seat: number; role: Role }[];
+  cards?: Card[];
+  lakeTargets?: Role[];
+  revealed?: boolean;
 }): string[] {
   const ids: string[] = [];
   const won = input.side === input.result.winner;
@@ -199,6 +224,42 @@ export function gameAchievementIds(input: {
     });
     if (aligned && input.proposals.some(proposal => proposal.team.includes(input.merlinSeat!))) ids.push("percival-instinct");
   }
+
+  const target = input.seats?.find(player => player.seat === input.result.targetSeat)?.role;
+  if (input.role === "assassin" && target && target !== "merlin") {
+    if (target === "morgana") ids.push("stab-morgana");
+    else if (target === "mordred") ids.push("stab-mordred");
+    else if (target === "percival") ids.push("stab-percival");
+    else if (target === "oberon") ids.push("stab-oberon");
+    else if (target === "loyal" || target === "cleric" || target === "goodLancelot") ids.push("stab-loyal");
+    else if (ROLES[target].side === "evil") ids.push("stab-ally");
+  }
+  if (input.side === "evil" && input.quests.some(quest => quest.success && quest.team.includes(input.seat))) ids.push("deep-cover");
+  const failedQuests = new Set(input.quests.filter(quest => !quest.success).map(quest => quest.quest));
+  if (input.proposals.some(proposal => proposal.approved && proposal.votes.length > 1 && proposal.votes.every(vote => vote.approve) && proposal.votes.some(vote => vote.seat === input.seat) && failedQuests.has(proposal.quest))) ids.push("unanimous-crash");
+  if (input.proposals.some(proposal => proposal.approved === false && proposal.votes.filter(vote => !vote.approve).length === 1 && proposal.votes.some(vote => vote.seat === input.seat && !vote.approve))) ids.push("lone-reject");
+  if (input.role === "merlin" && input.proposals.some(proposal => proposal.approved && proposal.votes.some(vote => vote.seat === input.seat && vote.approve) && failedQuests.has(proposal.quest))) ids.push("merlin-nod");
+  const morganaSeat = input.seats?.find(player => player.role === "morgana")?.seat;
+  if (input.role === "percival" && input.merlinSeat && morganaSeat) {
+    const hugged = input.proposals.some(proposal => {
+      const vote = proposal.votes.find(item => item.seat === input.seat);
+      return vote?.approve && proposal.team.includes(morganaSeat) && !proposal.team.includes(input.merlinSeat!);
+    });
+    if (hugged) ids.push("wrong-thigh");
+  }
+  if (input.side === "evil" && input.role !== "oberon") {
+    const allies = (input.seats ?? []).filter(player => player.seat !== input.seat && player.role !== "oberon" && ROLES[player.role].side === "evil").map(player => player.seat);
+    if (input.proposals.some(proposal => allies.some(seat => proposal.team.includes(seat)) && !proposal.team.includes(input.seat) && proposal.votes.some(vote => vote.seat === input.seat && !vote.approve))) ids.push("sold-teammate");
+  }
+  if (input.proposals.some(proposal => proposal.leaderSeat === input.seat && proposal.approved && proposal.votes.length === 0 && (proposal.attempt ?? 0) >= 3)) ids.push("hammer");
+  if (input.side === "good" && won && input.quests.filter(quest => quest.success).length >= 3 && failed.length === 0) ids.push("clean-sweep");
+  const cards = input.cards ?? [];
+  if (input.role === "lunatic" && cards.some(card => card.card === "fail")) ids.push("lunatic-card");
+  if (input.role === "brute" && cards.some(card => card.quest >= 4 && card.card === "success" && card.success)) ids.push("brute-held");
+  if (cards.some(card => card.card === "fail" && card.failCount === 1 && !card.success)) ids.push("solo-fail");
+  if (input.lakeTargets?.includes("merlin")) ids.push("lake-merlin");
+  if (input.lakeTargets?.includes("assassin")) ids.push("lake-assassin");
+  if (input.revealed && input.role === "revealer") ids.push("revealed");
   return ids;
 }
 

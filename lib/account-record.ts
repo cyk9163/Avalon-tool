@@ -21,9 +21,15 @@ export async function recordAccountGames(room: Room): Promise<void> {
   });
   if (statements.length) await env.DB.batch(statements);
   const merlinSeat = room.players.find(player => player.role === "merlin")?.seat;
+  const seats = room.players.flatMap(player => player.role ? [{ seat: player.seat, role: player.role }] : []);
+  const roleAt = (seat: number) => seats.find(player => player.seat === seat)?.role;
   for (const player of room.players) {
-    if (!player.accountId || !player.role || !room.game) continue;
+    if (!player.accountId || !player.role || !room.game?.result) continue;
     const side = currentSide(room, player);
+    const cards = room.game.quests.flatMap((quest, index) => {
+      const vote = room.game?.questReceipts[index]?.votes.find(item => item.seat === player.seat);
+      return vote ? [{ quest: quest.quest, card: vote.card, success: quest.success, failCount: quest.failCount }] : [];
+    });
     const fromGame = gameAchievementIds({
       role: player.role,
       seat: player.seat,
@@ -32,6 +38,10 @@ export async function recordAccountGames(room: Room): Promise<void> {
       quests: room.game.quests,
       proposals: room.game.proposals,
       merlinSeat,
+      seats,
+      cards,
+      lakeTargets: (room.game.lake?.checks ?? []).flatMap(check => check.viewerSeat === player.seat ? [roleAt(check.targetSeat)].filter((role): role is Role => !!role) : []),
+      revealed: (room.game.publicReveals ?? []).some(item => item.seat === player.seat),
     });
     const stored = await env.DB.prepare("SELECT role, side, winner, mvp, fact FROM account_games WHERE account_id = ?").bind(player.accountId).all<{ role: string; side: string; winner: string; mvp: number; fact: string | null }>();
     const ids = [...new Set([...fromGame, ...careerAchievementIds(stored.results ?? [])])];

@@ -54,6 +54,60 @@ test("career titles count games, MVPs, both sides and roles", () => {
   assert.ok(ids.includes("many-faces"));
 });
 
+test("the assassin who knives Morgana gets that joke, not a generic teammate stab", () => {
+  const ids = gameAchievementIds({
+    ...base,
+    role: "assassin",
+    side: "evil",
+    result: { winner: "good", reason: "assassin-missed", targetSeat: 3 },
+    seats: [{ seat: 1, role: "assassin" }, { seat: 2, role: "merlin" }, { seat: 3, role: "morgana" }],
+  });
+  assert.ok(ids.includes("stab-morgana"));
+  assert.ok(ids.includes("blade-missed"));
+  assert.equal(ids.includes("stab-ally"), false);
+});
+
+test("Percival can hug Morgana, and evil can vote down a teammate's team", () => {
+  const hugged = gameAchievementIds({
+    ...base,
+    role: "percival",
+    seat: 2,
+    merlinSeat: 4,
+    proposals: [{ team: [3], quest: 1, approved: true, votes: [{ seat: 2, approve: true }] }],
+    seats: [{ seat: 3, role: "morgana" }, { seat: 4, role: "merlin" }],
+  });
+  assert.ok(hugged.includes("wrong-thigh"));
+  const sold = gameAchievementIds({
+    ...base,
+    role: "assassin",
+    seat: 1,
+    side: "evil",
+    proposals: [{ team: [3], votes: [{ seat: 1, approve: false }], approved: false }],
+    seats: [{ seat: 1, role: "assassin" }, { seat: 3, role: "morgana" }],
+  });
+  assert.ok(sold.includes("sold-teammate"));
+});
+
+test("a unanimous pass that fails, a lone fail card, and riding a quest that succeeds as evil", () => {
+  const crash = gameAchievementIds({
+    ...base,
+    role: "loyal",
+    proposals: [{ team: [1, 2], quest: 1, approved: true, votes: [{ seat: 1, approve: true }, { seat: 2, approve: true }] }],
+    quests: [{ team: [1, 2], quest: 1, success: false, failCount: 1 }],
+    cards: [{ quest: 1, card: "fail", success: false, failCount: 1 }],
+  });
+  assert.ok(crash.includes("unanimous-crash"));
+  assert.ok(crash.includes("solo-fail"));
+  const cover = gameAchievementIds({
+    ...base,
+    role: "minion",
+    side: "evil",
+    result: { winner: "evil", reason: "three-failures" },
+    quests: [{ team: [1, 2], success: true }],
+  });
+  assert.ok(cover.includes("deep-cover"));
+});
+
 test("an assassin rank needs both enough knives and a high enough hit rate", () => {
   const hit = (fact) => ({ role: "assassin", side: "evil", winner: fact === "hit" ? "evil" : "good", mvp: 0, fact });
   const sharp = [hit("hit"), hit("hit"), hit("hit"), hit("miss")];
