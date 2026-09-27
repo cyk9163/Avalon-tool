@@ -192,7 +192,7 @@
 :root[data-theme="light"] .account-titles .title-row.selected { border-color: #6b510f; }
 :root[data-theme="light"] .achievement-bar { background: #d5deda; }
 :root[data-theme="light"] .achievement-bar i { background: #6b510f; }
-:root[data-theme="light"] .profile-game-card { border: 1px solid #cad2d0; }
+:root[data-theme="light"] .profile-game-card { border: 1px solid #cad2d0; background: transparent; color: inherit; }
 :root[data-theme="light"] .profile-facts span, :root[data-theme="light"] .mvp-badge { border: 1px solid #cad2d0; }
 :root[data-theme="light"] .mvp-badge { border-color: #6b510f; color: #6b510f; }
 :root[data-theme="light"] .friend-search input { background: #e8eef0; border: 1px solid var(--input); color: var(--foreground); }

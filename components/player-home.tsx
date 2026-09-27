@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { achievementById, liveAchievements, type Achievement } from "@/lib/achievements";
 import { ROLES, type Role } from "@/lib/game";
 import { useI18n } from "@/lib/i18n/react";
+import { formatPlayedAt } from "@/lib/played-at";
+import { GameReplay } from "./game-replay";
 
 type Profile = {
   name: string;
@@ -17,7 +19,7 @@ type Profile = {
     bySide: { good: { played: number; won: number }; evil: { played: number; won: number } };
     byRole: { role: string; played: number; won: number }[];
   };
-  games: { role: string; won: boolean; mvp: boolean; fact: string | null; score: number | null }[];
+  games: { role: string; won: boolean; mvp: boolean; fact: string | null; score: number | null; at?: number; code?: string; round?: number }[];
 };
 
 export function factLabel(t: (zh: string) => string, fact: string | null): string | null {
@@ -44,6 +46,7 @@ export function PlayerHome({ id, onClose }: { id: string; onClose: () => void })
   const [error, setError] = useState("");
   const [page, setPage] = useState<"achievements" | "record">("achievements");
   const [showMissing, setShowMissing] = useState(false);
+  const [open, setOpen] = useState<{ code: string; round: number } | null>(null);
   useEffect(() => {
     let cancelled = false;
     void fetch(`/api/profile?id=${encodeURIComponent(id)}`, { cache: "no-store" }).then(async response => {
@@ -97,15 +100,22 @@ export function PlayerHome({ id, onClose }: { id: string; onClose: () => void })
           <ul className="history-list">{profile.games.map((game, index) => {
             const name = t(ROLES[game.role as Role]?.name ?? game.role);
             const highlight = factLabel(t, game.fact);
-            return <li key={`${game.role}:${index}`} className="profile-game-card">
+            const body = <>
               <strong>{game.won ? t("{name}胜利", { name }) : t("{name}落败", { name })}</strong>
               {(game.mvp || highlight) && <div className="profile-facts">
                 {game.mvp && <span className="mvp-badge">MVP</span>}
                 {highlight && <span>{highlight}</span>}
               </div>}
-              <small>{t("第 {n} 场，共 {m} 场", { n: index + 1, m: profile.games.length })}{typeof game.score === "number" ? ` · ${t("表现 {n}", { n: game.score })}` : ""}</small>
+              <small>{[typeof game.at === "number" ? formatPlayedAt(game.at) : "", t("表现 {n}", { n: typeof game.score === "number" ? game.score : "—" })].filter(Boolean).join(" · ")}</small>
+              <small>{t("第 {n} 场，共 {m} 场", { n: index + 1, m: profile.games.length })}</small>
+            </>;
+            const code = game.code;
+            const round = game.round;
+            return <li key={`${game.role}:${index}`}>
+              {code && round ? <button type="button" className="profile-game-card" onClick={() => setOpen({ code, round })}>{body}</button> : <div className="profile-game-card">{body}</div>}
             </li>;
           })}</ul>
+          {open && <GameReplay code={open.code} round={open.round} onClose={() => setOpen(null)} />}
         </>}
       </div>
       <nav className="player-home-tabs" aria-label={t("个人主页")}>

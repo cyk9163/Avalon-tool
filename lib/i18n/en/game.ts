@@ -407,4 +407,5 @@ export const GAME: Record<string, string> = {
   "点其他玩家的头像，再点查看个人主页。": "Tap another player's portrait, then open their profile.",
   "示例桌暂时打不开。": "The sample table is unavailable right now.",
   "表现 {n}": "Score {n}",
+  "正在打开复盘…": "Opening the recap…",
 };

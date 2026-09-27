@@ -2,6 +2,7 @@
 import { env } from "cloudflare:workers";
 import { careerAchievementIds, gameAchievementIds, recordFact } from "./achievements.ts";
 import { performanceScore } from "./performance.ts";
+import { savedReplay } from "./saved-replay.ts";
 import { LANCELOTS, ROLES, currentSide, lancelotsSwitched, type Role, type Room } from "./game.ts";
 import { mvpSeat, type MvpVote } from "./mvp.ts";
 
@@ -53,6 +54,12 @@ export async function recordAccountGames(room: Room): Promise<void> {
        ON CONFLICT(account_id, code, round) DO UPDATE SET mvp = excluded.mvp, winner = excluded.winner, side = excluded.side, role = excluded.role, fact = excluded.fact, score = excluded.score`,
     ).bind(player.accountId, room.code, room.round ?? 1, Date.now(), room.capacity, room.preset, player.role as Role, input.side, room.game!.result!.winner, mvp, recordFact(input), score);
   });
+  const replay = savedReplay(room);
+  if (replay && statements.length) {
+    statements.push(env.DB.prepare(
+      "INSERT INTO game_replays (code, round, body) VALUES (?, ?, ?) ON CONFLICT(code, round) DO NOTHING",
+    ).bind(room.code, room.round ?? 1, JSON.stringify(replay)));
+  }
   if (statements.length) await env.DB.batch(statements);
   for (const player of room.players) {
     if (!player.accountId || !player.role || !room.game?.result) continue;

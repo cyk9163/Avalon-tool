@@ -1,3 +1,4 @@
+import { readAccount } from "@/lib/account";
 import { achievementById, achievementProgress } from "@/lib/achievements";
 import { GameError } from "@/lib/game";
 import { env } from "cloudflare:workers";
@@ -22,9 +23,16 @@ export async function GET(request: Request) {
     const account = await env.DB.prepare("SELECT id, name, title, avatar FROM accounts WHERE id = ?").bind(id).first<{ id: string; name: string; title: string | null; avatar: string | null }>();
     if (!account) throw new GameError("找不到这位玩家。", 404);
     const games = await env.DB.prepare(
-      "SELECT role, side, winner, mvp, fact, score FROM account_games WHERE account_id = ? ORDER BY played_at DESC LIMIT 200",
-    ).bind(id).all<{ role: string; side: "good" | "evil"; winner: "good" | "evil"; mvp: number; fact: string | null; score: number | null }>();
+      "SELECT code, round, played_at as at, role, side, winner, mvp, fact, score FROM account_games WHERE account_id = ? ORDER BY played_at DESC LIMIT 200",
+    ).bind(id).all<{ code: string; round: number; at: number; role: string; side: "good" | "evil"; winner: "good" | "evil"; mvp: number; fact: string | null; score: number | null }>();
     const rows = games.results ?? [];
+    const viewer = await readAccount(request);
+    const shared = new Set<string>();
+    if (viewer && viewer.id !== id) {
+      const mine = await env.DB.prepare("SELECT code, round FROM account_games WHERE account_id = ?").bind(viewer.id).all<{ code: string; round: number }>();
+      for (const row of mine.results ?? []) shared.add(`${row.code}:${row.round}`);
+    }
+    const canOpen = (row: { code: string; round: number }) => !!viewer && (viewer.id === id || shared.has(`${row.code}:${row.round}`));
     const bySide = { good: { played: 0, won: 0 }, evil: { played: 0, won: 0 } };
     const byRole = new Map<string, { played: number; won: number }>();
     let won = 0;
@@ -48,7 +56,15 @@ export async function GET(request: Request) {
       unlocked: ids,
       achievements: achievementProgress(ids),
       stats: { total: rows.length, won, bySide, byRole: [...byRole.entries()].map(([role, count]) => ({ role, ...count })) },
-      games: rows.map(row => ({ role: row.role, won: row.side === row.winner, mvp: row.mvp === 1, fact: row.fact, score: row.score })),
+      games: rows.map(row => ({
+        role: row.role,
+        won: row.side === row.winner,
+        mvp: row.mvp === 1,
+        fact: row.fact,
+        score: row.score,
+        at: row.at,
+        ...(canOpen(row) ? { code: row.code, round: row.round } : {}),
+      })),
     });
   } catch (error) {
     const message = error instanceof GameError ? error.message : "主页暂时打不开。";

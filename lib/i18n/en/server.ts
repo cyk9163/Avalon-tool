@@ -227,4 +227,6 @@ export const SERVER: Record<string, string> = {
   "示例桌只在测试服和本地可用。": "The sample table is only available on the test site and locally.",
   "示例桌还没准备好。": "The sample table is not ready.",
   "示例桌暂时打不开。": "The sample table is unavailable right now.",
+  "这一局没有留下复盘。": "This game has no recap.",
+  "复盘暂时打不开。": "The recap is unavailable right now.",
 };
