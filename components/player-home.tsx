@@ -1,15 +1,22 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { achievementById, liveAchievements, type Achievement } from "@/lib/achievements";
 import { ROLES, type Role } from "@/lib/game";
 import { useI18n } from "@/lib/i18n/react";
 
 type Profile = {
   name: string;
   title: string | null;
-  avatar: string | null;
+  titleId: string | null;
+  unlocked: string[];
   achievements: { done: number; total: number };
-  stats: { total: number; won: number; bySide: { good: { played: number; won: number }; evil: { played: number; won: number } } };
+  stats: {
+    total: number;
+    won: number;
+    bySide: { good: { played: number; won: number }; evil: { played: number; won: number } };
+    byRole: { role: string; played: number; won: number }[];
+  };
   games: { role: string; won: boolean; mvp: boolean; fact: string | null; score: number | null }[];
 };
 
@@ -35,8 +42,8 @@ export function PlayerHome({ id, onClose }: { id: string; onClose: () => void })
   const { t, ts } = useI18n();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [error, setError] = useState("");
-  const [cursor, setCursor] = useState({ id, index: 0 });
-  const index = cursor.id === id ? cursor.index : 0;
+  const [page, setPage] = useState<"achievements" | "record">("achievements");
+  const [showMissing, setShowMissing] = useState(false);
   useEffect(() => {
     let cancelled = false;
     void fetch(`/api/profile?id=${encodeURIComponent(id)}`, { cache: "no-store" }).then(async response => {
@@ -48,48 +55,63 @@ export function PlayerHome({ id, onClose }: { id: string; onClose: () => void })
     return () => { cancelled = true; };
   }, [id, t]);
   const rate = (won: number, played: number) => played ? `${Math.round(won / played * 100)}%` : "—";
-  const game = profile?.games[index];
-  const roleName = game ? t(ROLES[game.role as Role]?.name ?? game.role) : "";
-  const highlight = game ? factLabel(t, game.fact) : null;
+  const worn = profile?.titleId ? achievementById(profile.titleId) : undefined;
+  const unlocked = profile?.unlocked ?? [];
+  const owned = unlocked.map(item => achievementById(item)).filter((item): item is Achievement => Boolean(item));
+  const missing = liveAchievements().filter(item => !unlocked.includes(item.id));
+  const shown = showMissing ? missing : owned;
   const progress = profile ? Math.round(profile.achievements.done / Math.max(profile.achievements.total, 1) * 100) : 0;
-  return <div className="player-home-layer" onClick={onClose}>
-    <section className="player-home" role="dialog" aria-label={t("个人主页")} onClick={event => event.stopPropagation()}>
-      <header className="account-profile-head">
-        <div>
-          <p className="worn-title">{profile?.title ? t(profile.title) : t("还没有称号")}</p>
-          <h2>{profile?.name ?? t("个人主页")}</h2>
-        </div>
-        <button type="button" className="text-button" onClick={onClose}>{t("关闭")}</button>
-      </header>
-      {error && <p className="entry-error" role="alert">{ts(error)}</p>}
-      {!profile && !error && <p>{t("正在打开主页…")}</p>}
-      {profile && <>
-        <div className="achievement-progress">
-          <div><span>{t("成就")}</span><b>{t("{done} / {total}", { done: profile.achievements.done, total: profile.achievements.total })}</b></div>
-          <div className="achievement-bar" role="progressbar" aria-valuenow={profile.achievements.done} aria-valuemin={0} aria-valuemax={profile.achievements.total} aria-label={t("成就")}>
-            <i style={{ width: `${progress}%` }} />
+  return <div className="player-home-layer">
+    <section className="player-home" role="dialog" aria-label={t("个人主页")}>
+      <div className="player-home-body">
+        <header className="account-profile-head">
+          <div>
+            <p className={`worn-title${worn?.mark ? ` is-${worn.mark}` : ""}`}>{profile?.title ? t(profile.title) : t("还没有称号")}</p>
+            <h2>{profile?.name ?? t("个人主页")}</h2>
           </div>
-        </div>
-        <div className="account-stats">
-          <p><b>{rate(profile.stats.won, profile.stats.total)}</b><span>{t("总胜率")}</span></p>
-          <p><b>{rate(profile.stats.bySide.good.won, profile.stats.bySide.good.played)}</b><span>{t("好人胜率")}</span></p>
-          <p><b>{rate(profile.stats.bySide.evil.won, profile.stats.bySide.evil.played)}</b><span>{t("坏人胜率")}</span></p>
-        </div>
-        <h3>{t("对局战绩")}</h3>
-        {profile.games.length === 0 && <p>{t("还没有战绩。")}</p>}
-        {game && <div className="profile-game">
-          <button type="button" className="text-button" disabled={index === 0} onClick={() => setCursor({ id, index: index - 1 })}>{t("上一场")}</button>
-          <article className="profile-game-card">
-            <strong>{game.won ? t("{name}胜利", { name: roleName }) : t("{name}落败", { name: roleName })}</strong>
-            {(game.mvp || highlight) && <div className="profile-facts">
-              {game.mvp && <span className="mvp-badge">MVP</span>}
-              {highlight && <span>{highlight}</span>}
-            </div>}
-            <small>{t("第 {n} 场，共 {m} 场", { n: index + 1, m: profile.games.length })}{typeof game.score === "number" ? ` · ${t("表现 {n}", { n: game.score })}` : ""}</small>
-          </article>
-          <button type="button" className="text-button" disabled={index === profile.games.length - 1} onClick={() => setCursor({ id, index: index + 1 })}>{t("下一场")}</button>
-        </div>}
-      </>}
+          <button type="button" className="text-button" onClick={onClose}>{t("关闭")}</button>
+        </header>
+        {error && <p className="entry-error" role="alert">{ts(error)}</p>}
+        {!profile && !error && <p>{t("正在打开主页…")}</p>}
+        {profile && page === "achievements" && <>
+          <div className="achievement-progress">
+            <div><span>{t("成就")}</span><b>{t("{done} / {total}", { done: profile.achievements.done, total: profile.achievements.total })}</b></div>
+            <div className="achievement-bar" role="progressbar" aria-valuenow={profile.achievements.done} aria-valuemin={0} aria-valuemax={profile.achievements.total} aria-label={t("成就")}>
+              <i style={{ width: `${progress}%` }} />
+            </div>
+          </div>
+          <div className="achievement-switch">
+            <button type="button" className="secondary-button" onClick={() => setShowMissing(value => !value)}>{showMissing ? t("显示已点亮") : t("显示未拥有")}</button>
+          </div>
+          {shown.length === 0 && <p>{showMissing ? t("已经全部点亮。") : t("还没有点亮的成就。")}</p>}
+          <ul className="account-titles">{shown.map(item => <li key={item.id} className={profile.titleId === item.id ? "title-row selected" : "title-row"}><b>{t(item.name)}</b><span>{showMissing ? t(item.hint) : (profile.titleId === item.id ? t("已挂上") : t(item.hint))}</span></li>)}</ul>
+        </>}
+        {profile && page === "record" && <>
+          <div className="account-stats history-rates">
+            <p><b>{rate(profile.stats.won, profile.stats.total)}</b><span>{t("总胜率")}</span></p>
+            <p><b>{rate(profile.stats.bySide.good.won, profile.stats.bySide.good.played)}</b><span>{t("好人胜率")}</span></p>
+            <p><b>{rate(profile.stats.bySide.evil.won, profile.stats.bySide.evil.played)}</b><span>{t("坏人胜率")}</span></p>
+          </div>
+          {profile.stats.byRole.length > 0 && <ul className="account-roles">{profile.stats.byRole.map(row => <li key={row.role}><span>{t(ROLES[row.role as Role]?.name ?? row.role)}</span><b>{row.won}/{row.played}</b><span>{rate(row.won, row.played)}</span></li>)}</ul>}
+          {profile.games.length === 0 && <p>{t("还没有战绩。")}</p>}
+          <ul className="history-list">{profile.games.map((game, index) => {
+            const name = t(ROLES[game.role as Role]?.name ?? game.role);
+            const highlight = factLabel(t, game.fact);
+            return <li key={`${game.role}:${index}`} className="profile-game-card">
+              <strong>{game.won ? t("{name}胜利", { name }) : t("{name}落败", { name })}</strong>
+              {(game.mvp || highlight) && <div className="profile-facts">
+                {game.mvp && <span className="mvp-badge">MVP</span>}
+                {highlight && <span>{highlight}</span>}
+              </div>}
+              <small>{t("第 {n} 场，共 {m} 场", { n: index + 1, m: profile.games.length })}{typeof game.score === "number" ? ` · ${t("表现 {n}", { n: game.score })}` : ""}</small>
+            </li>;
+          })}</ul>
+        </>}
+      </div>
+      <nav className="player-home-tabs" aria-label={t("个人主页")}>
+        <button type="button" className={page === "achievements" ? "active" : ""} onClick={() => setPage("achievements")}>{t("成就")}</button>
+        <button type="button" className={page === "record" ? "active" : ""} onClick={() => setPage("record")}>{t("战绩")}</button>
+      </nav>
     </section>
   </div>;
 }

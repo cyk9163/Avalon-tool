@@ -372,6 +372,7 @@ export const GAME: Record<string, string> = {
   "好人 MVP：{who}": "Good MVP: {who}",
   "坏人 MVP：{who}": "Evil MVP: {who}",
   "成就": "Achievements",
+  "战绩": "Record",
   "{done} / {total}": "{done} / {total}",
   "好人胜率": "Good win rate",
   "坏人胜率": "Evil win rate",

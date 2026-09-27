@@ -26,20 +26,28 @@ export async function GET(request: Request) {
     ).bind(id).all<{ role: string; side: "good" | "evil"; winner: "good" | "evil"; mvp: number; fact: string | null; score: number | null }>();
     const rows = games.results ?? [];
     const bySide = { good: { played: 0, won: 0 }, evil: { played: 0, won: 0 } };
+    const byRole = new Map<string, { played: number; won: number }>();
     let won = 0;
     for (const row of rows) {
       const victory = row.side === row.winner;
       if (victory) won += 1;
       bySide[row.side].played += 1;
       if (victory) bySide[row.side].won += 1;
+      const role = byRole.get(row.role) ?? { played: 0, won: 0 };
+      role.played += 1;
+      if (victory) role.won += 1;
+      byRole.set(row.role, role);
     }
     const unlocked = await env.DB.prepare("SELECT achievement_id as id FROM account_achievements WHERE account_id = ?").bind(id).all<{ id: string }>();
+    const ids = (unlocked.results ?? []).map(row => row.id);
     return json({
       name: account.name,
       title: account.title ? achievementById(account.title)?.name ?? null : null,
+      titleId: account.title,
       avatar: account.avatar,
-      achievements: achievementProgress((unlocked.results ?? []).map(row => row.id)),
-      stats: { total: rows.length, won, bySide },
+      unlocked: ids,
+      achievements: achievementProgress(ids),
+      stats: { total: rows.length, won, bySide, byRole: [...byRole.entries()].map(([role, count]) => ({ role, ...count })) },
       games: rows.map(row => ({ role: row.role, won: row.side === row.winner, mvp: row.mvp === 1, fact: row.fact, score: row.score })),
     });
   } catch (error) {

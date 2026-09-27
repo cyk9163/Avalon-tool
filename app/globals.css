@@ -546,6 +546,9 @@ html[lang="en"] .count-option span:empty { display: none; }
 .account-titles button.selected { border-color: #dbc18a; }
 .account-titles button:disabled { opacity: 0.45; }
 .account-titles span { display: block; font-size: 12px; opacity: 0.75; }
+.account-titles .title-row { border: 1px solid #344c46; border-radius: 12px; padding: 10px 12px; }
+.account-titles .title-row.selected { border-color: #dbc18a; }
+.account-titles .title-row b { display: block; }
 .player-home-id { display: flex; align-items: center; gap: 12px; }
 .player-home-id h1, .player-home-id h2 { margin: 0; }
 .achievement-progress { display: grid; gap: 6px; margin: 12px 0; }
