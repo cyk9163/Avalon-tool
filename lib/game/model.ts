@@ -203,6 +203,8 @@ export interface Room {
   turnSpeech?: boolean;
   // Optional: other evil players learn who Oberon is. Oberon still sees no one.
   evilSeesOberon?: boolean;
+  // Raw device ids for the local/staging five-account demo. Not copied into the client room view.
+  demoDevices?: string[];
   // Seat that opens the next game after a rematch: the seat after whoever drove the last team.
   nextFirstLeader?: number;
   phase: RoomPhase;

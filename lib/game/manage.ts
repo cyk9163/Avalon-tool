@@ -271,8 +271,11 @@ export function mutateRoom(room: Room, key: string, action: string, input: Recor
   const me = room.players.find(player => player.key === key);
   const accountId = typeof input.accountId === "string" && /^[a-f0-9]{32}$/.test(input.accountId) ? input.accountId : undefined;
   const avatar = isAvatarId(input.avatar) ? input.avatar : undefined;
-  if (me && accountId) me.accountId = accountId;
-  if (me && avatar) me.avatar = avatar;
+  const keepLinked = Boolean(me?.accountId && accountId && me.accountId !== accountId);
+  if (!keepLinked) {
+    if (me && accountId) me.accountId = accountId;
+    if (me && avatar) me.avatar = avatar;
+  }
   if (["recover", "takeover-request", "takeover-cancel", "takeover-reject", "takeover-approve", "takeover-deny"].includes(action)) {
     deviceRecovery(room, me, key, action, input);
     return;

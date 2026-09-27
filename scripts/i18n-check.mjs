@@ -14,7 +14,7 @@ export const UI_FILES = [
 ];
 export const SERVER_FILES = [
   "lib/game.ts", "lib/game/model.ts", "lib/game/view.ts", "lib/game/play.ts", "lib/game/manage.ts", "lib/room-store.ts", "lib/push-store.ts", "lib/push-subscription.ts", "lib/request-context.ts", "lib/live-gateway.ts", "lib/room-hub.ts",
-  "app/api/room/route.ts", "app/api/admin/route.ts", "app/api/profile/route.ts", "app/api/friends/route.ts",
+  "app/api/room/route.ts", "app/api/admin/route.ts", "app/api/profile/route.ts", "app/api/friends/route.ts", "app/api/demo-table/route.ts",
 ];
 const CJK = /[㐀-鿿　-〿！-～]/;
 const root = new URL("../", import.meta.url);

@@ -8,7 +8,7 @@ import { hostKeyBody, hostKeyForSubmit, formatHostKey } from "@/lib/host-key-inp
 import { useI18n } from "@/lib/i18n/react";
 import { SOLO_NAMES, isControlHost, isSoloHost } from "@/lib/solo";
 
-type Table = { code: string; invite: string | null; capacity: number; devices: string[] };
+type Table = { code: string; invite: string | null; capacity: number; devices: string[]; names?: string[] };
 type Desk = "local" | "staging" | "blocked";
 
 function deskMode(): Desk {
@@ -43,6 +43,17 @@ export default function SoloPage() {
   const desk = useSyncExternalStore(() => () => {}, deskMode, () => "local" as const);
   const remote = desk === "staging";
   const customRoles = fillCustomRoles(capacity, customSpecials);
+  useEffect(() => {
+    if (new URLSearchParams(location.search).get("demo") !== "1") return;
+    let cancelled = false;
+    void fetch("/api/demo-table", { cache: "no-store" }).then(async response => {
+      const data = await response.json() as Table & { error?: string };
+      if (cancelled) return;
+      if (!response.ok) throw new Error(data.error || t("示例桌暂时打不开。"));
+      setTable({ code: data.code, invite: data.invite, capacity: data.capacity, devices: data.devices, names: data.names });
+    }).catch(caught => { if (!cancelled) setError(caught instanceof Error ? caught.message : t("示例桌暂时打不开。")); });
+    return () => { cancelled = true; };
+  }, [t]);
 
   const toggleCustomRole = (role: Role) => {
     if (role === "merlin" || role === "assassin") return;
@@ -117,7 +128,7 @@ export default function SoloPage() {
       room: table.code,
       solo: table.devices[seat - 1],
       soloSeat: String(seat),
-      soloName: SOLO_NAMES[seat - 1] ?? String(seat),
+      soloName: table.names?.[seat - 1] ?? SOLO_NAMES[seat - 1] ?? String(seat),
     });
     if (table.invite) params.set("invite", table.invite);
     return `/?${params.toString()}`;
@@ -156,12 +167,14 @@ export default function SoloPage() {
       {remote && <label className="field">{t("房主 Key")}<input value={formatHostKey(hostKey)} onChange={event => setHostKey(hostKeyBody(event.target.value))} autoComplete="off" autoCapitalize="characters" spellCheck={false} inputMode="text" /></label>}
       {error && <p role="alert">{error}</p>}
       <button className="primary-button" type="submit" disabled={booting || (remote && hostKey.length !== 16) || (preset !== "custom" && capacity < PRESETS[preset].minimum)}>{booting ? t("正在摆桌子…") : t("摆好一桌")}</button>
+      <a className="secondary-button" href="/solo?demo=1">{t("打开五个账号的一桌")}</a>
     </form>}
+    {table && <p className="action-note">{t("点其他玩家的头像，再点查看个人主页。")}</p>}
     {table && <div className="solo-grid" style={{ ["--solo-cols" as string]: soloColumns, ["--solo-rows" as string]: soloRows }}>{Array.from({ length: table.capacity }, (_, index) => {
       const seat = index + 1;
       const open = phoneSeat === seat;
       return <section key={seat} className="solo-phone">
-        <div className="solo-phone-bar"><h2>{t("{n} 号", { n: seat })} · {SOLO_NAMES[index]}</h2><button type="button" className="text-button" aria-expanded={open} onClick={() => { setCopied(false); setPhoneSeat(open ? null : seat); }}>{t("手机接管")}</button></div>
+        <div className="solo-phone-bar"><h2>{t("{n} 号", { n: seat })} · {table.names?.[index] ?? SOLO_NAMES[index]}</h2><button type="button" className="text-button" aria-expanded={open} onClick={() => { setCopied(false); setPhoneSeat(open ? null : seat); }}>{t("手机接管")}</button></div>
         {open && <div className="solo-phone-link">
           {origins.length > 1 && <label className="field">{t("手机要打开的地址")}<select value={origin} onChange={event => setOrigin(event.target.value)}>{origins.map(item => <option key={item} value={item}>{item}</option>)}</select></label>}
           {qr ? /* eslint-disable-next-line @next/next/no-img-element -- a locally generated data: URL; image optimisation does not apply. */
