@@ -36,6 +36,11 @@ export type ReplayStep =
     kind: "lake";
     fromSeat: number;
     toSeat: number;
+  })
+  | (StepBase & {
+    kind: "assassination";
+    targetSeat: number;
+    hit: boolean;
   });
 
 export type TableReplay = {
@@ -70,6 +75,17 @@ export function tableSnapshot(step: ReplayStep): TableReplay {
       attempt: step.attempt,
       lakeSeat: null,
       focus: "quest",
+    };
+  }
+  if (step.kind === "assassination") {
+    return {
+      leaderSeat: step.leaderSeat,
+      team: [step.targetSeat],
+      votedSeats: [],
+      quest: step.quest,
+      attempt: step.attempt,
+      lakeSeat: null,
+      focus: "assassination",
     };
   }
   return {
@@ -142,6 +158,22 @@ export function replaySteps(game: GameView | null | undefined, meSeat: number | 
       leaderSeat: proposal.leaderSeat,
       fromSeat: meSeat,
       toSeat: check.targetSeat,
+      ...after,
+      completed: completed.map(item => ({ ...item })),
+    });
+  }
+  const targetSeat = game.result.targetSeat;
+  if ((game.result.reason === "merlin-assassinated" || game.result.reason === "assassin-missed") && targetSeat != null) {
+    const assassin = game.revealedRoles.find(player => player.role === "assassin");
+    const last = game.proposals.at(-1);
+    const after = score(completed);
+    steps.push({
+      kind: "assassination",
+      quest: last?.quest ?? game.quest,
+      attempt: last?.attempt ?? 1,
+      leaderSeat: assassin?.seat ?? last?.leaderSeat ?? meSeat,
+      targetSeat,
+      hit: game.result.reason === "merlin-assassinated",
       ...after,
       completed: completed.map(item => ({ ...item })),
     });

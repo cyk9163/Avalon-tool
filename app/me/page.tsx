@@ -7,7 +7,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const t = serverT(await serverLang());
   return {
     title: t("我的战绩 · 圆桌"),
-    description: t("只记在这台设备上：总胜率、各角色和各阵营的胜率、当梅林被刺中的次数，以及最近 10 局。不会上传。"),
+    description: t("这台设备只记下没有登录时的结局。登录后的对局在首页「历史战绩」。"),
   };
 }
 
@@ -17,7 +17,7 @@ export default async function MePage() {
     <DocPage
       eyebrow="On this device"
       title={t("我的战绩")}
-      lead={t("只记在这台设备上：总胜率、各角色和各阵营的胜率、当梅林被刺中的次数，以及最近 10 局。不会上传。")}
+      lead={t("这台设备只记下没有登录时的结局。登录后的对局在首页「历史战绩」。")}
     >
       <PersonalRecord />
     </DocPage>

@@ -66,5 +66,12 @@ function caption(step: ReplayStep, t: (zh: string, vars?: Record<string, string 
       {cards ? <small>{t("出牌：{cards}", { cards })}</small> : null}
     </>;
   }
+  if (step.kind === "assassination") {
+    return t("刺杀：{from} 刺向 {to}，{outcome}。", {
+      from: label(step.leaderSeat),
+      to: label(step.targetSeat),
+      outcome: step.hit ? t("刺中梅林") : t("空刀一场"),
+    });
+  }
   return t("湖中仙女：{from} 把令牌交给 {to}。查验结果仍只有查验者自己看得到。", { from: label(step.fromSeat), to: label(step.toSeat) });
 }

@@ -17,9 +17,13 @@ export function PersonalRecord() {
   const { stats, clear } = usePersonalRecord();
   const [confirming, setConfirming] = useState(false);
   if (stats.total === 0) {
-    return <p>{t("还没有战绩。打完一局，结局会记在这台设备上。")}</p>;
+    return <>
+      <p>{t("登录后的对局在首页「历史战绩」，不在这一页。")}</p>
+      <p>{t("还没有战绩。打完一局，结局会记在这台设备上。")}</p>
+    </>;
   }
   return <div className="personal-record">
+    <p>{t("登录后的对局在首页「历史战绩」，不在这一页。")}</p>
     <div className="record-stats">
       <p className="record-stat"><span>{t("总胜率")}</span><strong>{percent(stats.won, stats.total)}</strong><small>{t("{won} 胜 / {played} 局", { won: stats.won, played: stats.total })}</small></p>
       <p className="record-stat"><span>{t("正义阵营")}</span><strong>{percent(stats.bySide.good.won, stats.bySide.good.played)}</strong><small>{t("{won} 胜 / {played} 局", { won: stats.bySide.good.won, played: stats.bySide.good.played })}</small></p>

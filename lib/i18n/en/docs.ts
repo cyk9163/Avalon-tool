@@ -146,6 +146,8 @@ export const DOCS: Record<string, string> = {
   "有疑问或想提前删除某个房间，请联系组织这局游戏的房主，由房主转告站点运营者。": "For questions, or to have a room deleted early, contact the host who organized the game, who will pass it on to the site operator.",
   "最后更新：2026 年 9 月 23 日": "Last updated: September 23, 2026",
   "我的战绩": "My record",
+  "这台设备只记下没有登录时的结局。登录后的对局在首页「历史战绩」。": "This device only keeps games played while signed out. Signed-in games are under Record on the home page.",
+  "登录后的对局在首页「历史战绩」，不在这一页。": "Signed-in games are under Record on the home page, not here.",
   "我的战绩 · 圆桌": "My record · Round Table",
   "只记在这台设备上：总胜率、各角色和各阵营的胜率、当梅林被刺中的次数，以及最近 10 局。不会上传。": "Stored only on this device: overall win rate, win rate by role and by side, how often Merlin was found while you were Merlin, and the last 10 games. Nothing is uploaded.",
   "还没有战绩。打完一局，结局会记在这台设备上。": "No record yet. When a game ends, it is saved on this device.",

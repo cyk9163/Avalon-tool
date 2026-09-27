@@ -10,10 +10,11 @@ export function RecordRow({ won, mvp, role, score, highlight, meta }: {
   highlight: string | null;
   meta?: string;
 }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
+  const loss = lang === "en" ? "Defeat" : t("失败");
   return <>
     <span className={`record-result ${won ? "win" : "loss"}`}>
-      <b>{won ? t("胜利") : t("失败")}</b>
+      <b>{won ? t("胜利") : loss}</b>
       {mvp && <span className="mvp-badge">MVP</span>}
     </span>
     <span className="record-role">{role}</span>

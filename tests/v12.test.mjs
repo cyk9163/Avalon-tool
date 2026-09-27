@@ -50,7 +50,7 @@ const name = seat => `${seat}号`;
 
 test("replay steps follow proposals, then the quest, then this viewer's lake hand-off", () => {
   const steps = replaySteps(baseGame(), 3);
-  assert.deepEqual(steps.map(step => step.kind), ["proposal", "proposal", "quest", "proposal", "quest", "lake"]);
+  assert.deepEqual(steps.map(step => step.kind), ["proposal", "proposal", "quest", "proposal", "quest", "lake", "assassination"]);
   assert.equal(steps[0].approved, false);
   assert.equal(steps[0].good, 0);
   assert.equal(steps[2].kind, "quest");
@@ -62,6 +62,15 @@ test("replay steps follow proposals, then the quest, then this viewer's lake han
   assert.equal(steps[5].kind, "lake");
   assert.deepEqual({ from: steps[5].fromSeat, to: steps[5].toSeat }, { from: 3, to: 5 });
   assert.equal("side" in steps[5], false, "the private check result is not a replay step");
+  assert.equal(steps[6].kind, "assassination");
+  assert.equal(steps[6].hit, true);
+  assert.equal(steps[6].targetSeat, 1);
+  assert.equal(steps[6].leaderSeat, 4);
+});
+
+test("a game that never reached the knife has no assassination step", () => {
+  const steps = replaySteps(baseGame({ result: { winner: "evil", reason: "three-failures" } }), 1);
+  assert.equal(steps.some(step => step.kind === "assassination"), false);
 });
 
 test("quest card authors appear only once the view includes them", () => {

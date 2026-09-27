@@ -55,7 +55,7 @@ export function GameTable({ room, game, selection, onToggle, marks, onMark, onPr
     <div className={`roundtable game-table${picking ? " picking" : ""}`}>
       <div className="table-center">
         <strong className="game-table-quest">{t("任务 {n}", { n: questNumber })}</strong>
-        {replay?.focus === "lake" ? <p>{t("湖中仙女")}</p> : <p>{t("需要 {n} 人 · 第 {a} 车", { n: teamSize, a: attempt })}</p>}
+        {replay?.focus === "lake" ? <p>{t("湖中仙女")}</p> : replay?.focus === "assassination" ? <p>{t("刺杀")}</p> : <p>{t("需要 {n} 人 · 第 {a} 车", { n: teamSize, a: attempt })}</p>}
         {hammer && <p className="game-table-hammer">{t("第三车")}</p>}
         {center ?? (picking && <p className="game-table-pick">{t("已选 {n} / {size}", { n: selection?.length ?? 0, size: game.teamSize })}</p>)}
       </div>
