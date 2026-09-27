@@ -188,8 +188,6 @@
 :root[data-theme="light"] .rank-mark.selected { border-color: #6b510f; }
 :root[data-theme="light"] .account-titles button { border: 1px solid #cad2d0; background: transparent; color: inherit; }
 :root[data-theme="light"] .account-titles button.selected { border-color: #6b510f; }
-:root[data-theme="light"] .avatar-picker button { border: 1px solid #cad2d0; background: transparent; color: inherit; }
-:root[data-theme="light"] .avatar-picker button.selected { border-color: #6b510f; }
 :root[data-theme="light"] .achievement-bar { background: #d5deda; }
 :root[data-theme="light"] .achievement-bar i { background: #6b510f; }
 :root[data-theme="light"] .profile-game-card { border: 1px solid #cad2d0; }

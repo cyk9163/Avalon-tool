@@ -109,9 +109,8 @@ export function roomView(room: Room, key: string, version: number, invite?: stri
     hostRevision: room.hostRevision ?? 0,
     resetReason: room.resetReason ?? null,
     version,
-    players: room.players.map(({ id, name, seat, ready, confirmed, avatar, accountId }) => ({
+    players: room.players.map(({ id, name, seat, ready, confirmed, accountId }) => ({
       id, name: namesHidden ? "" : name, seat, ready, confirmed,
-      ...(avatar ? { avatar } : {}),
       ...(accountId ? { profileId: accountId } : {}),
     })).sort((a, b) => a.seat - b.seat),
     meId: me?.id ?? null,

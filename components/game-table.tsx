@@ -4,7 +4,6 @@ import { useState, type ReactNode } from "react";
 import { Check, Crown, Mic, Waves } from "lucide-react";
 import { ROLES, type GameView, type Role, type RoomView } from "@/lib/game";
 import { useI18n } from "@/lib/i18n/react";
-import { AvatarFace } from "@/components/avatar-face";
 import { MARK_CORNER, MARK_GLYPH, SIDE_GLYPH, markGlyph, type Mark } from "@/lib/player-notes";
 import type { TableReplay } from "@/lib/replay-steps";
 
@@ -93,10 +92,9 @@ export function GameTable({ room, game, selection, onToggle, marks, onMark, onPr
                   onClick: () => { if (picking) onToggle?.(seat); else openMenu(); },
                 } : { role: "img" })}
                 aria-label={label}
-                className={`seat-circle occupied${player?.avatar ? " has-avatar" : ""}${mine ? " mine" : ""}${team ? " on-team" : ""}${leader ? " leader" : ""}${mark?.side ? ` marked-${mark.side} has-mark` : ""}${!replay && room.phase === "vote" && !voted ? " pending" : ""}${speaking ? " speaking" : ""}`}
+                className={`seat-circle occupied${mine ? " mine" : ""}${team ? " on-team" : ""}${leader ? " leader" : ""}${mark?.side ? ` marked-${mark.side} has-mark` : ""}${!replay && room.phase === "vote" && !voted ? " pending" : ""}${speaking ? " speaking" : ""}`}
               >
-                {player?.avatar && <AvatarFace id={player.avatar} size={18} />}
-                <span className={player?.avatar ? "seat-index" : undefined}>{String(seat).padStart(2, "0")}</span>
+                <span>{String(seat).padStart(2, "0")}</span>
                 {leader && <Crown className="seat-badge seat-badge-leader" size={14} aria-hidden="true" />}
                 {voted && <Check className="seat-check" size={14} aria-hidden="true" />}
                 {speaking && <Mic className="seat-badge seat-badge-speaking" size={13} aria-hidden="true" />}

@@ -2,7 +2,6 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 import { useI18n } from "@/lib/i18n/react";
-import { AvatarFace } from "./avatar-face";
 import { PlayerHome } from "./player-home";
 
 type Friend = { id: string; name: string; avatar: string | null; title: string | null; added?: boolean };
@@ -47,12 +46,12 @@ export function FriendsPanel() {
     {error && <p className="entry-error" role="alert">{ts(error)}</p>}
     {results && results.length === 0 && <p>{t("没有找到这个账号。")}</p>}
     {results && results.length > 0 && <ul className="friend-list">{results.map(item => <li key={item.id}>
-      <button type="button" className="friend-open" onClick={() => setOpenId(item.id)}><AvatarFace id={item.avatar} size={22} /><span><b>{item.name}</b>{item.title ? <small>{t(item.title)}</small> : null}</span></button>
+      <button type="button" className="friend-open" onClick={() => setOpenId(item.id)}><span><b>{item.name}</b>{item.title ? <small>{t(item.title)}</small> : null}</span></button>
       <button type="button" className="text-button" disabled={item.added} onClick={() => void add(item.name)}>{item.added ? t("已添加") : t("加上")}</button>
     </li>)}</ul>}
     {friends.length === 0 && results === null && <p>{t("还没有好友。输入名字搜索。")}</p>}
     {friends.length > 0 && <ul className="friend-list">{friends.map(item => <li key={item.id}>
-      <button type="button" className="friend-open" onClick={() => setOpenId(item.id)}><AvatarFace id={item.avatar} size={22} /><span><b>{item.name}</b>{item.title ? <small>{t(item.title)}</small> : null}</span></button>
+      <button type="button" className="friend-open" onClick={() => setOpenId(item.id)}><span><b>{item.name}</b>{item.title ? <small>{t(item.title)}</small> : null}</span></button>
       <button type="button" className="text-button" onClick={() => void remove(item.id)}>{t("移除")}</button>
     </li>)}</ul>}
     {openId && <PlayerHome id={openId} onClose={() => setOpenId(null)} />}

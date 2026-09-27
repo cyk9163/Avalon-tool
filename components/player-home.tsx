@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { ROLES, type Role } from "@/lib/game";
 import { useI18n } from "@/lib/i18n/react";
-import { AvatarFace } from "./avatar-face";
 
 type Profile = {
   name: string;
@@ -56,12 +55,9 @@ export function PlayerHome({ id, onClose }: { id: string; onClose: () => void })
   return <div className="player-home-layer" onClick={onClose}>
     <section className="player-home" role="dialog" aria-label={t("个人主页")} onClick={event => event.stopPropagation()}>
       <header className="account-profile-head">
-        <div className="player-home-id">
-          <AvatarFace id={profile?.avatar} size={28} />
-          <div>
-            <p className="worn-title">{profile?.title ? t(profile.title) : t("还没有称号")}</p>
-            <h2>{profile?.name ?? t("个人主页")}</h2>
-          </div>
+        <div>
+          <p className="worn-title">{profile?.title ? t(profile.title) : t("还没有称号")}</p>
+          <h2>{profile?.name ?? t("个人主页")}</h2>
         </div>
         <button type="button" className="text-button" onClick={onClose}>{t("关闭")}</button>
       </header>
