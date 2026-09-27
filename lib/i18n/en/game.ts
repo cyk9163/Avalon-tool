@@ -405,4 +405,5 @@ export const GAME: Record<string, string> = {
   "打开五个账号的一桌": "Open the five-account table",
   "点其他玩家的头像，再点查看个人主页。": "Tap another player's portrait, then open their profile.",
   "示例桌暂时打不开。": "The sample table is unavailable right now.",
+  "表现 {n}": "Score {n}",
 };

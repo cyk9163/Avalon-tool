@@ -10,7 +10,7 @@ type Profile = {
   avatar: string | null;
   achievements: { done: number; total: number };
   stats: { total: number; won: number; bySide: { good: { played: number; won: number }; evil: { played: number; won: number } } };
-  games: { role: string; won: boolean; mvp: boolean; fact: string | null }[];
+  games: { role: string; won: boolean; mvp: boolean; fact: string | null; score: number | null }[];
 };
 
 export function factLabel(t: (zh: string) => string, fact: string | null): string | null {
@@ -85,7 +85,7 @@ export function PlayerHome({ id, onClose }: { id: string; onClose: () => void })
               {game.mvp && <span className="mvp-badge">MVP</span>}
               {highlight && <span>{highlight}</span>}
             </div>}
-            <small>{t("第 {n} 场，共 {m} 场", { n: index + 1, m: profile.games.length })}</small>
+            <small>{t("第 {n} 场，共 {m} 场", { n: index + 1, m: profile.games.length })}{typeof game.score === "number" ? ` · ${t("表现 {n}", { n: game.score })}` : ""}</small>
           </article>
           <button type="button" className="text-button" disabled={index === profile.games.length - 1} onClick={() => setCursor({ id, index: index + 1 })}>{t("下一场")}</button>
         </div>}

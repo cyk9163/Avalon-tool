@@ -5,7 +5,7 @@ import { ROLES, type Role } from "@/lib/game";
 import { useI18n } from "@/lib/i18n/react";
 import { factLabel } from "./player-home";
 
-type GameRow = { code: string; round: number; at: number; role: string; side: "good" | "evil"; winner: "good" | "evil"; mvp: number; fact?: string | null };
+type GameRow = { code: string; round: number; at: number; role: string; side: "good" | "evil"; winner: "good" | "evil"; mvp: number; fact?: string | null; score?: number | null };
 type Stats = { total: number; won: number; bySide: { good: { played: number; won: number }; evil: { played: number; won: number } }; byRole: { role: string; played: number; won: number }[] };
 
 export function MatchHistory() {
@@ -38,7 +38,7 @@ export function MatchHistory() {
           {game.mvp === 1 && <span className="mvp-badge">MVP</span>}
           {highlight && <span>{highlight}</span>}
         </div>}
-        <small>{game.code} · {t("第 {n} 局", { n: game.round })}</small>
+        <small>{game.code} · {t("第 {n} 局", { n: game.round })}{typeof game.score === "number" ? ` · ${t("表现 {n}", { n: game.score })}` : ""}</small>
       </li>;
     })}</ul>
   </section>;

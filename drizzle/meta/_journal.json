@@ -50,6 +50,13 @@
       "when": 1759190400000,
       "tag": "0006_friends",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1759449600000,
+      "tag": "0007_performance",
+      "breakpoints": true
     }
   ]
 }
