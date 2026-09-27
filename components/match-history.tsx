@@ -6,6 +6,7 @@ import { useI18n } from "@/lib/i18n/react";
 import { formatPlayedAt } from "@/lib/played-at";
 import { GameReplay } from "./game-replay";
 import { factLabel } from "./player-home";
+import { RecordRow } from "./record-row";
 
 type GameRow = { code: string; round: number; at: number; role: string; side: "good" | "evil"; winner: "good" | "evil"; mvp: number; fact?: string | null; score?: number | null };
 type Stats = { total: number; won: number; bySide: { good: { played: number; won: number }; evil: { played: number; won: number } }; byRole: { role: string; played: number; won: number }[] };
@@ -36,14 +37,8 @@ export function MatchHistory() {
       const won = game.side === game.winner;
       const highlight = factLabel(t, game.fact ?? null);
       return <li key={`${game.code}:${game.round}`}>
-        <button type="button" className="profile-game-card" onClick={() => setOpen({ code: game.code, round: game.round })}>
-          <strong>{won ? t("{name}胜利", { name }) : t("{name}落败", { name })}</strong>
-          {(game.mvp || highlight) && <div className="profile-facts">
-            {game.mvp === 1 && <span className="mvp-badge">MVP</span>}
-            {highlight && <span>{highlight}</span>}
-          </div>}
-          <small>{[formatPlayedAt(game.at), t("表现 {n}", { n: typeof game.score === "number" ? game.score : "—" })].filter(Boolean).join(" · ")}</small>
-          <small>{game.code} · {t("第 {n} 局", { n: game.round })}</small>
+        <button type="button" className="profile-game-card record-row" onClick={() => setOpen({ code: game.code, round: game.round })}>
+          <RecordRow won={won} mvp={game.mvp === 1} role={name} score={typeof game.score === "number" ? game.score : null} highlight={highlight} meta={[formatPlayedAt(game.at), `${game.code} · ${t("第 {n} 局", { n: game.round })}`].filter(Boolean).join(" · ")} />
         </button>
       </li>;
     })}</ul>

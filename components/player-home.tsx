@@ -6,6 +6,7 @@ import { ROLES, type Role } from "@/lib/game";
 import { useI18n } from "@/lib/i18n/react";
 import { formatPlayedAt } from "@/lib/played-at";
 import { GameReplay } from "./game-replay";
+import { RecordRow } from "./record-row";
 
 type Profile = {
   name: string;
@@ -100,19 +101,11 @@ export function PlayerHome({ id, onClose }: { id: string; onClose: () => void })
           <ul className="history-list">{profile.games.map((game, index) => {
             const name = t(ROLES[game.role as Role]?.name ?? game.role);
             const highlight = factLabel(t, game.fact);
-            const body = <>
-              <strong>{game.won ? t("{name}胜利", { name }) : t("{name}落败", { name })}</strong>
-              {(game.mvp || highlight) && <div className="profile-facts">
-                {game.mvp && <span className="mvp-badge">MVP</span>}
-                {highlight && <span>{highlight}</span>}
-              </div>}
-              <small>{[typeof game.at === "number" ? formatPlayedAt(game.at) : "", t("表现 {n}", { n: typeof game.score === "number" ? game.score : "—" })].filter(Boolean).join(" · ")}</small>
-              <small>{t("第 {n} 场，共 {m} 场", { n: index + 1, m: profile.games.length })}</small>
-            </>;
+            const body = <RecordRow won={game.won} mvp={game.mvp} role={name} score={game.score} highlight={highlight} meta={[typeof game.at === "number" ? formatPlayedAt(game.at) : "", t("第 {n} 场，共 {m} 场", { n: index + 1, m: profile.games.length })].filter(Boolean).join(" · ")} />;
             const code = game.code;
             const round = game.round;
             return <li key={`${game.role}:${index}`}>
-              {code && round ? <button type="button" className="profile-game-card" onClick={() => setOpen({ code, round })}>{body}</button> : <div className="profile-game-card">{body}</div>}
+              {code && round ? <button type="button" className="profile-game-card record-row" onClick={() => setOpen({ code, round })}>{body}</button> : <div className="profile-game-card record-row">{body}</div>}
             </li>;
           })}</ul>
           {open && <GameReplay code={open.code} round={open.round} onClose={() => setOpen(null)} />}

@@ -202,6 +202,7 @@ export const GAME: Record<string, string> = {
   "任务 {n}": "Quest {n}",
   "成功": "Success",
   "失败": "Fail",
+  "胜利": "Victory",
   "当前": "Current",
   "待开始": "Upcoming",
   "{n} 张失败": "Fails: {n}",

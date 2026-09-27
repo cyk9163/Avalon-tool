@@ -557,8 +557,16 @@ html[lang="en"] .count-option span:empty { display: none; }
 .achievement-bar i { display: block; height: 100%; background: #dbc18a; }
 .achievement-switch { margin: 12px 0; }
 .profile-game { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px; align-items: center; }
-.profile-game-card { width: 100%; min-height: 96px; border: 1px solid #344c46; border-radius: 16px; padding: 12px; display: grid; gap: 8px; justify-items: center; text-align: center; background: transparent; color: inherit; }
-.profile-game-card strong { font-size: 18px; }
+.profile-game-card { width: 100%; min-height: 72px; border: 1px solid #344c46; border-radius: 16px; padding: 10px 12px; display: grid; gap: 4px 10px; background: transparent; color: inherit; }
+.record-row { grid-template-columns: 4.5rem minmax(4.5rem, 7.5rem) 2.75rem minmax(0, 1fr); align-items: center; justify-items: start; text-align: left; }
+.record-result { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
+.record-result b { font-size: 16px; letter-spacing: 0.12em; }
+.record-result.win b { color: #9bcab7; }
+.record-result.loss b { color: #e9a59c; }
+.record-role { font-weight: 650; }
+.record-score { font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.record-highlight { font-size: 13px; opacity: 0.85; }
+.record-meta { grid-column: 1 / -1; font-size: 11px; opacity: 0.65; }
 .profile-facts { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
 .profile-facts span, .mvp-badge { border: 1px solid #344c46; border-radius: 999px; padding: 2px 8px; font-size: 12px; }
 .mvp-badge { border-color: #dbc18a; color: #dbc18a; letter-spacing: 0.08em; }
