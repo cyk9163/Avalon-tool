@@ -282,6 +282,13 @@ export function achievementById(id: string): Achievement | undefined {
   return BY_ID.get(id);
 }
 
+export function liveAchievements(): Achievement[] {
+  return [
+    ...RANK_TRACKS.flatMap(track => track.tiers.map(tier => ({ id: tier.id, name: tier.name, hint: tier.hint, mark: tier.mark }))),
+    ...ACHIEVEMENTS,
+  ];
+}
+
 export function isAchievementId(id: string): boolean {
   return BY_ID.has(id);
 }

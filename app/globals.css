@@ -552,6 +552,7 @@ html[lang="en"] .count-option span:empty { display: none; }
 .achievement-progress > div:first-child { display: flex; justify-content: space-between; gap: 8px; }
 .achievement-bar { height: 8px; border-radius: 999px; background: #233c32; overflow: hidden; }
 .achievement-bar i { display: block; height: 100%; background: #dbc18a; }
+.achievement-switch { margin: 12px 0; }
 .profile-game { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px; align-items: center; }
 .profile-game-card { min-height: 96px; border: 1px solid #344c46; border-radius: 16px; padding: 12px; display: grid; gap: 8px; justify-items: center; text-align: center; }
 .profile-game-card strong { font-size: 18px; }
