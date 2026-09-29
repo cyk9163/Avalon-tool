@@ -224,6 +224,8 @@ export const SERVER: Record<string, string> = {
   "请输入要搜索的名字。": "Enter a name to search.",
   "没有找到这个账号。": "No account with that name.",
   "不能加自己。": "You can't add yourself.",
+  "对方还不是你的好友。": "That player is not your friend yet.",
+  "这位好友已经在房间里。": "This friend is already in the room.",
   "示例桌只在测试服和本地可用。": "The sample table is only available on the test site and locally.",
   "示例桌还没准备好。": "The sample table is not ready.",
   "示例桌暂时打不开。": "The sample table is unavailable right now.",

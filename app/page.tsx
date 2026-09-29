@@ -36,6 +36,7 @@ import { HOST_KEY_LENGTH, formatHostKey, formattedCaret, hostKeyCharacters, host
 import { isControlHost } from "@/lib/solo";
 import { achievementById } from "@/lib/achievements";
 import { AccountGate, type SignedAccount } from "@/components/account-gate";
+import { FriendRoster, IncomingInvite } from "@/components/friends";
 import { AccountProfile } from "@/components/account-profile";
 import { MatchHistory } from "@/components/match-history";
 
@@ -67,7 +68,7 @@ export default function Home(){
   const soloJoin=useRef<{seat:number;name:string}|null>(null),soloTries=useRef(0);
   const soloEmbed=useSyncExternalStore(()=>()=>{},()=>new URLSearchParams(location.search).has("solo"),()=>false);
   const openedRoom=useSyncExternalStore(()=>()=>{},()=>new URLSearchParams(location.search).has("room"),()=>false);
-  const [account,setAccount]=useState<SignedAccount|null|undefined>(undefined),[guest,setGuest]=useState(false),[homeTab,setHomeTab]=useState<"play"|"me"|"history">("play");
+  const [account,setAccount]=useState<SignedAccount|null|undefined>(undefined),[guest,setGuest]=useState(false),[homeTab,setHomeTab]=useState<"play"|"me"|"history">("play"),[pickedFriends,setPickedFriends]=useState<string[]>([]);
   useEffect(()=>{
     void Promise.resolve().then(()=>setGuest(localStorage.getItem("avalon:guest")==="1"));
     void fetch("/api/account",{cache:"no-store"}).then(response=>response.json() as Promise<{account?: SignedAccount|null}>).then(data=>setAccount(data.account??null)).catch(()=>setAccount(null));
@@ -162,6 +163,16 @@ export default function Home(){
     const timer=window.setTimeout(()=>{soloTries.current+=1;void act("join",{seat:pending.seat,name:pending.name});},pending.seat*150);
     return()=>window.clearTimeout(timer);
   },[room,act,busy]);
+  useEffect(()=>{
+    if(!room||!account||room.meId||room.phase!=="lobby")return;
+    let flag="";try{flag=sessionStorage.getItem("avalon:auto-seat")||"";}catch{return;}
+    if(flag!==room.code)return;
+    const seat=Array.from({length:room.capacity},(_,index)=>index+1).find(number=>!room.players.some(player=>player.seat===number));
+    if(!seat)return;
+    try{sessionStorage.removeItem("avalon:auto-seat");}catch{}
+    const timer=window.setTimeout(()=>{void act("join",{seat,name:account.name.slice(0,12)});},0);
+    return()=>window.clearTimeout(timer);
+  },[room,account,act]);
   const lookup=async()=>{
     if(!/^\d{6}$/.test(code)){setError(msg("请输入 6 位房间码。"));return;}
     setBusy(true);setError("");setMembershipNotice(null);currentCode.current=code;latest.current=null;
@@ -206,7 +217,7 @@ export default function Home(){
   const create=async()=>{
     if(account&&!account.canHost){setError(t("普通账号不能直接开房。请用高级账号，或先用游客模式加入朋友的房间。"));return;}
     if(!account?.canHost&&hostKey.length!==HOST_KEY_LENGTH){setError(t("房主 Key 是 {total} 位字母和数字，现在输入了 {n} 位。",{total:HOST_KEY_LENGTH,n:hostKey.length}));return;}
-    createId.current ||= crypto.randomUUID();const boardHasOberon=preset==="full"||(preset==="custom"&&customSpecials.has("oberon"));const created=await act("create",{name,hostKey:hostKeyForSubmit(hostKey),capacity,preset,turnSpeech,evilSeesOberon:boardHasOberon&&knowsOberon,...(preset==="custom"?{roles:customRoles,ladyOfLake}:{}),requestId:createId.current});if(created)setHostKey("");};
+    createId.current ||= crypto.randomUUID();const boardHasOberon=preset==="full"||(preset==="custom"&&customSpecials.has("oberon"));const created=await act("create",{name,hostKey:hostKeyForSubmit(hostKey),capacity,preset,turnSpeech,evilSeesOberon:boardHasOberon&&knowsOberon,...(preset==="custom"?{roles:customRoles,ladyOfLake}:{}),requestId:createId.current});if(created){setHostKey("");for(const id of pickedFriends)void fetch("/api/friends",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({action:"invite",id,code:created.code})});setPickedFriends([]);}};
   const me=room?.players.find(p=>p.id===room.meId),isHost=!!me&&room?.hostId===me.id;
   const allReady=!!room&&room.players.length===room.capacity&&room.players.every(p=>p.ready);
   const identity=room?.identity,confirmedCount=room?.players.filter(p=>p.confirmed).length??0;
@@ -258,6 +269,7 @@ export default function Home(){
               <label className={`module-toggle ${preset==="full"||(preset==="custom"&&customSpecials.has("oberon"))||((preset==="custom"?[...customSpecials]:["merlin","assassin"] as Role[]).filter(role=>ROLES[role].side==="evil").length<EVIL_COUNTS[capacity])?"":"disabled"}`}><input type="checkbox" checked={knowsOberon} disabled={!(preset==="full"||(preset==="custom"&&customSpecials.has("oberon"))||((preset==="custom"?[...customSpecials]:["merlin","assassin"] as Role[]).filter(role=>ROLES[role].side==="evil").length<EVIL_COUNTS[capacity]))} onChange={e=>{createId.current="";if(!e.target.checked){setKnowsOberon(false);return;}if(!(preset==="full"||(preset==="custom"&&customSpecials.has("oberon")))){const base=preset==="custom"?new Set(customSpecials):new Set<Role>(["merlin","assassin"]);if([...base].filter(role=>ROLES[role].side==="evil").length>=EVIL_COUNTS[capacity])return;base.add("oberon");setPreset("custom");setCustomSpecials(base);}setKnowsOberon(true);}}/><span><strong>{t("坏人认识奥伯伦")}</strong><small>{t("坏人知道奥伯伦是谁，奥伯伦不知道队友。勾选后会把奥伯伦加入板子。")}</small></span></label>
               <label className="field"><span className="field-label">{t("你的昵称")}</span><input autoComplete="nickname" placeholder={t("大家怎么称呼你")} maxLength={12} required value={name} onChange={e=>setName(e.target.value)}/></label>
               {account?.canHost?null:<label className="field host-key-field"><span className="host-key-label"><span><KeyRound size={14}/>{t("房主 Key")}</span><small aria-live="polite">{hostKey?t("{n} / {total} 位",{n:hostKey.length,total:HOST_KEY_LENGTH}):t("仅创建房间需要")}</small></span><span className="host-key-input"><span className="host-key-prefix" aria-hidden="true">AVL-</span><input type="text" name="avalon-host-key" inputMode="text" autoComplete="off" autoCorrect="off" autoCapitalize="characters" spellCheck={false} placeholder="XXXX-XXXX-XXXX-XXXX" maxLength={40} required aria-label={t("房主 Key：16 位字母和数字，不含 0、1、I、O")} value={formatHostKey(hostKey)} onChange={onHostKeyChange}/></span></label>}
+              {account&&<FriendRoster picked={pickedFriends} onToggle={id=>setPickedFriends(current=>current.includes(id)?current.filter(item=>item!==id):[...current,id])}/>}
               {error&&<p className="entry-error" role="alert">{ts(error)}</p>}
               <div className="entry-submit"><button className="primary-button" disabled={busy||!sessionReady}>{busy?<><LoaderCircle size={18} className="spin"/>{t("正在建立…")}</>:<>{t("建立圆桌")}<ArrowRight size={18}/></>}</button><p className="form-note"><LockKeyhole size={13}/>{t("房主凭 Key 建房，朋友扫码即可入座")}</p></div>
             </form>
@@ -310,6 +322,7 @@ export default function Home(){
             }} /></div>
             {room.phase==="lobby"&&room.seatSwapOut&&<p className="membership-notice" role="status">{t("已向 {name} 申请换成 {n} 号。",{name:room.seatSwapOut.name,n:room.seatSwapOut.seat})} <button type="button" className="text-button" disabled={busy||!connected} onClick={()=>void act("swap-cancel")}>{t("取消申请")}</button></p>}
             {room.phase==="lobby"&&room.seatSwapIn.map(ask=><p className="membership-notice" role="status" key={ask.id}>{t("{name} 想和你换号：你到 {from} 号，对方到 {to} 号。",{name:ask.name,from:ask.fromSeat,to:ask.seat})} <button type="button" className="text-button" disabled={busy||!connected} onClick={()=>void act("swap-accept",{requestId:ask.id})}>{t("同意互换")}</button><button type="button" className="text-button subtle" disabled={busy||!connected} onClick={()=>void act("swap-reject",{requestId:ask.id})}>{t("拒绝")}</button></p>)}
+            {account&&room.phase==="lobby"&&me&&room.players.length<room.capacity&&<FriendRoster code={room.code}/>}
             {room.phase==="lobby"&&me&&<div className="lobby-ready">
               {isHost&&allReady
                 ? <button className="primary-button" disabled={busy||!connected} onClick={()=>setConfirmStart(true)}><Shield size={17}/>{t("发身份")}</button>
@@ -341,6 +354,7 @@ export default function Home(){
     <AlertDialog open={confirmStart} onOpenChange={setConfirmStart}><AlertDialogContent><AlertDialogTitle>{t("让秘密各就各位？")}</AlertDialogTitle><AlertDialogDescription>{t("发身份后，本局座位与角色配置会锁定。请确认所有人都已坐在对应位置。")}</AlertDialogDescription><AlertDialogFooter><AlertDialogCancel>{t("再检查一下")}</AlertDialogCancel><AlertDialogAction disabled={busy||!connected||!allReady||!isHost||room?.phase!=="lobby"} onClick={()=>void act("start")}>{t("确认发身份")}</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
     <AlertDialog open={swapSeat!==null} onOpenChange={open=>{if(!open)setSwapSeat(null);}}><AlertDialogContent><AlertDialogTitle>{t("向 {name} 申请换成 {n} 号？",{name:room?.players.find(p=>p.seat===swapSeat)?.name??"",n:swapSeat??""})}</AlertDialogTitle><AlertDialogDescription>{t("你现在是 {from} 号。对方同意后，你坐到 {to} 号，对方坐到 {from} 号，两人都要重新准备。",{from:room?.players.find(p=>p.id===room.meId)?.seat??"",to:swapSeat??""})}</AlertDialogDescription><AlertDialogFooter><AlertDialogCancel>{t("再想一下")}</AlertDialogCancel><AlertDialogAction disabled={busy||!connected||swapSeat===null} onClick={()=>{const seat=swapSeat;setSwapSeat(null);if(seat)void act("swap-request",{seat});}}>{t("申请互换")}</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
     <AlertDialog open={confirmLeave} onOpenChange={setConfirmLeave}><AlertDialogContent><AlertDialogTitle>{t("离开这个房间？")}</AlertDialogTitle><AlertDialogDescription>{t("你的座位会空出来。若你是房主，管理权会交给下一位玩家。")}</AlertDialogDescription><AlertDialogFooter><AlertDialogCancel>{t("继续等朋友")}</AlertDialogCancel><AlertDialogAction variant="destructive" disabled={busy||!connected||room?.phase!=="lobby"} onClick={()=>void act("leave")}>{t("离开房间")}</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
+    {account&&<IncomingInvite here={room?.code} name={account.name} onJoin={(code,invite,nickname)=>{rememberInvite(code,invite);try{sessionStorage.setItem("avalon:auto-seat",code);localStorage.setItem("avalon:nickname",nickname);}catch{}setName(nickname);setHomeTab("play");currentCode.current=code;setCode(code);void load(code).then(()=>{history.replaceState(null,"",`/?room=${code}${invite?`&invite=${encodeURIComponent(invite)}`:""}`);});}}/>}
     {account&&homeTab==="me"&&<AccountProfile account={account} onTitle={title=>setAccount({...account,title})} onLogout={()=>{void fetch("/api/account",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({action:"logout"})});localStorage.removeItem("avalon:guest");setAccount(null);setGuest(false);setHomeTab("play");}}/>}
     {account&&homeTab==="history"&&<MatchHistory/>}
     {account&&<nav className="account-tabs" aria-label={t("账号")}><button type="button" className={homeTab==="me"?"active":""} onClick={()=>setHomeTab("me")}>{t("我")}</button><button type="button" className={homeTab==="history"?"active":""} onClick={()=>setHomeTab("history")}>{t("历史战绩")}</button><button type="button" className={homeTab==="play"?"active":""} onClick={()=>setHomeTab("play")}>{t("对局")}</button></nav>}

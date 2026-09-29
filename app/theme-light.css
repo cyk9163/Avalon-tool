@@ -198,6 +198,10 @@
 :root[data-theme="light"] .profile-facts span, :root[data-theme="light"] .mvp-badge { border: 1px solid #cad2d0; }
 :root[data-theme="light"] .mvp-badge { border-color: #6b510f; color: #6b510f; }
 :root[data-theme="light"] .friend-search input { background: #e8eef0; border: 1px solid var(--input); color: var(--foreground); }
+:root[data-theme="light"] .friend-status.is-on { color: #2f604f; }
+:root[data-theme="light"] .friend-roster { border: 1px solid #cad2d0; }
+:root[data-theme="light"] .invite-layer { background: #f1f6f5cc; }
+:root[data-theme="light"] .invite-card { border: 1px solid #cad2d0; background: #dde6e3; }
 :root[data-theme="light"] .friend-open { border: 0; background: transparent; color: inherit; }
 /* from app/game.css */
 :root[data-theme="light"] .game-panel {

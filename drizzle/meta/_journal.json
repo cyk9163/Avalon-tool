@@ -64,6 +64,13 @@
       "when": 1759536000000,
       "tag": "0008_replay",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1759622400000,
+      "tag": "0009_friend_requests",
+      "breakpoints": true
     }
   ]
 }
