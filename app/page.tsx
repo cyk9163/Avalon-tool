@@ -215,7 +215,7 @@ export default function Home(){
     requestAnimationFrame(()=>{if(document.activeElement===input){const position=formattedCaret(before);input.setSelectionRange(position,position);}});
   };
   const create=async()=>{
-    if(account&&!account.canHost){setError(t("普通账号不能直接开房。请用高级账号，或先用游客模式加入朋友的房间。"));return;}
+    // Regular accounts open a room with a host Key, the same as guests; the server checks it.
     if(!account?.canHost&&hostKey.length!==HOST_KEY_LENGTH){setError(t("房主 Key 是 {total} 位字母和数字，现在输入了 {n} 位。",{total:HOST_KEY_LENGTH,n:hostKey.length}));return;}
     createId.current ||= crypto.randomUUID();const boardHasOberon=preset==="full"||(preset==="custom"&&customSpecials.has("oberon"));const created=await act("create",{name,hostKey:hostKeyForSubmit(hostKey),capacity,preset,turnSpeech,evilSeesOberon:boardHasOberon&&knowsOberon,...(preset==="custom"?{roles:customRoles,ladyOfLake}:{}),requestId:createId.current});if(created){setHostKey("");for(const id of pickedFriends)void fetch("/api/friends",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({action:"invite",id,code:created.code})});setPickedFriends([]);}};
   const me=room?.players.find(p=>p.id===room.meId),isHost=!!me&&room?.hostId===me.id;
@@ -235,12 +235,13 @@ export default function Home(){
   return <main className={`app-shell ${room ? "is-room" : "is-home"}${soloEmbed ? " is-solo-embed" : ""}`}>
     <header className="topbar">
       <Brand onOpen={()=>setMenu(true)}/>
+      {room
+        ? <button type="button" className="room-code-chip" onClick={()=>setShare(true)} aria-label={t("邀请入座 · 房间码 {code}",{code:room.code})}><QrCode size={15} aria-hidden="true"/><span>{t("房间")}</span><b>{room.code}</b></button>
+        : <span className="brand-name">{t("圆桌")}<small>AVALON</small></span>}
       <div className="header-right">
-        <span className="edition"><span className="status-dot"/>{t("面对面，才有意思")}</span>
         {room&&<BoardRulesButton room={room}/>}
-        <ThemeToggle/><LangToggle/>
-        <InstallApp/>
         {room?.meId && <PushToggle seated act={act}/>}
+        {!room&&<><ThemeToggle/><LangToggle/><InstallApp/></>}
         <button className="icon-button" aria-label={t("使用说明")} onClick={()=>setHelp(true)}><CircleHelp size={20}/></button>
       </div>
     </header>
@@ -271,7 +272,7 @@ export default function Home(){
               {account?.canHost?null:<label className="field host-key-field"><span className="host-key-label"><span><KeyRound size={14}/>{t("房主 Key")}</span><small aria-live="polite">{hostKey?t("{n} / {total} 位",{n:hostKey.length,total:HOST_KEY_LENGTH}):t("仅创建房间需要")}</small></span><span className="host-key-input"><span className="host-key-prefix" aria-hidden="true">AVL-</span><input type="text" name="avalon-host-key" inputMode="text" autoComplete="off" autoCorrect="off" autoCapitalize="characters" spellCheck={false} placeholder="XXXX-XXXX-XXXX-XXXX" maxLength={40} required aria-label={t("房主 Key：16 位字母和数字，不含 0、1、I、O")} value={formatHostKey(hostKey)} onChange={onHostKeyChange}/></span></label>}
               {account&&<FriendRoster picked={pickedFriends} onToggle={id=>setPickedFriends(current=>current.includes(id)?current.filter(item=>item!==id):[...current,id])}/>}
               {error&&<p className="entry-error" role="alert">{ts(error)}</p>}
-              <div className="entry-submit"><button className="primary-button" disabled={busy||!sessionReady}>{busy?<><LoaderCircle size={18} className="spin"/>{t("正在建立…")}</>:<>{t("建立圆桌")}<ArrowRight size={18}/></>}</button><p className="form-note"><LockKeyhole size={13}/>{t("房主凭 Key 建房，朋友扫码即可入座")}</p></div>
+              <div className="entry-submit"><button className="primary-button" disabled={busy||!sessionReady}>{busy?<><LoaderCircle size={18} className="spin"/>{t("正在建立…")}</>:<>{t("建立圆桌")}<ArrowRight size={18}/></>}</button><p className="form-note"><LockKeyhole size={13}/>{account?.canHost?t("高级账号直接建房，朋友扫码即可入座"):t("房主凭 Key 建房，朋友扫码即可入座")}</p></div>
             </form>
           </TabsContent>
           <TabsContent value="join">
@@ -305,12 +306,14 @@ export default function Home(){
         <button type="button" className={roomPanel==="table"?`active${turn?" your-turn":""}`:turn?"your-turn":""} aria-current={roomPanel==="table"?"page":undefined} onClick={()=>setRoomPanel("table")}>{t("主界面")}</button>
         <button type="button" className={roomPanel==="identity"?"active":""} aria-current={roomPanel==="identity"?"page":undefined} onClick={()=>setRoomPanel("identity")}>{t("身份牌")}</button>
         <button type="button" className={roomPanel==="notes"?"active":""} aria-current={roomPanel==="notes"?"page":undefined} onClick={()=>setRoomPanel("notes")}>{t("笔记")}</button>
+        <span className={`room-section-status${connected?live?" live":"":" offline"}`} role="status" title={connected?live?t("实时连接：其他人的操作会立即显示"):t("定时同步：每隔几秒刷新一次"):t("重连中")} aria-label={connected?live?t("实时"):t("已同步"):t("重连中")}><i aria-hidden="true"/></span>
       </nav>
       <div className="room-fit">
       <div hidden={roomPanel!=="table"}>
       <GamePanel key={`${room.round}:${room.game?.turnId??"pregame"}`} room={room} busy={busy} connected={connected} error={error} act={act} onNewGame={back}/>
       {!room.game&&<div className="room-layout">
           <section className="table-panel room-table">
+            {room.phase==="lobby"&&me&&room.players.length<room.capacity&&<div className="lobby-invite"><div><small>{t("房间码")}</small><b>{room.code}</b></div><button type="button" className="secondary-button" onClick={()=>setShare(true)}><QrCode size={16} aria-hidden="true"/>{t("邀请朋友")}</button></div>}
             <div className="table-caption"><span><Users size={16}/>{room.phase==="lobby"?t("按实际座位入座"):t("今晚的同桌")}</span><span>{t("{n} / {count} 人",{n:room.players.length,count:room.capacity})}</span></div>
             {room.phase==="lobby"&&!me&&<div className="lobby-join"><label className="field">{t("你的昵称")}<input maxLength={12} autoComplete="nickname" placeholder={t("大家怎么称呼你")} value={name} onChange={e=>setName(e.target.value)}/></label>{room.namesHidden&&<p className="action-note"><LockKeyhole size={13}/>{t("通过房间码进入时不显示昵称；扫描房主的二维码可看到完整座位信息。")}</p>}</div>}
             <div className="table-slot"><Table count={room.capacity} room={room} disabled={busy||!sessionReady||!connected||room.phase!=="lobby"} onSeat={seat=>{
@@ -355,10 +358,11 @@ export default function Home(){
     <AlertDialog open={swapSeat!==null} onOpenChange={open=>{if(!open)setSwapSeat(null);}}><AlertDialogContent><AlertDialogTitle>{t("向 {name} 申请换成 {n} 号？",{name:room?.players.find(p=>p.seat===swapSeat)?.name??"",n:swapSeat??""})}</AlertDialogTitle><AlertDialogDescription>{t("你现在是 {from} 号。对方同意后，你坐到 {to} 号，对方坐到 {from} 号，两人都要重新准备。",{from:room?.players.find(p=>p.id===room.meId)?.seat??"",to:swapSeat??""})}</AlertDialogDescription><AlertDialogFooter><AlertDialogCancel>{t("再想一下")}</AlertDialogCancel><AlertDialogAction disabled={busy||!connected||swapSeat===null} onClick={()=>{const seat=swapSeat;setSwapSeat(null);if(seat)void act("swap-request",{seat});}}>{t("申请互换")}</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
     <AlertDialog open={confirmLeave} onOpenChange={setConfirmLeave}><AlertDialogContent><AlertDialogTitle>{t("离开这个房间？")}</AlertDialogTitle><AlertDialogDescription>{t("你的座位会空出来。若你是房主，管理权会交给下一位玩家。")}</AlertDialogDescription><AlertDialogFooter><AlertDialogCancel>{t("继续等朋友")}</AlertDialogCancel><AlertDialogAction variant="destructive" disabled={busy||!connected||room?.phase!=="lobby"} onClick={()=>void act("leave")}>{t("离开房间")}</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
     {account&&<IncomingInvite here={room?.code} name={account.name} onJoin={(code,invite,nickname)=>{rememberInvite(code,invite);try{sessionStorage.setItem("avalon:auto-seat",code);localStorage.setItem("avalon:nickname",nickname);}catch{}setName(nickname);setHomeTab("play");currentCode.current=code;setCode(code);void load(code).then(()=>{history.replaceState(null,"",`/?room=${code}${invite?`&invite=${encodeURIComponent(invite)}`:""}`);});}}/>}
-    {account&&homeTab==="me"&&<AccountProfile account={account} onTitle={title=>setAccount({...account,title})} onLogout={()=>{void fetch("/api/account",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({action:"logout"})});localStorage.removeItem("avalon:guest");setAccount(null);setGuest(false);setHomeTab("play");}}/>}
-    {account&&homeTab==="history"&&<MatchHistory/>}
-    {account&&<nav className="account-tabs" aria-label={t("账号")}><button type="button" className={homeTab==="me"?"active":""} onClick={()=>setHomeTab("me")}>{t("我")}</button><button type="button" className={homeTab==="history"?"active":""} onClick={()=>setHomeTab("history")}>{t("历史战绩")}</button><button type="button" className={homeTab==="play"?"active":""} onClick={()=>setHomeTab("play")}>{t("对局")}</button></nav>}
+    {account&&homeTab==="me"&&<AccountProfile account={account} onClose={room?()=>setHomeTab("play"):undefined} onTitle={title=>setAccount({...account,title})} onLogout={()=>{void fetch("/api/account",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({action:"logout"})});localStorage.removeItem("avalon:guest");setAccount(null);setGuest(false);setHomeTab("play");}}/>}
+    {account&&homeTab==="history"&&<MatchHistory onClose={room?()=>setHomeTab("play"):undefined}/>}
+    {/* Home only: in a room this bar would sit on top of the ready, start and vote buttons. */}
+    {account&&!room&&<nav className="account-tabs" aria-label={t("账号")}><button type="button" className={homeTab==="me"?"active":""} onClick={()=>setHomeTab("me")}>{t("我")}</button><button type="button" className={homeTab==="history"?"active":""} onClick={()=>setHomeTab("history")}>{t("历史战绩")}</button><button type="button" className={homeTab==="play"?"active":""} onClick={()=>setHomeTab("play")}>{t("对局")}</button></nav>}
     <HelpDialog open={help} onOpenChange={setHelp}/>
-    <Dialog open={menu} onOpenChange={setMenu}><DialogContent className="rules-dialog"><DialogTitle>{t("菜单")}</DialogTitle><DialogDescription>{room?t("房间码"):t("断线恢复")}</DialogDescription>{room&&<div className="share-code"><small>{t("房间码")}</small>{room.code}</div>}{room&&<button type="button" className="secondary-button" onClick={()=>{setMenu(false);setShare(true);}}><QrCode size={16}/>{t("邀请入座")}</button>}{room&&<RoomManagement key={`${room.code}:${room.round}:${room.meId}:${room.hostId}:${room.hostRevision}`} room={room} busy={busy} connected={connected} error={error} act={act} inMenu/>}<button type="button" className="secondary-button" onClick={()=>{setMenu(false);back();}}>{t("返回首页")}</button>{room&&me&&<RecoveryCodeCard room={room}/>}{room&&!me&&<SeatRecovery room={room} busy={busy} connected={connected} act={act}/>}{!room&&<p className="action-note">{t("进入房间后，可以在这里用恢复码回到原来的座位。")}</p>}<nav className="menu-links" aria-label={t("站点信息")}><Link href="/rules" onClick={()=>setMenu(false)}>{t("规则教学")}</Link><Link href="/me" onClick={()=>setMenu(false)}>{t("我的战绩")}</Link><Link href="/privacy" onClick={()=>setMenu(false)}>{t("隐私说明")}</Link></nav></DialogContent></Dialog>
+    <Dialog open={menu} onOpenChange={setMenu}><DialogContent className="rules-dialog"><DialogTitle>{t("菜单")}</DialogTitle><DialogDescription>{room?t("邀请朋友、显示设置与房间管理"):t("断线恢复")}</DialogDescription>{room&&<div className="share-code"><small>{t("房间码")}</small>{room.code}</div>}{room&&<button type="button" className="secondary-button" onClick={()=>{setMenu(false);setShare(true);}}><QrCode size={16}/>{t("邀请入座")}</button>}{room&&account&&<div className="menu-account"><button type="button" className="secondary-button" onClick={()=>{setMenu(false);setHomeTab("me");}}>{t("我的主页")}</button><button type="button" className="secondary-button" onClick={()=>{setMenu(false);setHomeTab("history");}}>{t("历史战绩")}</button></div>}<div className="menu-settings" role="group" aria-label={t("显示设置")}><ThemeToggle/><LangToggle/><InstallApp/></div>{room&&<RoomManagement key={`${room.code}:${room.round}:${room.meId}:${room.hostId}:${room.hostRevision}`} room={room} busy={busy} connected={connected} error={error} act={act} inMenu/>}<button type="button" className="secondary-button" onClick={()=>{setMenu(false);back();}}>{t("返回首页")}</button>{room&&me&&<RecoveryCodeCard room={room}/>}{room&&!me&&<SeatRecovery room={room} busy={busy} connected={connected} act={act}/>}{!room&&<p className="action-note">{t("进入房间后，可以在这里用恢复码回到原来的座位。")}</p>}<nav className="menu-links" aria-label={t("站点信息")}><Link href="/rules" onClick={()=>setMenu(false)}>{t("规则教学")}</Link><Link href="/me" onClick={()=>setMenu(false)}>{t("我的战绩")}</Link><Link href="/privacy" onClick={()=>setMenu(false)}>{t("隐私说明")}</Link></nav></DialogContent></Dialog>
   </main>;
 }

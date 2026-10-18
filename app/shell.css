@@ -1,0 +1,311 @@
+/* v2.0 layout and look, loaded after the older stylesheets.
+   Rooms are one phone column: a compact header, the room tabs, one scrolling
+   area, and the action you need pinned at the bottom. Nothing shrinks to fit
+   the screen height, so seats and buttons never pile on top of each other. */
+
+body {
+  background:
+    radial-gradient(110% 55% at 50% -12%, #1d2946 0%, transparent 62%),
+    radial-gradient(60% 40% at 100% 0%, #e3c27d0f, transparent 70%),
+    var(--background);
+  font-family: var(--font-sans);
+  line-height: 1.5;
+}
+h1, h2, h3 { text-wrap: balance; }
+
+/* Buttons */
+.primary-button {
+  border-radius: 12px; border: 1px solid #f1d89b;
+  background: linear-gradient(180deg, #edd291, #d8b36a);
+  color: var(--primary-foreground); font-weight: 700; letter-spacing: .02em;
+  box-shadow: 0 6px 18px #e3c27d24, inset 0 1px 0 #fff4d466;
+}
+.primary-button:hover:not(:disabled) { filter: brightness(1.05); box-shadow: 0 8px 22px #e3c27d33, inset 0 1px 0 #fff4d466; }
+.secondary-button { border-radius: 12px; border: 1px solid var(--line-strong); background: var(--surface-2); color: var(--foreground); font-weight: 600; }
+.secondary-button:hover:not(:disabled) { background: var(--surface-3); border-color: #4c5a78; }
+.ready-button { border-color: #8fb8ec66; background: #8fb8ec14; color: var(--success); }
+.text-button { color: var(--primary); font-weight: 600; }
+.text-button.subtle, .subtle { color: var(--text-3); }
+.icon-button { border-radius: 12px; color: var(--text-2); }
+.icon-button:hover { background: var(--surface-2); border-color: var(--line); }
+.lang-toggle { min-height: 40px; border-color: var(--line); color: var(--text-2); }
+
+/* Header: the same compact bar at home and in a room. */
+.topbar { height: 64px; gap: 10px; border-bottom: 1px solid var(--line); }
+.brand-icon { width: 40px; height: 40px; border-radius: 12px; border-color: #e3c27d59; background: #e3c27d12; }
+.brand-name { display: inline-flex; align-items: baseline; gap: 8px; min-width: 0; overflow: hidden; margin-right: auto; font-size: 18px; font-weight: 700; letter-spacing: 3px; white-space: nowrap; }
+.brand-name small { font-size: 10px; font-weight: 500; letter-spacing: 3px; color: var(--text-3); }
+html[lang="en"] .brand-name { font-size: 16px; letter-spacing: .3px; }
+.header-right { gap: 6px; min-width: 0; }
+.topbar .icon-button { min-width: 40px; min-height: 40px; }
+.topbar .install-app-button { display: grid; place-items: center; width: 40px; height: 40px; padding: 0; }
+.topbar .install-app-button span { display: none; }
+@media (max-width: 420px) {
+  .brand-name small { display: none; }
+  /* Still in the menu. */
+  .topbar .install-app-button { display: none; }
+  .topbar .lang-toggle { padding: 0 9px; }
+  .header-right { gap: 4px; }
+}
+.room-code-chip {
+  display: inline-flex; align-items: center; gap: 6px; min-width: 0; height: 40px; margin-right: auto; padding: 0 12px;
+  border: 1px solid #e3c27d59; border-radius: 999px; background: #e3c27d10; color: var(--primary); font-size: 12px; white-space: nowrap;
+}
+.room-code-chip b { color: var(--foreground); font-size: 16px; font-weight: 700; letter-spacing: 2px; font-variant-numeric: tabular-nums; }
+.room-code-chip:hover { background: #e3c27d1c; }
+.board-rules-button { height: 40px; border-color: var(--line-strong); color: var(--text-2); }
+
+/* A text field shows its own focus ring; the label around it does not need a second one. */
+label.field:has(input:focus-visible) { outline: none; }
+.field input:focus-visible { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px #e3c27d33; }
+
+/* Home */
+.home-intro h1 { font-weight: 700; letter-spacing: -1px; }
+.home-intro h1 span { background-image: linear-gradient(90deg, #f0d699, #d8b36a); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.intro { color: var(--text-2); }
+.home-benefits { color: var(--text-3); }
+.home-benefits span { padding: 6px 10px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface-1); }
+.home-benefits svg { color: var(--primary); }
+.showcase .table-caption, .table-caption { color: var(--text-2); }
+.app-shell.is-home:has(.account-tabs) { padding-bottom: calc(84px + env(safe-area-inset-bottom)); }
+@media (max-width: 720px) {
+  .app-shell { padding: 0 16px; }
+  .topbar { height: 60px; }
+  .home-layout { grid-template-areas: "intro" "entry" "visual"; row-gap: 18px; padding: 18px 0 28px; }
+  .home-intro .eyebrow { display: none; }
+  .home-intro h1 { font-size: 28px; line-height: 1.3; letter-spacing: -.5px; margin: 0 0 8px; }
+  .home-intro h1 br { display: none; }
+  .home-intro h1 span { margin-left: .2em; }
+  .intro { font-size: 13px; line-height: 1.75; }
+  .home-benefits { gap: 8px; margin-top: 12px; }
+  .entry-panel { padding: 18px 16px 20px; border-radius: 20px; }
+  .entry-card-heading h2 { font-size: 20px; }
+  .count-grid { gap: 6px !important; }
+  .count-option { min-height: 52px; border-radius: 11px; }
+  .preset-choice { min-height: 72px; padding: 11px 10px; }
+  .showcase { padding: 18px 16px; border-radius: 20px; background: var(--surface-1); }
+}
+@media (max-width: 360px) {
+  .count-option strong { font-size: 18px; }
+  .count-option span { display: none; }
+  .preset-grid { grid-template-columns: 1fr !important; }
+  .custom-role-columns { grid-template-columns: 1fr; }
+}
+
+/* Sign-in */
+.app-shell.account-gate { display: grid; place-items: center; min-height: 100dvh; max-width: none; padding: max(24px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom)); }
+.gate-card {
+  width: min(100%, 420px); display: grid; gap: 14px; padding: 28px 22px 22px; text-align: center;
+  border: 1px solid var(--line); border-radius: 24px; background: linear-gradient(180deg, #1b2337, #141a29); box-shadow: var(--shadow-card);
+}
+.gate-card .form-stack { gap: 14px; padding-top: 4px; text-align: left; }
+.gate-emblem { display: grid; place-items: center; width: 60px; height: 60px; margin: 0 auto 2px; border: 1px solid #e3c27d59; border-radius: 18px; background: #e3c27d12; color: var(--primary); }
+.gate-kicker { margin: 0; font-size: 10px; letter-spacing: 3px; color: var(--text-3); }
+.gate-card h1 { margin: 0; font-size: 34px; font-weight: 700; letter-spacing: 6px; }
+.gate-lead { margin: 0; color: var(--text-2); font-size: 14px; line-height: 1.7; }
+.account-mode { padding: 4px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface-2); gap: 4px; }
+.account-mode button { min-height: 40px; border: 0; border-radius: 10px; color: var(--text-3); font-weight: 600; }
+.account-mode button.active { border: 0; background: var(--primary); color: var(--primary-foreground); }
+.gate-divider { display: flex; align-items: center; gap: 12px; color: var(--text-3); font-size: 12px; }
+.gate-divider::before, .gate-divider::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+.gate-guest { min-height: 48px; }
+.gate-guest-note { margin: -4px 0 0; color: var(--text-3); font-size: 12px; line-height: 1.6; }
+.gate-card .action-note { margin: 0; text-align: left; }
+
+/* Account pages: the bar sits on the home screen only. */
+.account-tabs {
+  gap: 6px; padding: 8px max(12px, env(safe-area-inset-left)) calc(8px + env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-right));
+  border-top: 1px solid var(--line); background: #0c111df0; backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+}
+.account-tabs button { min-height: 44px; border: 0; border-radius: 12px; color: var(--text-3); font-weight: 600; }
+.account-tabs button.active { border: 0; background: var(--surface-3); color: var(--primary); }
+.account-profile { padding-inline: max(16px, calc((100vw - 640px) / 2)); }
+.account-profile h1 { margin: 4px 0 6px; font-size: 28px; line-height: 1.25; letter-spacing: -.3px; overflow-wrap: anywhere; }
+.account-profile.is-sheet { inset: 0; z-index: 60; padding-top: max(12px, env(safe-area-inset-top)); padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
+.sheet-back {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 44px; margin: 0 0 8px; padding: 0 14px 0 10px;
+  border: 1px solid var(--line); border-radius: 999px; background: var(--surface-2); color: var(--foreground); font-size: 14px; font-weight: 600;
+}
+
+/* Menu */
+.menu-account { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.menu-settings { display: flex; flex-wrap: wrap; gap: 8px; }
+.menu-settings > button { flex: 1 1 auto; min-height: 44px; justify-content: center; }
+.menu-settings .install-app-button span { display: inline; }
+@media (display-mode: standalone) { .topbar .install-app-button, .menu-settings .install-app-button { display: none; } }
+.menu-settings .install-app-button { width: auto; display: inline-flex; align-items: center; gap: 8px; padding: 0 14px; border: 1px solid var(--line); border-radius: 999px; background: transparent; color: var(--text-2); font-size: 13px; }
+
+/* Dialogs */
+[data-slot=dialog-overlay], [data-slot=alert-dialog-overlay] { background: #05080fcc; }
+[data-slot=dialog-content], [data-slot=alert-dialog-content] { border-color: var(--line-strong); border-radius: 22px; background: linear-gradient(180deg, #1c2438, #161c2c); }
+[data-slot=alert-dialog-action] { background: linear-gradient(180deg, #edd291, #d8b36a); color: var(--primary-foreground); font-weight: 700; }
+[data-slot=alert-dialog-cancel] { background: var(--surface-2); border-color: var(--line-strong); color: var(--foreground); }
+[data-slot=alert-dialog-cancel]:hover { background: var(--surface-3); }
+
+/* ---------- Room shell ---------- */
+html:has(.app-shell.is-room), body:has(.app-shell.is-room) { height: 100%; overflow: hidden; overscroll-behavior: none; }
+.app-shell.is-room {
+  position: fixed; inset: 0; z-index: 0; display: flex; flex-direction: column;
+  width: 100%; max-width: 600px; height: 100dvh; min-height: 0; margin: 0 auto; overflow: hidden;
+  padding: 0 max(12px, env(safe-area-inset-right)) 0 max(12px, env(safe-area-inset-left));
+}
+.app-shell.is-room > .topbar { flex-shrink: 0; height: auto; min-height: 58px; padding-top: env(safe-area-inset-top); gap: 8px; border-bottom: 0; }
+.app-shell.is-room > .error-banner { flex-shrink: 0; margin: 0 0 8px; }
+.app-shell.is-room > .room-page { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden; padding: 0; }
+.room-page > * { flex-shrink: 0; }
+.room-page > .room-fit {
+  flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
+  scrollbar-width: none; padding-bottom: calc(14px + env(safe-area-inset-bottom));
+}
+.room-page > .room-fit::-webkit-scrollbar { display: none; }
+.room-page:has(> .action-dock) > .room-fit { padding-bottom: 10px; }
+.room-page > .connection-banner, .room-page > .membership-notice { margin: 0 0 8px; }
+
+/* Progress strip */
+.room-progress-slim { margin: 0 0 8px; }
+.room-progress-slim-row { gap: 10px; }
+.room-progress-label { flex-shrink: 0; color: var(--text-3); font-size: 12px; }
+.room-progress-slim-row .room-progress-meter-track { height: 6px; background: var(--surface-3); }
+.room-progress-slim-row b { font-size: 13px; color: var(--primary); }
+
+/* Room tabs: one segmented control with the live dot at the end. */
+.room-panel-nav {
+  position: static; display: flex; align-items: center; gap: 4px; margin: 0 0 10px; padding: 4px;
+  border: 1px solid var(--line); border-radius: 14px; background: var(--surface-1); backdrop-filter: none; -webkit-backdrop-filter: none;
+}
+.room-panel-nav button { flex: 1; min-height: 40px; border: 0; border-radius: 10px; background: transparent; color: var(--text-3); font-size: 14px; font-weight: 600; }
+.room-panel-nav button.active { border: 0; background: var(--surface-3); color: var(--foreground); box-shadow: inset 0 1px 0 #ffffff12, 0 2px 8px #00000059; }
+.room-panel-nav button.your-turn::after { top: 7px; right: 10px; background: var(--primary); box-shadow: 0 0 0 3px #e3c27d33; animation: turn-dot 1.6s ease-in-out infinite; }
+@keyframes turn-dot { 50% { box-shadow: 0 0 0 6px #e3c27d00; } }
+.room-panel-nav .room-section-status { flex: 0 0 auto; display: inline-flex; align-items: center; margin: 0; padding: 0 8px 0 4px; }
+.room-panel-nav .room-section-status i { width: 8px; height: 8px; border-radius: 50%; background: var(--text-3); }
+.room-panel-nav .room-section-status.live i { background: var(--success); box-shadow: 0 0 0 3px #8fb8ec2e; }
+.room-panel-nav .room-section-status.offline i { background: var(--danger); }
+
+/* Cards inside the room */
+.room-page .table-panel, .room-page .game-panel, .room-page .action-card, .room-page .config-card, .room-page .player-notes {
+  margin: 0; border: 1px solid var(--line); border-radius: 20px; background: linear-gradient(180deg, #182035, #131a29); box-shadow: var(--shadow-card);
+}
+.room-page .table-panel { overflow: visible; padding: 14px; }
+.room-page .game-panel { padding: 14px; overflow: visible; }
+.room-page .action-card { padding: 16px; }
+.room-page .room-record { margin-top: 12px; }
+.room-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; width: 100%; max-width: none; margin: 0; }
+.room-layout:has(.lobby-ready) { max-width: none; }
+
+/* Lobby */
+.lobby-invite {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 12px; padding: 10px 10px 10px 14px;
+  border: 1px dashed #e3c27d66; border-radius: 14px; background: #e3c27d0d;
+}
+.lobby-invite small { display: block; color: var(--text-3); font-size: 11px; letter-spacing: 1px; }
+.lobby-invite b { color: var(--primary); font-size: 24px; font-weight: 700; letter-spacing: 4px; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.lobby-invite .secondary-button { flex-shrink: 0; min-height: 44px; padding: 8px 14px; }
+.lobby-join { margin: 10px 0 0; }
+.table-slot { display: flex; justify-content: center; }
+/* The table keeps a size its seats fit in; a short screen scrolls instead of squeezing it. */
+.room-page .live-table, .room-page .table-slot .roundtable {
+  width: min(100%, max(272px, calc(100dvh - 340px)), 380px); max-width: none; height: auto; margin: 14px auto 18px;
+}
+
+/* Seat numbers with the name underneath, never across the circle or the ready tick. */
+.seat-circle { border-color: var(--line-strong); background: var(--surface-3); color: var(--text-2); font-weight: 600; box-shadow: 0 0 0 5px #0c111d; }
+.seat-circle.occupied { border-color: #6f8fc4; background: #26375a; color: #f4f7ff; }
+.seat-circle.mine { border-color: #f5dfa8; background: linear-gradient(180deg, #edd291, #d8b36a); color: var(--primary-foreground); }
+.seat-circle:not(:disabled):hover { border-color: var(--primary); background: #2f3d5e; }
+.seat-check { background: var(--success); color: #0b1830; }
+.roundtable::before { border-color: #e3c27d33; background: radial-gradient(circle at 50% 40%, #1d2843, #111727 72%); box-shadow: inset 0 0 40px #00000066, 0 0 28px #0000004d; }
+.roundtable::after { border-color: #e3c27d1f; }
+.table-center { color: #d6b977; }
+.table-center p { color: var(--text-3); }
+.live-table .seat-position { width: 60px; }
+.live-table .seat-name, .room-page .live-table .seat-name {
+  position: static; left: auto; top: auto; transform: none; margin-top: 4px; max-width: 58px;
+  font-size: 11px; line-height: 1.3; color: var(--text-2); pointer-events: none;
+}
+.live-table .seat-name.mine { color: var(--primary); font-weight: 600; }
+@container (max-width: 300px) {
+  .live-table .seat-circle { width: 38px; height: 38px; min-width: 38px; min-height: 38px; font-size: 12px; box-shadow: 0 0 0 4px #0c111d; }
+  .live-table .seat-position { width: 52px; }
+  .live-table .seat-name { max-width: 50px; font-size: 10px; }
+}
+
+/* Pinned action bars: the lobby's ready/start buttons and the leader's team buttons
+   stick to the bottom of the scrolling area, above everything else. */
+.room-page .lobby-ready, .room-page .game-action-footer.leader-footer {
+  position: sticky; bottom: 0; z-index: 6; display: grid; justify-content: stretch; gap: 8px; max-width: none; margin: 12px 0 0; padding: 12px;
+  border: 1px solid #e3c27d4d; border-radius: 16px; background: #151b2b;
+  box-shadow: 0 -10px 28px #00000066;
+}
+.room-page .lobby-ready { grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
+.room-page .lobby-ready > .primary-button, .room-page .lobby-ready > .secondary-button { width: 100%; min-height: 50px; margin: 0; }
+.room-page .lobby-ready > .text-button.subtle { margin: 0; padding: 0 10px; min-height: 50px; white-space: nowrap; }
+.room-page .lobby-ready > .action-note { grid-column: 1 / -1; margin: 0; }
+/* On phones the game panel is a flex column ordered in game.css: keep the bar right after the table. */
+.room-page .game-action-footer.leader-footer { order: 1; flex-direction: column; align-items: stretch; padding-top: 10px; }
+.room-page .leader-footer > p { display: block; margin: 0; color: var(--text-2); font-size: 13px; line-height: 1.5; text-align: center; }
+.room-page .leader-footer .leader-footer-buttons { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 8px; }
+.room-page .leader-footer .leader-footer-buttons > button { width: 100%; min-width: 0; min-height: 48px; margin: 0; }
+
+/* Votes and quest cards: a dock under the scrolling area. */
+.room-page > .action-dock {
+  margin: 8px 0 calc(8px + env(safe-area-inset-bottom)); padding: 12px; gap: 8px;
+  border: 1px solid #e3c27d4d; border-radius: 18px; background: #141a29; box-shadow: 0 -10px 30px #00000073;
+}
+.room-page > .action-dock .action-dock-note { font-size: 12px; line-height: 1.5; color: var(--text-2); }
+.room-page > .action-dock .vote-actions { gap: 10px; }
+.room-page > .action-dock .ballot-choice { min-height: 64px; flex-direction: row; gap: 10px; padding: 10px; border-radius: 14px; }
+.room-page > .action-dock .ballot-choice strong { font-size: 19px; letter-spacing: 2px; }
+.room-page > .action-dock .primary-button { min-height: 48px; }
+.room-page > .action-dock .voter-progress { margin: 0; }
+
+/* In the game */
+.room-page .game-topline { margin-bottom: 12px; gap: 10px; }
+.room-page .game-score { gap: 8px; margin-bottom: 10px; }
+.room-page .game-score-side { min-height: 52px; padding: 8px 12px; border-radius: 14px; }
+.room-page .game-table-wrap { display: flex; flex-direction: column; align-items: center; margin: 4px 0; }
+.room-page .game-table { width: min(100%, max(288px, calc(100dvh - 380px)), 400px); max-width: none; height: auto; margin: 6px auto; }
+.room-page .game-table .seat-circle { width: 44px; height: 44px; min-width: 44px; min-height: 44px; }
+.room-page .game-table .seat-position { width: 62px; }
+.room-page .game-table .seat-name { max-width: 60px; }
+.game-table .seat-circle.on-team { background: linear-gradient(180deg, #f3db9f, #dcb96f); border: 3px solid #fff1c9; color: #1c1608; box-shadow: 0 0 0 4px #e3c27d, 0 0 0 8px #0c111d, 0 0 22px #e3c27d99; }
+/* The score reads as one line: the number already says what the dots said. */
+.room-page .game-score-side { grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px; }
+.room-page .game-score-side .score-dots { display: none; }
+.room-page .game-score-side > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.room-page .game-score-side > strong { white-space: nowrap; font-size: 24px; }
+/* Small tables (narrow phones, nine or ten seats): smaller seats and rings so neighbours never touch. */
+@container (max-width: 330px) {
+  .room-page .game-table .seat-circle { width: 36px; height: 36px; min-width: 36px; min-height: 36px; font-size: 12px; }
+  .room-page .game-table .seat-position { width: 50px; }
+  .room-page .game-table .seat-name { max-width: 50px; font-size: 10px; }
+  .game-table .seat-circle.on-team { border-width: 2px; box-shadow: 0 0 0 3px #e3c27d, 0 0 0 6px #0c111d, 0 0 14px #e3c27d80; }
+  .game-table .seat-mark-char, .game-table .seat-mark-open { top: -6px; right: -6px; width: 18px; height: 18px; font-size: 11px; }
+  .game-table .seat-badge-leader { top: -8px; width: 18px; height: 18px; }
+}
+
+/* Identity */
+.room-page .identity-card { padding: 16px; }
+.room-page .identity-surface { height: auto; min-height: min(380px, 56dvh); margin: 12px 0; border-color: var(--line-strong); border-radius: 18px; background: radial-gradient(ellipse at 50% 15%, #26365a40, transparent 75%), #111827; }
+.room-page .identity-surface.revealed .reveal-caption { background: #111827; }
+.room-page .identity-card > .primary-button, .room-page .identity-card > .secondary-button { position: sticky; bottom: 8px; z-index: 4; }
+/* Pinned buttons sit over content, so a disabled one is solid rather than see-through. */
+.room-page .identity-card > .primary-button:disabled, .room-page .lobby-ready > .primary-button:disabled, .room-page .leader-footer button:disabled {
+  opacity: 1; border-color: var(--line-strong); background: var(--surface-3); color: var(--text-3); box-shadow: none;
+}
+
+/* Notes fill the column like the other tabs. */
+.room-page .player-notes { overflow: hidden; padding: 14px; }
+.room-page .player-notes-footer { padding-top: 12px; color: var(--text-3); }
+.room-page .player-notes-footer .text-button.subtle { margin: 0; min-height: 40px; padding: 0 4px; }
+
+@media (min-width: 721px) {
+  .app-shell.is-room { padding-inline: 16px; }
+}
+@media (max-width: 360px) {
+  .room-code-chip span { display: none; }
+  .room-code-chip { padding: 0 10px; }
+  .board-rules-button { padding: 0 10px; }
+  .lobby-invite b { font-size: 21px; letter-spacing: 3px; }
+  .room-page .lobby-ready > .text-button.subtle { padding: 0 4px; font-size: 12px; }
+}

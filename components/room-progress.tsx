@@ -136,6 +136,7 @@ export function RoomProgress({ room, connected, live = false }: RoomProgressProp
   return (
     <section className="room-progress room-progress-slim" aria-label={t("房间进度")}>
       <div className="room-progress-slim-row">
+        <span className="room-progress-label">{progress.label}</span>
         <div
           className="room-progress-meter-track"
           role="progressbar"

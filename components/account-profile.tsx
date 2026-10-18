@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { ArrowLeft } from "lucide-react";
 import { achievementById, achievementProgress, liveAchievements, type Achievement } from "@/lib/achievements";
 import { useI18n } from "@/lib/i18n/react";
 import type { SignedAccount } from "./account-gate";
 import { FriendsPanel } from "./friends";
 
-export function AccountProfile({ account, onLogout, onTitle }: { account: SignedAccount; onLogout: () => void; onTitle: (title: string) => void }) {
+export function AccountProfile({ account, onLogout, onTitle, onClose }: { account: SignedAccount; onLogout: () => void; onTitle: (title: string) => void; onClose?: () => void }) {
   const { t } = useI18n();
   const [unlocked, setUnlocked] = useState<string[]>([]);
   const [showMissing, setShowMissing] = useState(false);
@@ -26,7 +27,8 @@ export function AccountProfile({ account, onLogout, onTitle }: { account: Signed
   const owned = unlocked.map(id => achievementById(id)).filter((item): item is Achievement => Boolean(item));
   const missing = liveAchievements().filter(item => !unlocked.includes(item.id));
   const shown = showMissing ? missing : owned;
-  return <section className="account-profile">
+  return <section className={`account-profile${onClose ? " is-sheet" : ""}`}>
+    {onClose && <button type="button" className="sheet-back" onClick={onClose}><ArrowLeft size={18} aria-hidden="true" />{t("回到房间")}</button>}
     <header className="account-profile-head">
       <div><p className={`worn-title${worn?.mark ? ` is-${worn.mark}` : ""}`}>{worn ? t(worn.name) : t("还没有称号")}</p><h1>{account.name}</h1><p>{account.canHost ? t("高级账号") : t("普通账号")}</p></div>
       <button type="button" className="text-button" onClick={onLogout}>{t("退出登录")}</button>

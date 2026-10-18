@@ -130,11 +130,16 @@ export function GamePanel({ room, busy, connected, error, act, onNewGame }: Prop
     </div>
     {teammates.length > 0 && <p className="teammate-line"><span>{t("你的队友")}</span>{teammates.map(item => <b key={item.seat}>{t("{n} 号", { n: item.seat })} · {t(ROLES[item.role].name)}</b>)}</p>}
     {room.phase === "team" && <div className="game-table-wrap">
-      <GameTable room={room} game={game} selection={selection} onToggle={room.phase === "team" && leader && !blocked ? toggleSeat : undefined} marks={marks} lockedSeats={Object.keys(clue.locked).map(Number)} evilSeats={clue.merlinSeats} onMark={room.meId && !blocked ? (seat, mark) => { if (markChangeAllowed(seat, mark, clue)) setMark(seat, mark); } : undefined} onProfile={setProfileId} center={room.phase === "team" && leader && selection.length > 0 ? <div className="table-center-actions">
-        <button type="button" className="secondary-button" disabled={blocked || !draftChanged} onClick={() => void act("draft", { turnId: game.turnId, team: selection })}><Eye size={16} aria-hidden="true" />{drafted ? t("改车") : t("亮车")}</button>
-        <button className="primary-button" disabled={blocked || selection.length !== game.teamSize} onClick={() => setPending({ action: "propose", input: { turnId: game.turnId, team: selection }, title: game.rejections >= 2 ? t("第三车直接出发？") : t("发起表决？"), description: game.rejections >= 2 ? t("队员：{seats}。这支队伍不表决，马上执行任务。", { seats: seatsLabel(selection) }) : t("队员：{seats}。发起后全员表决，这一车不能再改。", { seats: seatsLabel(selection) }), label: game.rejections >= 2 ? t("直接出发") : t("发起表决") })}>{game.rejections >= 2 ? t("直接出发") : t("发起表决")}<ArrowRight size={17} /></button>
-      </div> : undefined} />
+      <GameTable room={room} game={game} selection={selection} onToggle={room.phase === "team" && leader && !blocked ? toggleSeat : undefined} marks={marks} lockedSeats={Object.keys(clue.locked).map(Number)} evilSeats={clue.merlinSeats} onMark={room.meId && !blocked ? (seat, mark) => { if (markChangeAllowed(seat, mark, clue)) setMark(seat, mark); } : undefined} onProfile={setProfileId} />
       <LeaderOrder room={room} game={game} />
+    </div>}
+    {/* The leader's buttons stay pinned to the bottom of the screen instead of inside the table. */}
+    {room.phase === "team" && leader && <div className="game-action-footer leader-footer">
+      <p role="status">{selection.length === game.teamSize ? t("队伍已选好：{seats}", { seats: seatsLabel(selection) }) : t("在圆桌上点选 {n} 名队员 · 已选 {k}", { n: game.teamSize, k: selection.length })}</p>
+      <div className="leader-footer-buttons">
+        <button type="button" className="secondary-button" disabled={blocked || !draftChanged || selection.length === 0} onClick={() => void act("draft", { turnId: game.turnId, team: selection })}><Eye size={16} aria-hidden="true" />{drafted ? t("改车") : t("亮车")}</button>
+        <button className="primary-button" disabled={blocked || selection.length !== game.teamSize} onClick={() => setPending({ action: "propose", input: { turnId: game.turnId, team: selection }, title: game.rejections >= 2 ? t("第三车直接出发？") : t("发起表决？"), description: game.rejections >= 2 ? t("队员：{seats}。这支队伍不表决，马上执行任务。", { seats: seatsLabel(selection) }) : t("队员：{seats}。发起后全员表决，这一车不能再改。", { seats: seatsLabel(selection) }), label: game.rejections >= 2 ? t("直接出发") : t("发起表决") })}>{game.rejections >= 2 ? t("直接出发") : t("发起表决")}<ArrowRight size={17} /></button>
+      </div>
     </div>}
     <p className="quest-rule-note">{room.capacity >= 7 ? t("第 4 次任务需要 2 张失败牌才会失败，其余任务 1 张即失败。") : t("任务中出现 1 张失败牌，该次任务即失败。")}</p>
     {game.loyalty && <div className="loyalty-track" role="group" aria-label={t("兰斯洛特忠诚牌")}>

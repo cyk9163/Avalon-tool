@@ -12,6 +12,8 @@ import "./progress.css";
 import "./recovery.css";
 import "./docs.css";
 import "./mobile.css";
+// v2.0: room shell, header, lobby and home look (also feeds the generated light theme).
+import "./shell.css";
 // v1.11: generated light theme (scripts/theme-light.mjs), then hand-tuned exceptions.
 import "./theme-light.css";
 import "./theme-light-tweaks.css";

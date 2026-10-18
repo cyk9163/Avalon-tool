@@ -3,6 +3,9 @@ import { expectNoHorizontalScroll, Player, startedGame, TEST_HOST_KEY } from "./
 
 const seatButton = (page: Page, seat: number) =>
   page.locator("#room-game .game-table").getByRole("button", { name: new RegExp(`^${seat} 号`) });
+// A seat on any phone's table (a button or, for your own seat, an image); its label says when it is on the shown team.
+const seatFace = (page: Page, seat: number) =>
+  page.locator(`#room-game .game-table .seat-circle[aria-label^="${seat} 号，"]`);
 
 test("public pages fit the phone without sideways scrolling", async ({ page }) => {
   for (const path of ["/", "/rules", "/privacy"]) {
@@ -30,17 +33,17 @@ test("the leader shows a team on the table, changes it and calls the vote; the t
     const box = await footer.boundingBox();
     expect(box!.y + box!.height).toBeLessThanOrEqual(leaderPage.viewportSize()!.height + 1);
 
-    // 亮车: everyone else sees the shown team without reloading.
+    // 亮车: everyone else sees the shown team on their own table without reloading.
     await leaderPage.getByRole("button", { name: "亮车" }).click();
-    const draft = otherPage.locator(".draft-view");
-    await expect(draft).toContainText("队长亮车", { timeout: 5_000 });
-    await expect(draft).toContainText(`${game.other.seat}`);
+    await expect(seatFace(otherPage, game.other.seat)).toHaveAttribute("aria-label", /队长亮车/, { timeout: 5_000 });
+    await expect(seatFace(otherPage, game.leader.seat)).toHaveAttribute("aria-label", /队长亮车/);
 
     // 改车 after the table has talked.
     await seatButton(leaderPage, game.other.seat).click();
     await seatButton(leaderPage, third.seat).click();
     await leaderPage.getByRole("button", { name: "改车" }).click();
-    await expect(draft.locator(".team-member b")).toHaveText([game.leader.seat, third.seat].sort((a, b) => a - b).map(String), { timeout: 5_000 });
+    await expect(seatFace(otherPage, third.seat)).toHaveAttribute("aria-label", /队长亮车/, { timeout: 5_000 });
+    await expect(seatFace(otherPage, game.other.seat)).not.toHaveAttribute("aria-label", /队长亮车/);
 
     // 发起表决 behind a confirmation.
     await leaderPage.getByRole("button", { name: "发起表决" }).click();
@@ -94,7 +97,7 @@ test("losing the network shows reconnecting and the room recovers by itself", as
 
     await game.other.context.setOffline(false);
     await expect(status).toHaveAttribute("aria-label", /实时|已同步/, { timeout: 20_000 });
-    await expect(page.locator(".draft-view")).toContainText("队长亮车", { timeout: 20_000 });
+    await expect(seatFace(page, game.leader.seat)).toHaveAttribute("aria-label", /队长亮车/, { timeout: 20_000 });
   } finally {
     await game.close();
   }
@@ -146,12 +149,14 @@ test("tapping a role name opens what that role sees, who sees it and its cards",
     const page = await context.newPage();
     await page.goto(`/?room=${code}`);
     // Every lobby card spans the full phone width (v1.6 rules card once pushed the grid into two columns).
-    await expect(page.locator(".rules-card")).toBeVisible();
+    await expect(page.locator(".room-table")).toBeVisible();
     const widths = await page.locator(".room-layout > .room-table, .room-side > *").evaluateAll(cards => cards.map(card => card.getBoundingClientRect().width));
     const layout = await page.locator(".room-layout").evaluate(element => element.getBoundingClientRect().width);
     for (const width of widths) expect(width).toBeGreaterThan(layout - 2);
-    await page.locator(".config-card").getByRole("button", { name: "查看角色说明：梅林" }).click();
-    const dialog = page.getByRole("dialog");
+    // The board and its roles sit behind 规则 in the top bar (v1.19.4).
+    await page.getByRole("button", { name: "规则", exact: true }).click();
+    await page.getByRole("dialog").getByRole("button", { name: "查看角色说明：梅林" }).click();
+    const dialog = page.getByRole("dialog").filter({ has: page.getByRole("heading", { name: "梅林" }) });
     await expect(dialog).toContainText("除莫德雷德外的所有邪恶玩家");
     await expect(dialog).toContainText("只能出成功");
     await expectNoHorizontalScroll(page);

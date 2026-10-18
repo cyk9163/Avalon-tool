@@ -82,6 +82,8 @@ export const GAME: Record<string, string> = {
   "改动还没亮给大家：点「改车」更新，或直接发起表决。": "Your changes aren't shown yet: tap \"Change team\" to update, or call the vote now.",
   "改车": "Change team",
   "亮车": "Show team",
+  "队伍已选好：{seats}": "Team picked: {seats}",
+  "在圆桌上点选 {n} 名队员 · 已选 {k}": "Tap {n} players on the table · {k} picked",
   "发起表决？": "Call the vote?",
   "队员：{seats}。发起后全员表决，这一车不能再改。": "Team: {seats}. Everyone votes next, and this team can't be changed any more.",
   "发起表决": "Call the vote",

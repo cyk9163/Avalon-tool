@@ -9,14 +9,12 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import postcss from "postcss";
 
-const SOURCES = ["globals", "game", "pwa", "management", "progress", "recovery", "docs", "mobile"].map(name => `app/${name}.css`);
+const SOURCES = ["globals", "game", "pwa", "management", "progress", "recovery", "docs", "mobile", "shell"].map(name => `app/${name}.css`);
 const OUTPUT = "app/theme-light.css";
 const SCOPE = ':root[data-theme="light"]';
 const HEX = /#([0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})\b/gi;
 const SHADOW_PROPS = new Set(["box-shadow", "text-shadow", "filter"]);
 const COLOR_PROP = /^(color|background(-color|-image)?|border(-(top|right|bottom|left))?(-color)?|outline(-color)?|box-shadow|text-shadow|fill|stroke|caret-color|accent-color|text-decoration(-color)?|--[\w-]+)$/;
-// The home page's create/join card is already a light card.
-const LIGHT_CARD = ["entry-", ".field", "legend", ".count-", ".preset-", ".custom-board", ".custom-role", ".template-", ".module-toggle", ".host-key", ".join-intro"];
 
 const toLinear = value => (value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
 const toGamma = value => (value <= 0.0031308 ? 12.92 * value : 1.055 * value ** (1 / 2.4) - 0.055);
@@ -93,8 +91,6 @@ export function buildLightTheme() {
       else if (rule.name === "layer") rule.replaceWith(rule.nodes ?? []);
     });
     root.walkRules(rule => {
-      // The home page's create/join card is already a light card: its rules stay as they are.
-      if (rule.selectors.some(selector => LIGHT_CARD.some(key => selector.includes(key)))) { rule.remove(); return; }
       rule.walkDecls(decl => {
         HEX.lastIndex = 0;
         if (decl.prop === "color-scheme") { decl.value = "light"; return; }

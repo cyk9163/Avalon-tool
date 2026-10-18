@@ -1,12 +1,12 @@
 .room-progress {
-  --progress-card: #132327;
-  --progress-raised: #192e31;
-  --progress-border: #2a4144;
-  --progress-text: #f4f0e6;
-  --progress-muted: #a4b5b2;
-  --progress-gold: #dbc18a;
-  --progress-success: #9bcab7;
-  --progress-danger: #e9a59c;
+  --progress-card: #182030;
+  --progress-raised: #202a3e;
+  --progress-border: #323c53;
+  --progress-text: #ecf0fa;
+  --progress-muted: #abb1be;
+  --progress-gold: #ddc185;
+  --progress-success: #a0c1e7;
+  --progress-danger: #ed998e;
   min-width: 0;
   margin: 0 0 12px;
   padding: 10px 14px 12px;
@@ -76,12 +76,12 @@
 .room-progress-steps .is-current .room-progress-step-number {
   border-color: var(--progress-gold);
   background: var(--progress-gold);
-  color: #132327;
+  color: #182030;
   font-weight: 700;
 }
 
 .room-progress-steps .is-complete .room-progress-step-number {
-  border-color: #3c5852;
+  border-color: #44516e;
   background: var(--progress-raised);
   color: var(--progress-success);
 }
@@ -242,91 +242,3 @@
 .room-progress-slim-row { display: flex; align-items: center; gap: 10px; }
 .room-progress-slim-row .room-progress-meter-track { flex: 1; margin: 0; }
 .room-progress-slim-row b { flex-shrink: 0; font-size: 14px; font-weight: 650; font-variant-numeric: tabular-nums; color: var(--progress-gold); }
-.app-shell:has(.is-lobby) { height: 100dvh; overflow: hidden; display: flex; flex-direction: column; }
-.is-lobby { flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; padding-top: 8px; padding-bottom: 8px; }
-.is-lobby .room-fit, .is-lobby .room-fit > div:not([hidden]) { flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
-.is-lobby .room-layout { flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; width: 100%; max-width: 520px; margin-inline: auto; }
-.is-lobby .room-table { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden; align-self: stretch; width: 100%; max-width: none; }
-.is-lobby .live-table { max-width: none; width: min(100cqw, 100cqh); }
-.is-lobby .table-slot { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; container-type: size; overflow: hidden; }
-.is-lobby .table-slot .roundtable { width: min(100cqw, 100cqh); max-width: 100%; max-height: 100%; height: auto; margin: 0; }
-.is-lobby .lobby-ready, .is-lobby .text-fold, .is-lobby .table-caption, .is-lobby .membership-notice, .is-lobby .lobby-join { flex-shrink: 0; }
-.is-lobby .lobby-join { margin: 0 0 8px; }
-.is-lobby .lobby-join .field { margin: 0; }
-.is-lobby .lobby-join .action-note { margin: 8px 0 0; }
-.is-lobby .table-slot { min-height: 220px; flex: 1 0 220px; }
-html:has(.is-lobby), html:has(.is-notes), html:has(.is-identity), html:has(.is-play),
-body:has(.is-lobby), body:has(.is-notes), body:has(.is-identity), body:has(.is-play) { height: 100%; overflow: hidden; overscroll-behavior: none; }
-.app-shell:has(.is-notes) { height: 100dvh; overflow: hidden; display: flex; flex-direction: column; }
-.app-shell:has(.is-notes) > * { flex-shrink: 0; }
-.is-notes { flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; padding-top: 8px; padding-bottom: 8px; }
-.is-notes .room-panel-nav, .is-notes .room-progress, .is-notes .action-dock, .is-notes .connection-banner, .is-notes .membership-notice { flex-shrink: 0; }
-.is-notes .room-fit, .is-notes .room-fit > div:not([hidden]) { flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
-.is-notes .player-notes { flex: 1; min-height: 0; margin: 0; display: flex; flex-direction: column; overflow: hidden; border: 0; background: transparent; }
-.is-notes .action-dock { margin-bottom: 0; }
-.app-shell:has(.is-identity) { height: 100dvh; overflow: hidden; display: flex; flex-direction: column; }
-.app-shell:has(.is-identity) > * { flex-shrink: 0; }
-.is-identity { flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; padding-top: 8px; padding-bottom: 8px; }
-.is-identity .room-panel-nav, .is-identity .room-progress, .is-identity .action-dock, .is-identity .connection-banner, .is-identity .membership-notice { flex-shrink: 0; }
-.is-identity .room-fit, .is-identity #room-identity { flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
-.is-identity .identity-card { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
-.is-identity .identity-heading, .is-identity .reveal-caption, .is-identity .action-note, .is-identity .ready-notice, .is-identity .room-record { flex-shrink: 0; }
-.is-identity .identity-surface { flex: 1; height: auto; min-height: 0; margin: 8px 0; overflow: auto; }
-.is-identity .identity-surface.revealed > * { flex-shrink: 0; }
-.is-identity .ready-notice { margin-top: 8px; padding-top: 8px; }
-.is-identity .room-record { max-height: 30%; overflow: auto; }
-.app-shell:has(.is-play) { height: 100dvh; overflow: hidden; display: flex; flex-direction: column; }
-.app-shell:has(.is-play) > * { flex-shrink: 0; }
-.is-play { flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; padding-top: 8px; padding-bottom: 8px; }
-.is-play .room-panel-nav, .is-play .room-progress, .is-play .action-dock, .is-play .connection-banner, .is-play .membership-notice { flex-shrink: 0; }
-.is-play .room-fit, .is-play .room-fit > div:not([hidden]) { flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
-.is-play .game-panel { flex: 1; min-height: 0; overflow: auto; display: flex; flex-direction: column; margin: 0; padding: 12px; }
-.is-play .game-topline, .is-play .game-score, .is-play .quest-context, .is-play .speech-bar, .is-play .proposed-team, .is-play .teammate-line, .is-play .game-history { flex-shrink: 0; }
-.is-play .phase-finished.game-panel { overflow: auto; padding-bottom: calc(28px + env(safe-area-inset-bottom)); }
-.is-play .phase-finished.game-panel > * { flex-shrink: 0; }
-.is-play .game-table-wrap { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; container-type: size; margin: 0; overflow: hidden; padding-block: 4px; box-sizing: border-box; }
-.is-play .game-table { width: auto; height: 100%; max-width: 100%; max-height: 100%; aspect-ratio: 1; margin: 0; flex: 0 0 auto; }
-.is-play .phase-vote .proposed-team { margin-top: 10px; margin-bottom: 0; }
-.is-play .phase-quest .proposed-team { margin-top: 8px; margin-bottom: 0; padding: 8px 12px; gap: 10px; }
-.is-play:has(.action-dock) .game-panel { padding-bottom: 8px; }
-.is-play .action-dock { margin: 8px 0; padding: 10px 12px; gap: 6px; }
-.is-play .action-dock-note { font-size: 12px; line-height: 1.45; }
-.is-play .action-dock .ballot-choice { min-height: 62px; gap: 6px; padding: 8px; }
-.is-play .action-dock .ballot-choice strong { font-size: 18px; }
-.is-play .action-dock .primary-button { min-height: 44px; }
-/* A wide monitor still shows the room as a phone column, so the phone's
-   score layout does not apply. Keep the digits intact and the table inside its slot. */
-@media (min-width: 721px) {
-  .app-shell.is-room .score-dots { display: none; }
-  .app-shell.is-room .game-score { gap: 8px; margin-bottom: 8px; }
-  .app-shell.is-room .game-score-side {
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    gap: 6px;
-    min-height: 48px;
-    padding: 8px 10px;
-  }
-  .app-shell.is-room .game-score-side > span { font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .app-shell.is-room .game-score-side > strong { font-size: 22px; gap: 4px; white-space: nowrap; }
-  .app-shell.is-room .game-score-side > strong > small { font-size: 12px; }
-  .app-shell.is-room .is-play .game-table-wrap { overflow: hidden; }
-  .app-shell.is-room .is-play .game-table { width: auto; height: 100%; max-width: 100%; max-height: 100%; }
-  .app-shell.is-room .game-table .seat-circle { width: 36px; height: 36px; min-width: 36px; min-height: 36px; }
-  .app-shell.is-room .game-table .seat-position { width: 48px; }
-  .app-shell.is-room .game-table .seat-name { max-width: 48px; font-size: 10px; }
-}
-@media (max-width: 720px) and (orientation: portrait) {
-  .app-shell.is-room:has(.is-lobby),
-  .app-shell.is-room:has(.is-play),
-  .app-shell.is-room:has(.is-notes),
-  .app-shell.is-room:has(.is-identity) {
-    width: 100%;
-    max-width: none;
-    height: 100dvh;
-    max-height: 100dvh;
-    margin: 0;
-    padding-left: max(12px, env(safe-area-inset-left));
-    padding-right: max(12px, env(safe-area-inset-right));
-    padding-bottom: 0;
-    overflow: hidden;
-  }
-}

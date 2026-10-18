@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { ArrowLeft } from "lucide-react";
 import { ROLES, type Role } from "@/lib/game";
 import { useI18n } from "@/lib/i18n/react";
 import { formatPlayedAt } from "@/lib/played-at";
@@ -11,7 +12,7 @@ import { RecordRow } from "./record-row";
 type GameRow = { code: string; round: number; at: number; role: string; side: "good" | "evil"; winner: "good" | "evil"; mvp: number; fact?: string | null; score?: number | null };
 type Stats = { total: number; won: number; bySide: { good: { played: number; won: number }; evil: { played: number; won: number } }; byRole: { role: string; played: number; won: number }[] };
 
-export function MatchHistory() {
+export function MatchHistory({ onClose }: { onClose?: () => void }) {
   const { t } = useI18n();
   const [stats, setStats] = useState<Stats | null>(null);
   const [games, setGames] = useState<GameRow[]>([]);
@@ -23,7 +24,8 @@ export function MatchHistory() {
     });
   }, []);
   const rate = (won: number, played: number) => played ? `${Math.round(won / played * 100)}%` : "—";
-  return <section className="account-profile">
+  return <section className={`account-profile${onClose ? " is-sheet" : ""}`}>
+    {onClose && <button type="button" className="sheet-back" onClick={onClose}><ArrowLeft size={18} aria-hidden="true" />{t("回到房间")}</button>}
     <h1>{t("历史战绩")}</h1>
     {stats && <div className="account-stats history-rates">
       <p><b>{rate(stats.won, stats.total)}</b><span>{t("总胜率")}</span></p>

@@ -8,14 +8,14 @@
   padding: 10px 13px;
   border: 1px solid var(--border);
   border-radius: 10px;
-  background: #13232780;
-  color: #c6d0c6;
+  background: #18203080;
+  color: #c7cdd9;
   font-size: 12px;
   font-weight: 500;
   white-space: nowrap;
   transition: color .16s ease, border-color .16s ease, background .16s ease;
 }
-.install-app-button:hover { border-color: #536957; background: var(--surface-raised, #192e31); color: var(--primary); }
+.install-app-button:hover { border-color: #596377; background: var(--surface-raised, #202a3e); color: var(--primary); }
 .install-app-button:focus-visible { outline: 2px solid var(--primary); outline-offset: 4px; }
 .install-app-button svg { flex-shrink: 0; }
 .install-app-dialog { max-height: calc(100dvh - 40px); overflow-y: auto; overscroll-behavior: contain; }
@@ -25,28 +25,28 @@
   width: 54px;
   height: 54px;
   margin-bottom: 3px;
-  border: 1px solid #dbc18a45;
+  border: 1px solid #ddc18545;
   border-radius: 15px;
-  background: #dbc18a0a;
+  background: #ddc1850a;
   color: var(--primary);
 }
 .install-session-note {
   margin: 2px 0;
   padding: 14px 16px;
-  border: 1px solid #dbc18a38;
+  border: 1px solid #ddc18538;
   border-radius: 11px;
-  background: #dbc18a08;
-  color: #c8c7b3;
+  background: #ddc18508;
+  color: #bdc6d8;
   font-size: 13px;
   line-height: 1.8;
 }
-.install-session-note strong { color: #e8d6af; font-weight: 600; }
-.install-app-steps { list-style: decimal; margin: 0; padding-left: 25px; color: #d2dbd2; font-size: 14px; line-height: 1.85; }
+.install-session-note strong { color: #e9d6ac; font-weight: 600; }
+.install-app-steps { list-style: decimal; margin: 0; padding-left: 25px; color: #d3d8e3; font-size: 14px; line-height: 1.85; }
 .install-app-steps li { padding-left: 5px; }
 .install-app-steps li::marker { color: var(--primary); font-size: 12px; font-weight: 600; }
 .install-app-steps li + li { margin-top: 12px; }
 .install-online-note { margin: 0; padding-top: 15px; border-top: 1px solid var(--border); color: var(--muted-foreground); font-size: 12px; line-height: 1.8; }
-.install-app-message { margin: 0; padding: 12px 14px; border: 1px solid #dbc18a38; border-radius: 10px; background: #dbc18a08; color: #e8d6af; font-size: 13px; line-height: 1.8; }
+.install-app-message { margin: 0; padding: 12px 14px; border: 1px solid #ddc18538; border-radius: 10px; background: #ddc18508; color: #e9d6ac; font-size: 13px; line-height: 1.8; }
 .install-app-dialog .primary-button, .install-app-dialog .secondary-button { min-height: 48px; }
 @media (max-width: 720px) {
   .header-right .edition { display: none; }

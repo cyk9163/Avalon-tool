@@ -30,6 +30,8 @@ test("a member can step through the replay, and the result is saved on this devi
     expect((await game.players[0].get(code)).phase).toBe("finished");
 
     const page = await game.leader.open(code);
+    // The settlement sheet (v1.19.77) comes first; 看复盘 closes it.
+    await page.getByRole("dialog", { name: "本局结算" }).getByRole("button", { name: "看复盘" }).click();
     const replay = page.getByRole("region", { name: "回放" });
     await expect(replay).toBeVisible();
     await expect(replay.getByRole("button", { name: "上一步" })).toBeDisabled();
