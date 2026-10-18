@@ -1,5 +1,12 @@
 # 更新记录
 
+## 2.0.1 · 依赖安全更新 · 2026-10-19
+
+不改功能。
+
+- `npm run audit:prod` 重新为 0。next 16.3.4 → 16.3.8：七条 Next.js 公告（含 next/og 远程执行、缓存投毒、图片优化 SSRF）都在 16.3.8 修好，所以留在 16.3 小版本，不升 16.4。`overrides.miniflare.sharp` 0.35.4 → 0.35.5，修 librsvg 漏洞。`npm audit fix`（不加 --force）把 source-map-js 升到 1.2.2。锁文件里只有这三组包和 sharp 自带的平台二进制有变化，其余依赖不动。
+- 集成测试 `tests/v08-integration.mjs` 不再期待本地页面带 `frame-ancestors 'none'` 和 `X-Frame-Options: DENY`。v1.17 起本地和 staging 是控制台主机，`/solo` 要在同源框架里放各个座位，所以这两项放宽为 `'self'` 和 `SAMEORIGIN`。测试改成检查放宽后的值，仍检查 `object-src 'none'`。正式域名的 `'none'` 和 `DENY` 不变，由 `tests/security.test.mjs` 检查。
+
 ## 2.0.0 · 新界面 · 2026-10-18
 
 - 换了一套配色：深夜蓝的桌面、烛光金的按钮。好人一侧用蓝色，坏人一侧用红色，赞成和成功是蓝，反对和失败是红。浅色主题跟着重新生成。

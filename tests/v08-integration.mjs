@@ -33,8 +33,10 @@ const ok = response => { assert.equal(response.status, 200, JSON.stringify(respo
   const page = await fetch(`${base}/`);
   assert.equal(page.status, 200);
   const csp = page.headers.get("content-security-policy");
-  assert.ok(csp?.includes("frame-ancestors 'none'") && csp.includes("object-src 'none'"), `page CSP: ${csp}`);
-  assert.equal(page.headers.get("x-frame-options"), "DENY");
+  // A local host is a control host, so the /solo desk may frame its own seats;
+  // production keeps 'none' and DENY (tests/security.test.mjs covers that).
+  assert.ok(csp?.includes("frame-ancestors 'self'") && !csp.includes("frame-ancestors 'none'") && csp.includes("object-src 'none'"), `page CSP: ${csp}`);
+  assert.equal(page.headers.get("x-frame-options"), "SAMEORIGIN");
   assert.equal(page.headers.get("referrer-policy"), "same-origin");
   const health = await fetch(`${base}/api/health`);
   assert.equal(health.status, 200);
